@@ -1,0 +1,5 @@
+knn_correction: low_conf_only
+confidence_high: 0.7
+confidence_low: 0.4
+margin_threshold: 0.2
+knn_k: 15

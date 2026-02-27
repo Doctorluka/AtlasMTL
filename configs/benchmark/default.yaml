@@ -1,0 +1,13 @@
+metrics:
+  - macro_f1
+  - balanced_accuracy
+  - ece
+  - brier
+  - aurc
+  - runtime
+  - memory
+comparators:
+  - scanvi
+  - celltypist
+  - singler
+  - projectsvr

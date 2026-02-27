@@ -1,0 +1,10 @@
+latent_source: internal_preferred
+task_weights: [1.0, 1.0, 1.0, 1.0]
+coord_loss_weights:
+  latent: 0.5
+  umap: 0.2
+hidden_sizes: [256, 128]
+dropout_rate: 0.3
+num_epochs: 40
+batch_size: 256
+learning_rate: 0.001
