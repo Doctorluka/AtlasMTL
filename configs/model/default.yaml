@@ -8,3 +8,9 @@ dropout_rate: 0.3
 num_epochs: 40
 batch_size: 256
 learning_rate: 0.001
+input_transform: binary
+val_fraction: 0.0
+early_stopping_patience:
+early_stopping_min_delta: 0.0
+random_state: 42
+reference_storage: external

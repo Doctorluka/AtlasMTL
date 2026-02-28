@@ -17,7 +17,8 @@ class AtlasMTLModel(nn.Module):
     ) -> None:
         super().__init__()
         hidden_sizes = hidden_sizes or [256, 128]
-        coord_dims = coord_dims or {"latent": 16, "umap": 2}
+        if coord_dims is None:
+            coord_dims = {"latent": 16, "umap": 2}
 
         self.input_size = input_size
         self.num_classes = num_classes
