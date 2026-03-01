@@ -28,6 +28,14 @@ Current project-level conclusion from this run:
   - KNN correction evaluation
   - coordinate-regression or coordinate-metric evaluation
 
+Runtime/resource recording status:
+
+- yes, runtime fields were recorded for all completed methods in the benchmark
+  `metrics.json`
+- AtlasMTL recorded both elapsed time and peak RSS on this run
+- most comparator wrappers currently record elapsed time but still leave
+  `process_peak_rss_gb` as `null`
+
 Recommended next action after this run:
 
 1. preserve `all_methods_final_v2` as the canonical sampled single-level bundle
