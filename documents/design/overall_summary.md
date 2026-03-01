@@ -291,6 +291,7 @@ bundle is:
 
 - `model.pth`
 - `model_metadata.pkl`
+- `model_feature_panel.json` when preprocessing defines a feature panel
 - `model_reference.pkl`
 - `model_manifest.json`
 

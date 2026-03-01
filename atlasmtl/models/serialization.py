@@ -7,9 +7,11 @@ from typing import Optional
 import torch
 
 from ..core.model import AtlasMTLModel
+from ..preprocess import FeaturePanel, load_feature_panel, save_feature_panel
 from .checksums import artifact_checksums
 from .manifest import (
     build_manifest_payload,
+    default_feature_panel_path,
     default_manifest_path,
     default_metadata_path,
     resolve_manifest_paths,
@@ -22,6 +24,12 @@ def save_trained_model_metadata(trained_model, path: str) -> None:
     trained_model.model.save(path)
     reference_storage = trained_model.reference_storage
     reference_path = trained_model.reference_path
+    preprocess_metadata = trained_model.train_config.get("preprocess") if isinstance(trained_model.train_config, dict) else None
+    feature_panel_payload = preprocess_metadata.get("feature_panel") if isinstance(preprocess_metadata, dict) else None
+    feature_panel_path = None
+    if isinstance(feature_panel_payload, dict):
+        feature_panel_path = default_feature_panel_path(path)
+        save_feature_panel(FeaturePanel.from_dict(feature_panel_payload), feature_panel_path)
     if reference_storage == "external":
         reference_path = resolve_reference_path(path, reference_path)
         save_reference_data(trained_model.reference_data, reference_path)
@@ -53,6 +61,7 @@ def save_trained_model_metadata(trained_model, path: str) -> None:
             "model_path": str(Path(path).resolve()),
             "metadata_path": str(Path(meta_path).resolve()),
             "reference_path": None if reference_storage != "external" else str(Path(reference_path).resolve()),
+            "feature_panel_path": None if not feature_panel_path else str(Path(feature_panel_path).resolve()),
         }
     )
     save_manifest(
@@ -62,7 +71,8 @@ def save_trained_model_metadata(trained_model, path: str) -> None:
             reference_storage=reference_storage,
             reference_path=reference_path,
             input_transform=trained_model.input_transform,
-            preprocess=trained_model.train_config.get("preprocess") if isinstance(trained_model.train_config, dict) else None,
+            feature_panel_path=feature_panel_path,
+            preprocess=preprocess_metadata,
             checksums=checksums,
         ),
         manifest_path,
@@ -84,6 +94,7 @@ def _resolve_artifact_paths(path: str) -> dict[str, Optional[str]]:
         "metadata_path": str(Path(default_metadata_path(path)).resolve()),
         "reference_storage": "full",
         "reference_path": None,
+        "feature_panel_path": None,
         "input_transform": "binary",
         "preprocess": None,
     }
@@ -117,6 +128,13 @@ def load_trained_model_metadata(cls, path: str, device: Optional[torch.device] =
     meta.setdefault("reference_storage", reference_storage)
     meta.setdefault("input_transform", artifact_paths.get("input_transform", "binary"))
     meta.setdefault("train_config", {})
-    if artifact_paths.get("preprocess") and "preprocess" not in meta["train_config"]:
-        meta["train_config"]["preprocess"] = artifact_paths.get("preprocess")
+    preprocess_meta = dict(meta["train_config"].get("preprocess") or {})
+    if artifact_paths.get("preprocess"):
+        preprocess_meta.update(dict(artifact_paths.get("preprocess") or {}))
+    feature_panel_path = artifact_paths.get("feature_panel_path")
+    if feature_panel_path:
+        feature_panel = load_feature_panel(feature_panel_path)
+        preprocess_meta["feature_panel"] = feature_panel.to_dict()
+    if preprocess_meta:
+        meta["train_config"]["preprocess"] = preprocess_meta
     return cls(model=model, **meta)

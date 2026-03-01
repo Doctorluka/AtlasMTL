@@ -5,6 +5,7 @@ import pandas as pd
 from anndata import AnnData
 
 from atlasmtl import PreprocessConfig, build_model, predict, preprocess_query, preprocess_reference
+from atlasmtl.models import default_feature_panel_path, default_manifest_path, load_manifest
 
 
 def _mapping_table(tmp_path):
@@ -61,6 +62,12 @@ def test_preprocess_reference_and_query_roundtrip(tmp_path):
         device="cpu",
     )
     assert "preprocess" in model.train_config
+    model_path = tmp_path / "model_preprocessed.pth"
+    model.save(str(model_path))
+    manifest = load_manifest(str(default_manifest_path(str(model_path))))
+    assert manifest["feature_panel_path"] == "model_preprocessed_feature_panel.json"
+    assert (tmp_path / "model_preprocessed_feature_panel.json").exists()
+    assert default_feature_panel_path(str(model_path)).endswith("model_preprocessed_feature_panel.json")
 
     query = AnnData(X=np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32), obs=pd.DataFrame(index=["q1", "q2"]))
     query.var_names = ["GATA1", "CD3D"]

@@ -27,6 +27,10 @@ def default_metadata_path(model_path: str) -> str:
     return model_path.replace(".pth", "_metadata.pkl")
 
 
+def default_feature_panel_path(model_path: str) -> str:
+    return model_path.replace(".pth", "_feature_panel.json")
+
+
 def _relative_to_parent(path: Optional[str], parent: Path) -> Optional[str]:
     if not path:
         return None
@@ -42,6 +46,7 @@ def build_manifest_payload(
     reference_storage: str,
     reference_path: Optional[str],
     input_transform: str,
+    feature_panel_path: Optional[str] = None,
     preprocess: Optional[Dict[str, object]] = None,
     checksums: Optional[Dict[str, str]] = None,
 ) -> Dict[str, object]:
@@ -54,6 +59,8 @@ def build_manifest_payload(
         "reference_path": _relative_to_parent(reference_path, parent),
         "input_transform": input_transform,
     }
+    if feature_panel_path:
+        payload["feature_panel_path"] = _relative_to_parent(feature_panel_path, parent)
     if preprocess:
         payload["preprocess"] = dict(preprocess)
     if checksums:
@@ -86,6 +93,7 @@ def resolve_manifest_paths(manifest_path: str) -> Dict[str, Optional[str]]:
         "metadata_path": _resolve("metadata_path"),
         "reference_storage": manifest.get("reference_storage", "full"),
         "reference_path": _resolve("reference_path"),
+        "feature_panel_path": _resolve("feature_panel_path"),
         "input_transform": manifest.get("input_transform", "binary"),
         "preprocess": manifest.get("preprocess"),
     }

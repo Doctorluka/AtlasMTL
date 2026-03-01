@@ -220,12 +220,14 @@ Recommended bundle:
 
 - `model.pth`
 - `model_metadata.pkl`
+- `model_feature_panel.json` when preprocessing defines a feature panel
 - `model_reference.pkl`
 - `model_manifest.json`
 
 The manifest is the preferred load entry point for automation. It stores:
 
 - relative artifact paths
+- optional `feature_panel_path`
 - `reference_storage`
 - `input_transform`
 - optional SHA-256 `checksums`

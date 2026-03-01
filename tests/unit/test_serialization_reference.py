@@ -5,7 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from atlasmtl.core.model import AtlasMTLModel
 from atlasmtl.core.types import TrainedModel
-from atlasmtl.models import ReferenceData, default_manifest_path, load_manifest
+from atlasmtl.models import ReferenceData, default_feature_panel_path, default_manifest_path, load_manifest
 
 
 def _make_model(reference_storage="external"):
@@ -69,3 +69,34 @@ def test_manifest_records_artifact_layout_and_supports_loading(tmp_path):
     loaded = TrainedModel.load(str(manifest_path))
     assert loaded.reference_storage == "external"
     assert loaded.reference_labels["celltype"][1] == "B"
+
+
+def test_feature_panel_is_persisted_as_independent_artifact(tmp_path):
+    model = _make_model(reference_storage="external")
+    model.train_config = {
+        "preprocess": {
+            "config": {
+                "var_names_type": "ensembl",
+                "species": "human",
+                "feature_space": "whole",
+                "n_top_genes": 3000,
+            },
+            "feature_panel": {
+                "gene_ids": ["g1", "g2"],
+                "gene_symbols": ["G1", "G2"],
+                "feature_space": "whole",
+                "n_features": 2,
+                "species": "human",
+                "var_names_type_original": "ensembl",
+            },
+        }
+    }
+    model_path = tmp_path / "model.pth"
+    model.save(str(model_path))
+
+    manifest = load_manifest(str(default_manifest_path(str(model_path))))
+    assert manifest["feature_panel_path"] == "model_feature_panel.json"
+    assert Path(default_feature_panel_path(str(model_path))).exists()
+
+    loaded = TrainedModel.load(str(default_manifest_path(str(model_path))))
+    assert loaded.train_config["preprocess"]["feature_panel"]["gene_ids"] == ["g1", "g2"]

@@ -17,12 +17,16 @@ Saving a `TrainedModel` writes these files by default:
   - coordinate targets and scaling statistics
   - training configuration and runtime summary
   - reference storage mode and optional reference path
+- `model_feature_panel.json`
+  - written when preprocessing metadata includes a `feature_panel`
+  - stores the canonical feature panel independently of `train_config`
+  - keeps feature selection traceable without depending only on the metadata pickle
 - `model_reference.pkl`
   - external KNN reference coordinates and labels when
     `reference_storage="external"`
 - `model_manifest.json`
   - stable automation entry point
-  - stores relative paths to the model, metadata, and reference assets
+  - stores relative paths to the model, metadata, feature-panel, and reference assets
   - stores `reference_storage`
   - stores `input_transform`
   - stores optional SHA-256 checksums
@@ -65,6 +69,7 @@ When saving a model, atlasmtl computes best-effort SHA-256 checksums for:
 
 - `model_path`
 - `metadata_path`
+- `feature_panel_path` when a standalone feature panel is written
 - `reference_path` when external reference storage is used
 
 Those values are written under `model_manifest.json["checksums"]`.

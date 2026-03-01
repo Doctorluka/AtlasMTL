@@ -261,12 +261,14 @@ Current limitation:
 Recommended bundle:
 - `model.pth`
 - `model_metadata.pkl`
+- `model_feature_panel.json` when preprocessing metadata includes a feature panel
 - `model_reference.pkl`
 - `model_manifest.json`
 
 Current artifact additions:
 
 - `model_manifest.json["checksums"]`
+- `model_manifest.json["feature_panel_path"]` when a standalone feature-panel artifact is written
 - optional gzip-compressed external reference assets
 - train, predict, and benchmark run manifests
 

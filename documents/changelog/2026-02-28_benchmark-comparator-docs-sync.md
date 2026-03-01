@@ -126,6 +126,14 @@
 
 - 将 comparator protocol template 用到真实 benchmark 结果
 - 开始系统化 comparator matrix / 多数据集 benchmark 执行
+
+## 9) Feature panel artifact decoupling
+
+模型序列化现在会在 preprocessing 元数据包含 `feature_panel` 时额外写出
+`*_feature_panel.json`，并在 `model_manifest.json` 中记录
+`feature_panel_path`。模型加载时会优先从这个独立 artifact 回填
+`train_config["preprocess"]["feature_panel"]`，保留兼容性的同时降低
+对 `train_config` 和 metadata pickle 的单点耦合。
 # 2026-02-28 Gene namespace and feature policy sync
 
 - clarified that atlasmtl currently keeps phmap-consistent `input_transform="binary"` by default

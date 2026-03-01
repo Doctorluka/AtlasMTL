@@ -205,6 +205,7 @@ Saving writes:
 
 - `model.pth`
 - `model_metadata.pkl`
+- `model_feature_panel.json` when preprocessing captures a reference-derived panel
 - `model_reference.pkl` or a custom external reference path
 - `model_manifest.json`
 
