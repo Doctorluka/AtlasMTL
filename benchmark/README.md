@@ -61,6 +61,12 @@ Paper-oriented exports now include:
 - `runtime_resources`
   - per-method runtime and resource table describing device, threads, elapsed
     time, average/peak RSS, average/peak GPU memory, and CPU core-equivalent
+- `atlasmtl_ablation_accuracy`
+  - atlasmtl-only multi-level accuracy table keyed by variant
+- `atlasmtl_ablation_resources`
+  - atlasmtl-only resource table keyed by variant
+- `atlasmtl_ablation_tradeoff`
+  - atlasmtl-only compact tradeoff table for paper figures
     averages when available
 
 ## Metric focus today
@@ -80,6 +86,10 @@ Paper-oriented exports now include:
   - peak RSS
   - average GPU memory when available
   - peak GPU memory when available
+- atlasmtl ablations:
+  - should read from `layers["counts"]` when comparing `binary` vs `float`
+  - should treat CPU and GPU variants as separate rows
+  - should run GPU only after the benchmark-entry CUDA gate passes
   - device used
   - thread count when available
 

@@ -50,10 +50,10 @@ Paper framing:
 
 ### B) Feature space: whole vs HVG
 
-We should benchmark a grid such as:
+Current locked grid for the next round:
 
 - HVG sizes:
-  `1000/2000/3000/4000/5000/6000`
+  `3000/6000`
 - Whole matrix:
   `whole`
 
@@ -76,6 +76,24 @@ Requirement:
 
 - Any binary-vs-non-binary comparison must report *both* prediction quality and
   resource usage. It is insufficient to report accuracy only.
+- For the next formal ablation round, `non-binary` is defined narrowly as
+  `raw counts -> float32`, not `log1p(counts)` and not log-normalized `X`.
+- AtlasMTL ablations should source both `binary` and `float` inputs from the
+  same `layers["counts"]` matrix so the transform itself remains the only
+  changing variable.
+
+### D) CUDA gate before GPU benchmarking
+
+GPU benchmarking must pass an execution-environment gate before it is admitted
+into the formal ablation matrix.
+
+- User-interactive CUDA availability is not sufficient by itself.
+- The same non-interactive benchmark entrypoint must pass:
+  - `torch.cuda.is_available()`
+  - `torch.cuda.device_count() > 0`
+  - a minimal AtlasMTL train/predict smoke on `device="cuda"`
+- If the gate fails, CPU remains the formal benchmark result and GPU is
+  documented as environment-unverified for that run.
 
 ## 3) What to report: metrics and resources
 

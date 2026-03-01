@@ -32,3 +32,5 @@ Directory layout:
   - compact human-readable summaries and evaluation notes
 - `notes/`
   - environment notes, exclusions, and issues
+- `ablation_optimization/`
+  - follow-up AtlasMTL-only ablation plans, manifests, and scripts

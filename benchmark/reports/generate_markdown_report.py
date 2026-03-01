@@ -83,6 +83,7 @@ def _collect_main_rows(results: List[Dict[str, Any]], target_label_column: str |
         backend = prediction_metadata.get("implementation_backend") or prediction_metadata.get("comparator_name") or result.get("method")
         row = [
             result.get("method"),
+            result.get("variant_name"),
             level or "",
         ]
         for metric_name in MAIN_METRICS:
@@ -108,6 +109,7 @@ def _collect_domain_rows(results: List[Dict[str, Any]], target_label_column: str
             rows.append(
                 [
                     result.get("method"),
+                    result.get("variant_name"),
                     domain_name,
                     level or "",
                     level_metrics.get("accuracy"),
@@ -160,6 +162,7 @@ def _collect_protocol_rows(results: List[Dict[str, Any]], target_label_column: s
         rows.append(
             [
                 result.get("method"),
+                result.get("variant_name"),
                 contract.get("backend"),
                 resolved_label,
                 contract.get("label_scope"),
@@ -181,6 +184,7 @@ def _collect_runtime_rows(results: List[Dict[str, Any]]) -> List[List[Any]]:
         rows.append(
             [
                 result.get("method"),
+                result.get("variant_name"),
                 (result.get("input_contract") or {}).get("backend"),
                 predict_usage.get("device_used") or train_usage.get("device_used"),
                 predict_usage.get("num_threads_used") or train_usage.get("num_threads_used"),
@@ -219,6 +223,7 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
         _markdown_table(
             [
                 "Method",
+                "Variant",
                 "Level",
                 "Accuracy",
                 "Macro-F1",
@@ -239,6 +244,7 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
         _markdown_table(
             [
                 "Method",
+                "Variant",
                 "Backend",
                 "Target label",
                 "Label scope",
@@ -256,6 +262,7 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
         _markdown_table(
             [
                 "Method",
+                "Variant",
                 "Backend",
                 "Device",
                 "Threads",
@@ -283,7 +290,7 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
                 "## Domain-wise Comparison",
                 "",
                 _markdown_table(
-                    ["Method", "Domain", "Level", "Accuracy", "Macro-F1", "Coverage", "Reject rate", "Unknown rate"],
+                    ["Method", "Variant", "Domain", "Level", "Accuracy", "Macro-F1", "Coverage", "Reject rate", "Unknown rate"],
                     domain_rows,
                 ),
                 "",

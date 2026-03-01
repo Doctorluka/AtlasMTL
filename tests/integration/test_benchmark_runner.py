@@ -282,6 +282,108 @@ def test_benchmark_runner_supports_explicit_nondefault_counts_layer(tmp_path: Pa
     assert metrics["preprocess"]["query_report"]["counts_layer_used"] == "raw_counts"
 
 
+def test_benchmark_runner_resolves_repo_root_relative_paths(tmp_path: Path):
+    repo_tmp = REPO_ROOT / ".tmp" / "test_repo_relative_manifest"
+    repo_tmp.mkdir(parents=True, exist_ok=True)
+    ref_path = repo_tmp / "ref_repo_relative.h5ad"
+    query_path = repo_tmp / "query_repo_relative.h5ad"
+
+    ref = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=pd.DataFrame({"anno_lv1": ["A", "B"]}, index=["r1", "r2"]))
+    ref.var_names = ["g1", "g2"]
+    ref.layers["counts"] = ref.X.copy()
+    query = AnnData(X=np.array([[1, 0]], dtype=np.float32), obs=pd.DataFrame({"anno_lv1": ["A"]}, index=["q1"]))
+    query.var_names = ["g1", "g2"]
+    query.layers["counts"] = query.X.copy()
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    manifest = {
+        "dataset_name": "tiny_repo_relative",
+        "version": 1,
+        "protocol_version": 1,
+        "reference_h5ad": str(ref_path.relative_to(REPO_ROOT)),
+        "query_h5ad": str(query_path.relative_to(REPO_ROOT)),
+        "label_columns": ["anno_lv1"],
+        "train": {"num_epochs": 1, "batch_size": 1, "hidden_sizes": [8]},
+        "predict": {"knn_correction": "off", "batch_size": 1},
+    }
+    manifest_path = tmp_path / "dataset_manifest_repo_relative.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+
+    out_dir = tmp_path / "out_repo_relative"
+    _run_cli([str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"])
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert metrics["dataset_name"] == "tiny_repo_relative"
+
+
+def test_benchmark_runner_atlasmtl_can_train_from_counts_layer_and_record_task_weights(tmp_path: Path):
+    ref_obs = pd.DataFrame({"anno_lv1": ["A", "A", "B", "B"]}, index=["r1", "r2", "r3", "r4"])
+    ref = AnnData(
+        X=np.array([[0.1, 0.0], [0.2, 0.1], [0.0, 0.2], [0.0, 0.3]], dtype=np.float32),
+        obs=ref_obs,
+    )
+    ref.var_names = ["g1", "g2"]
+    ref.layers["counts"] = np.array([[2, 0], [3, 1], [0, 3], [0, 4]], dtype=np.float32)
+
+    query_obs = pd.DataFrame({"anno_lv1": ["A", "B"]}, index=["q1", "q2"])
+    query = AnnData(
+        X=np.array([[0.1, 0.0], [0.0, 0.2]], dtype=np.float32),
+        obs=query_obs,
+    )
+    query.var_names = ["g1", "g2"]
+    query.layers["counts"] = np.array([[1, 0], [0, 2]], dtype=np.float32)
+
+    ref_path = tmp_path / "ref_counts_source.h5ad"
+    query_path = tmp_path / "query_counts_source.h5ad"
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    manifest = {
+        "dataset_name": "tiny_atlasmtl_counts_source",
+        "version": 1,
+        "protocol_version": 1,
+        "reference_h5ad": str(ref_path),
+        "query_h5ad": str(query_path),
+        "label_columns": ["anno_lv1"],
+        "counts_layer": "counts",
+        "feature_space": "whole",
+        "train": {
+            "num_epochs": 1,
+            "batch_size": 2,
+            "hidden_sizes": [8],
+            "input_transform": "float",
+            "task_weights": [0.3],
+        },
+        "predict": {"knn_correction": "off", "batch_size": 1},
+        "method_configs": {
+            "atlasmtl": {
+                "reference_layer": "counts",
+                "query_layer": "counts",
+                "task_weights": [0.3],
+            }
+        },
+    }
+    manifest_path = tmp_path / "dataset_manifest_counts_source.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+
+    out_dir = tmp_path / "out_counts_source"
+    _run_cli(
+        [str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"]
+    )
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    result = metrics["results"][0]
+    assert result["input_contract"]["reference_matrix_source"] == "layers/counts"
+    assert result["input_contract"]["query_matrix_source"] == "layers/counts"
+    assert result["input_contract"]["normalization_mode"] == "atlasmtl_extract_matrix:float"
+    assert result["ablation_config"]["task_weights"] == [0.3]
+    assert result["ablation_config"]["task_weight_scheme"] == "custom"
+    assert result["train_config_used"]["task_weights"] == [0.3]
+    summary = pd.read_csv(out_dir / "summary.csv")
+    assert list(summary["variant_name"].unique()) == [result["variant_name"]]
+
+
 def test_benchmark_runner_rejects_unknown_manifest_keys(tmp_path: Path):
     ref_obs = pd.DataFrame({"anno_lv1": ["A", "B"]}, index=["r1", "r2"])
     ref = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=ref_obs)

@@ -29,10 +29,18 @@ from atlasmtl.core.evaluate import (
 )
 from atlasmtl.models import artifact_checksums, resolve_manifest_paths
 from atlasmtl.preprocess import PreprocessConfig, preprocess_query, preprocess_reference
+from benchmark.methods.atlasmtl_inputs import (
+    adata_with_matrix_from_layer,
+    matrix_source_label,
+    resolve_atlasmtl_layer_config,
+    resolve_task_weights,
+    task_weight_scheme_name,
+)
 from benchmark.methods.result_schema import build_input_contract
 from benchmark.methods import run_method
 
 PROTOCOL_VERSION = 1
+REPO_ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_MANIFEST_KEYS = {"reference_h5ad", "query_h5ad", "label_columns"}
 OPTIONAL_MANIFEST_KEYS = {
     "dataset_name",
@@ -75,6 +83,7 @@ TRAIN_CONFIG_KEYS = {
     "calibration_lr",
     "reference_storage",
     "reference_path",
+    "task_weights",
 }
 PREDICT_CONFIG_KEYS = {
     "knn_correction",
@@ -150,7 +159,12 @@ def _resolve_manifest_path(value: str, *, manifest_path: Path) -> str:
     path = Path(value)
     if path.is_absolute():
         return str(path)
-    return str((manifest_path.parent / path).resolve())
+    path = path.expanduser()
+    manifest_relative = (manifest_path.parent / path).resolve()
+    if manifest_relative.exists():
+        return str(manifest_relative)
+    repo_relative = (REPO_ROOT / path).resolve()
+    return str(repo_relative)
 
 
 def _load_manifest(path: str) -> Dict[str, Any]:
@@ -272,6 +286,8 @@ def _run_atlasmtl(
     label_columns = list(manifest["label_columns"])
     coord_targets = dict(manifest.get("coord_targets") or {})
     train_cfg = dict(manifest.get("train") or {})
+    atlasmtl_layer_cfg = resolve_atlasmtl_layer_config(manifest)
+    task_weights = resolve_task_weights(manifest, label_columns)
     protocol_context = {
         "protocol_version": int(manifest.get("protocol_version", PROTOCOL_VERSION)),
         "random_seed": manifest.get("random_seed"),
@@ -281,6 +297,8 @@ def _run_atlasmtl(
         "query_subset": manifest.get("query_subset"),
         "domain_key": manifest.get("domain_key"),
     }
+    ref_model_input = adata_with_matrix_from_layer(ref, layer_name=atlasmtl_layer_cfg["reference_layer"])
+    query_model_input = adata_with_matrix_from_layer(query, layer_name=atlasmtl_layer_cfg["query_layer"])
 
     if atlasmtl_model:
         model = TrainedModel.load(atlasmtl_model)
@@ -293,7 +311,7 @@ def _run_atlasmtl(
         model_source = "pretrained_artifact"
     else:
         model = build_model(
-            adata=ref,
+            adata=ref_model_input,
             label_columns=label_columns,
             coord_targets=coord_targets,
             hidden_sizes=train_cfg.get("hidden_sizes"),
@@ -311,6 +329,7 @@ def _run_atlasmtl(
             calibration_lr=float(train_cfg.get("calibration_lr", 0.05)),
             reference_storage=str(train_cfg.get("reference_storage", "external")),
             reference_path=train_cfg.get("reference_path"),
+            task_weights=task_weights,
             device=device,
             show_progress=False,
             show_summary=False,
@@ -324,7 +343,7 @@ def _run_atlasmtl(
     pred_cfg = dict(manifest.get("predict") or {})
     result = predict(
         model,
-        query,
+        query_model_input,
         knn_correction=str(pred_cfg.get("knn_correction", "low_conf_only")),
         confidence_high=float(pred_cfg.get("confidence_high", 0.7)),
         confidence_low=float(pred_cfg.get("confidence_low", 0.4)),
@@ -370,6 +389,33 @@ def _run_atlasmtl(
     train_usage = model.get_resource_usage()
     pred_usage = result.get_resource_usage()
     artifacts = _artifact_sizes_mb(artifact_paths) if artifact_paths else {}
+    preprocess_cfg = ((manifest.get("preprocess") or {}).get("config") or {}) if isinstance(manifest.get("preprocess"), dict) else {}
+    feature_space = preprocess_cfg.get("feature_space") or manifest.get("feature_space")
+    n_top_genes = preprocess_cfg.get("n_top_genes")
+    input_transform = str(train_cfg.get("input_transform", "binary"))
+    if str(feature_space) == "hvg" and n_top_genes:
+        feature_token = f"hvg{n_top_genes}"
+    else:
+        feature_token = str(feature_space or "whole")
+    variant_tokens = [
+        str(device),
+        feature_token,
+        str(input_transform),
+        task_weight_scheme_name(task_weights),
+    ]
+    variant_name = "atlasmtl_" + "_".join(str(token) for token in variant_tokens if token)
+    ablation_config = {
+        "variant_name": variant_name,
+        "device": str(device),
+        "reference_matrix_source": matrix_source_label(atlasmtl_layer_cfg["reference_layer"]),
+        "query_matrix_source": matrix_source_label(atlasmtl_layer_cfg["query_layer"]),
+        "counts_layer": atlasmtl_layer_cfg["counts_layer"],
+        "input_transform": input_transform,
+        "feature_space": feature_space,
+        "n_top_genes": n_top_genes,
+        "task_weights": task_weights,
+        "task_weight_scheme": task_weight_scheme_name(task_weights),
+    }
 
     coord_metrics = {}
     query_coord_targets = dict(manifest.get("query_coord_targets") or {})
@@ -415,18 +461,20 @@ def _run_atlasmtl(
         "artifact_checksums": artifact_checksums(artifact_paths) if artifact_paths else {},
         "model_source": model_source,
         "model_input_path": model_input_path,
+        "variant_name": variant_name,
+        "ablation_config": ablation_config,
         "input_contract": build_input_contract(
-            reference_matrix_source="preprocessed_h5ad:X",
-            query_matrix_source="preprocessed_h5ad:X",
+            reference_matrix_source=matrix_source_label(atlasmtl_layer_cfg["reference_layer"]),
+            query_matrix_source=matrix_source_label(atlasmtl_layer_cfg["query_layer"]),
             counts_layer=((manifest.get("preprocess") or {}).get("config") or {}).get("counts_layer")
             if isinstance(manifest.get("preprocess"), dict)
             else manifest.get("counts_layer"),
             feature_alignment="reference_feature_panel_exact_order",
-            normalization_mode="atlasmtl_core_no_default_lognorm",
+            normalization_mode=f"atlasmtl_extract_matrix:{input_transform}",
             label_scope="multi_level",
             backend="atlasmtl",
         ),
-        "train_config_used": train_cfg if not atlasmtl_model else None,
+        "train_config_used": (dict(train_cfg, task_weights=task_weights) if not atlasmtl_model else None),
         "predict_config_used": pred_cfg,
         "prediction_metadata": result.metadata,
     }
@@ -443,6 +491,7 @@ def _write_reports(payload: Dict[str, Any], output_dir: Path) -> None:
         for level, metrics in (result.get("metrics") or {}).items():
             row = {
                 "method": result.get("method"),
+                "variant_name": result.get("variant_name"),
                 "dataset_name": result.get("dataset_name"),
                 "level": level,
                 "split_name": (result.get("protocol_context") or {}).get("split_name"),
@@ -474,6 +523,7 @@ def _write_reports(payload: Dict[str, Any], output_dir: Path) -> None:
             for level, metrics in (per_level or {}).items():
                 row = {
                     "method": result.get("method"),
+                    "variant_name": result.get("variant_name"),
                     "dataset_name": result.get("dataset_name"),
                     "domain": domain,
                     "level": level,

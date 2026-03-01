@@ -64,6 +64,14 @@ requirements (including binary-vs-non-binary resource comparisons and CPU/GPU
 variant handling), see:
 
 - `documents/design/benchmark_ablation_discussion.md`
+- `documents/experiments/2026-03-01_real_mapping_benchmark/ablation_optimization/`
+
+Current locked ablation rules for AtlasMTL:
+
+- source binary/float comparisons from the same `layers["counts"]` matrix
+- define `float` as raw counts cast to `float32`, not `log1p`
+- use `whole`, `hvg3000`, and `hvg6000` as the current feature-space grid
+- require a benchmark-entry CUDA gate before admitting GPU variants
 
 ## Dataset manifest schema
 
@@ -575,3 +583,8 @@ The protocol is intentionally incomplete in these areas:
 - no query-time adaptation protocol
 - no scIB-style latent integration benchmark, because that is outside the
   current primary project positioning
+- path handling rule:
+  - repo-tracked manifests should prefer atlasmtl-root-relative paths
+  - the benchmark runner resolves a relative path against the manifest
+    directory first, then against the repository root
+  - run-generated manifests may record absolute paths for that concrete run

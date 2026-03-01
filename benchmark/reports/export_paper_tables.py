@@ -64,6 +64,7 @@ def _main_table(results: List[Dict[str, Any]], target_label_column: str | None) 
         metadata = result.get("prediction_metadata") or {}
         row: Dict[str, Any] = {
             "method": result.get("method"),
+            "variant_name": result.get("variant_name"),
             "level": level,
             "backend": metadata.get("implementation_backend") or metadata.get("comparator_name") or result.get("method"),
         }
@@ -85,6 +86,7 @@ def _domain_table(results: List[Dict[str, Any]], target_label_column: str | None
             rows.append(
                 {
                     "method": result.get("method"),
+                    "variant_name": result.get("variant_name"),
                     "domain": domain,
                     "level": level,
                     "accuracy": level_metrics.get("accuracy"),
@@ -136,6 +138,7 @@ def _protocol_table(results: List[Dict[str, Any]], target_label_column: str | No
         rows.append(
             {
                 "method": result.get("method"),
+                "variant_name": result.get("variant_name"),
                 "backend": contract.get("backend"),
                 "target_label_column": resolved_label,
                 "label_scope": contract.get("label_scope"),
@@ -157,6 +160,7 @@ def _runtime_resource_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
         rows.append(
             {
                 "method": result.get("method"),
+                "variant_name": result.get("variant_name"),
                 "backend": (result.get("input_contract") or {}).get("backend"),
                 "device_used": predict_usage.get("device_used") or train_usage.get("device_used"),
                 "num_threads_used": predict_usage.get("num_threads_used") or train_usage.get("num_threads_used"),
@@ -174,6 +178,100 @@ def _runtime_resource_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
                 "predict_process_peak_rss_gb": predict_usage.get("process_peak_rss_gb"),
                 "train_gpu_avg_memory_gb": train_usage.get("gpu_avg_memory_gb"),
                 "predict_gpu_avg_memory_gb": predict_usage.get("gpu_avg_memory_gb"),
+                "train_gpu_peak_memory_gb": train_usage.get("gpu_peak_memory_gb"),
+                "predict_gpu_peak_memory_gb": predict_usage.get("gpu_peak_memory_gb"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _atlasmtl_ablation_accuracy_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
+    rows: List[Dict[str, Any]] = []
+    for result in results:
+        ablation = result.get("ablation_config") or {}
+        if result.get("method") != "atlasmtl" or not ablation:
+            continue
+        row: Dict[str, Any] = {
+            "method": result.get("method"),
+            "variant_name": result.get("variant_name"),
+            "device": ablation.get("device"),
+            "feature_space": ablation.get("feature_space"),
+            "n_top_genes": ablation.get("n_top_genes"),
+            "input_transform": ablation.get("input_transform"),
+            "task_weight_scheme": ablation.get("task_weight_scheme"),
+        }
+        for level, metrics in (result.get("metrics") or {}).items():
+            row[f"{level}_accuracy"] = (metrics or {}).get("accuracy")
+            row[f"{level}_macro_f1"] = (metrics or {}).get("macro_f1")
+            row[f"{level}_balanced_accuracy"] = (metrics or {}).get("balanced_accuracy")
+        hierarchy_metrics = result.get("hierarchy_metrics") or {}
+        first_hierarchy = next(iter(hierarchy_metrics.values()), {}) if hierarchy_metrics else {}
+        row["path_consistency_rate"] = (first_hierarchy or {}).get("path_consistency_rate")
+        row["full_path_accuracy"] = (first_hierarchy or {}).get("full_path_accuracy")
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _atlasmtl_ablation_resource_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
+    rows: List[Dict[str, Any]] = []
+    for result in results:
+        ablation = result.get("ablation_config") or {}
+        if result.get("method") != "atlasmtl" or not ablation:
+            continue
+        train_usage = result.get("train_usage") or {}
+        predict_usage = result.get("predict_usage") or {}
+        rows.append(
+            {
+                "method": result.get("method"),
+                "variant_name": result.get("variant_name"),
+                "device": ablation.get("device"),
+                "feature_space": ablation.get("feature_space"),
+                "n_top_genes": ablation.get("n_top_genes"),
+                "input_transform": ablation.get("input_transform"),
+                "task_weight_scheme": ablation.get("task_weight_scheme"),
+                "train_elapsed_seconds": train_usage.get("elapsed_seconds"),
+                "predict_elapsed_seconds": predict_usage.get("elapsed_seconds"),
+                "train_process_avg_rss_gb": train_usage.get("process_avg_rss_gb"),
+                "predict_process_avg_rss_gb": predict_usage.get("process_avg_rss_gb"),
+                "train_process_peak_rss_gb": train_usage.get("process_peak_rss_gb"),
+                "predict_process_peak_rss_gb": predict_usage.get("process_peak_rss_gb"),
+                "train_gpu_avg_memory_gb": train_usage.get("gpu_avg_memory_gb"),
+                "predict_gpu_avg_memory_gb": predict_usage.get("gpu_avg_memory_gb"),
+                "train_gpu_peak_memory_gb": train_usage.get("gpu_peak_memory_gb"),
+                "predict_gpu_peak_memory_gb": predict_usage.get("gpu_peak_memory_gb"),
+                "train_cpu_core_equiv_avg": train_usage.get("cpu_core_equiv_avg"),
+                "predict_cpu_core_equiv_avg": predict_usage.get("cpu_core_equiv_avg"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def _atlasmtl_ablation_tradeoff_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
+    rows: List[Dict[str, Any]] = []
+    for result in results:
+        ablation = result.get("ablation_config") or {}
+        metrics = result.get("metrics") or {}
+        if result.get("method") != "atlasmtl" or not ablation:
+            continue
+        lv4 = metrics.get("anno_lv4")
+        if lv4 is None and metrics:
+            lv4 = next(reversed(list(metrics.values())))
+        train_usage = result.get("train_usage") or {}
+        predict_usage = result.get("predict_usage") or {}
+        rows.append(
+            {
+                "variant_name": result.get("variant_name"),
+                "device": ablation.get("device"),
+                "feature_space": ablation.get("feature_space"),
+                "n_top_genes": ablation.get("n_top_genes"),
+                "input_transform": ablation.get("input_transform"),
+                "task_weight_scheme": ablation.get("task_weight_scheme"),
+                "target_level_accuracy": (lv4 or {}).get("accuracy"),
+                "target_level_macro_f1": (lv4 or {}).get("macro_f1"),
+                "train_elapsed_seconds": train_usage.get("elapsed_seconds"),
+                "predict_elapsed_seconds": predict_usage.get("elapsed_seconds"),
+                "train_process_peak_rss_gb": train_usage.get("process_peak_rss_gb"),
+                "predict_process_peak_rss_gb": predict_usage.get("process_peak_rss_gb"),
                 "train_gpu_peak_memory_gb": train_usage.get("gpu_peak_memory_gb"),
                 "predict_gpu_peak_memory_gb": predict_usage.get("gpu_peak_memory_gb"),
             }
@@ -224,6 +322,9 @@ def main() -> None:
     coordinate_df = _coordinate_table(payload["results"])
     protocol_df = _protocol_table(payload["results"], args.target_label_column)
     runtime_df = _runtime_resource_table(payload["results"])
+    atlas_ablation_accuracy_df = _atlasmtl_ablation_accuracy_table(payload["results"])
+    atlas_ablation_resources_df = _atlasmtl_ablation_resource_table(payload["results"])
+    atlas_ablation_tradeoff_df = _atlasmtl_ablation_tradeoff_table(payload["results"])
 
     tables = {
         "main_comparison": main_df,
@@ -232,6 +333,9 @@ def main() -> None:
         "domain_comparison": domain_df,
         "atlasmtl_analysis": atlas_df,
         "coordinate_diagnostics": coordinate_df,
+        "atlasmtl_ablation_accuracy": atlas_ablation_accuracy_df,
+        "atlasmtl_ablation_resources": atlas_ablation_resources_df,
+        "atlasmtl_ablation_tradeoff": atlas_ablation_tradeoff_df,
     }
 
     for name, dataframe in tables.items():
