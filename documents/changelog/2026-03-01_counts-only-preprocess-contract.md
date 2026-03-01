@@ -48,6 +48,7 @@ default log-normalized working matrix.
 Updated:
 
 - `README.md`
+- `benchmark/README.md`
 - `documents/design/preprocessing.md`
 - `documents/protocols/experiment_protocol.md`
 - `AGENTS.md`
@@ -55,3 +56,14 @@ Updated:
 These documents now describe atlasmtl preprocessing as a counts-only core
 contract, with log-normalization treated as a comparator-specific or optional
 downstream concern rather than a default atlasmtl preprocessing step.
+
+## Benchmark manifest follow-up
+
+The benchmark runner now also accepts explicit preprocessing declarations in
+dataset manifests:
+
+- `input_matrix_type`
+- `counts_layer`
+
+These fields are propagated into `PreprocessConfig`, benchmark metrics, and run
+manifests so formal runs no longer rely only on implicit defaults.

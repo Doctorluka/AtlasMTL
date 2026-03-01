@@ -56,6 +56,7 @@ The intended control surface is:
 
 - preprocessing step
   - declare `var_names_type` and `species`
+  - in benchmark manifests, explicitly declare `input_matrix_type` and `counts_layer`
   - validate whether `adata.X` is count-like
   - if `adata.X` is count-like, copy it into `adata.layers["counts"]`
   - if `adata.X` is not count-like, require `adata.layers["counts"]`

@@ -203,6 +203,8 @@ def test_benchmark_runner_supports_preprocessing_manifest_fields(tmp_path: Path)
         "predict": {"knn_correction": "off", "batch_size": 1},
         "var_names_type": "symbol",
         "species": "human",
+        "input_matrix_type": "infer",
+        "counts_layer": "counts",
         "gene_id_table": str(mapping_path),
         "feature_space": "whole",
     }
@@ -215,6 +217,8 @@ def test_benchmark_runner_supports_preprocessing_manifest_fields(tmp_path: Path)
     metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
     assert "preprocess" in metrics
     assert metrics["preprocess"]["config"]["feature_space"] == "whole"
+    assert metrics["preprocess"]["config"]["input_matrix_type"] == "infer"
+    assert metrics["preprocess"]["config"]["counts_layer"] == "counts"
     assert metrics["preprocess"]["reference_report"]["counts_layer_used"] == "counts"
     result = metrics["results"][0]
     assert result["preprocess"]["config"]["var_names_type"] == "symbol"
@@ -222,6 +226,60 @@ def test_benchmark_runner_supports_preprocessing_manifest_fields(tmp_path: Path)
     assert result["preprocess"]["feature_panel"]["counts_layer"] == "counts"
     run_manifest = json.loads((out_dir / "run_manifest.json").read_text(encoding="utf-8"))
     assert run_manifest["preprocess"]["config"]["species"] == "human"
+
+
+def test_benchmark_runner_supports_explicit_nondefault_counts_layer(tmp_path: Path):
+    mapping_path = tmp_path / "mapping.tsv"
+    _write_mapping_table(mapping_path)
+
+    ref_obs = pd.DataFrame({"anno_lv1": ["A", "B"]}, index=["r1", "r2"])
+    ref = AnnData(
+        X=np.array([[0.1, 0.0], [0.0, 0.2]], dtype=np.float32),
+        obs=ref_obs,
+    )
+    ref.var_names = ["GATA1", "CD3D"]
+    ref.layers["raw_counts"] = np.array([[2, 0], [0, 3]], dtype=np.float32)
+
+    query_obs = pd.DataFrame({"anno_lv1": ["A"]}, index=["q1"])
+    query = AnnData(
+        X=np.array([[0.1, 0.0]], dtype=np.float32),
+        obs=query_obs,
+    )
+    query.var_names = ["GATA1", "CD3D"]
+    query.layers["raw_counts"] = np.array([[1, 0]], dtype=np.float32)
+
+    ref_path = tmp_path / "ref_raw_counts.h5ad"
+    query_path = tmp_path / "query_raw_counts.h5ad"
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    manifest = {
+        "dataset_name": "tiny_preprocess_custom_counts",
+        "version": 1,
+        "protocol_version": 1,
+        "reference_h5ad": str(ref_path),
+        "query_h5ad": str(query_path),
+        "label_columns": ["anno_lv1"],
+        "train": {"num_epochs": 1, "batch_size": 1, "hidden_sizes": [8]},
+        "predict": {"knn_correction": "off", "batch_size": 1},
+        "var_names_type": "symbol",
+        "species": "human",
+        "input_matrix_type": "lognorm",
+        "counts_layer": "raw_counts",
+        "gene_id_table": str(mapping_path),
+        "feature_space": "whole",
+    }
+    manifest_path = tmp_path / "dataset_manifest_custom_counts.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+
+    out_dir = tmp_path / "out_custom_counts"
+    _run_cli([str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"])
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert metrics["preprocess"]["config"]["input_matrix_type"] == "lognorm"
+    assert metrics["preprocess"]["config"]["counts_layer"] == "raw_counts"
+    assert metrics["preprocess"]["reference_report"]["counts_layer_used"] == "raw_counts"
+    assert metrics["preprocess"]["query_report"]["counts_layer_used"] == "raw_counts"
 
 
 def test_benchmark_runner_rejects_unknown_manifest_keys(tmp_path: Path):

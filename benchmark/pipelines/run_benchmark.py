@@ -50,6 +50,8 @@ OPTIONAL_MANIFEST_KEYS = {
     "method_configs",
     "var_names_type",
     "species",
+    "input_matrix_type",
+    "counts_layer",
     "gene_id_table",
     "feature_space",
     "hvg_config",
@@ -203,6 +205,8 @@ def _build_preprocess_config(manifest: Dict[str, Any]) -> Optional[PreprocessCon
     return PreprocessConfig(
         var_names_type=str(var_names_type),
         species=str(species),
+        input_matrix_type=str(manifest.get("input_matrix_type", "infer")),
+        counts_layer=str(manifest.get("counts_layer", "counts")),
         gene_id_table=manifest.get("gene_id_table"),
         feature_space=feature_space,
         n_top_genes=int(hvg_cfg.get("n_top_genes", 3000)),

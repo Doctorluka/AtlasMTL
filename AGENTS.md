@@ -47,6 +47,7 @@ Treat `atlasmtl` primarily as a reliable `sc -> sc reference mapping` and multi-
 - Treat `adata.layers["counts"]` as the required raw-count contract for atlasmtl preprocessing and scANVI-style benchmark comparators.
 - If `adata.X` is count-like, preprocessing may copy it into `adata.layers["counts"]`; if `adata.X` is not count-like, formal preprocessing must require a valid counts layer instead of silently proceeding.
 - For `hvg_method="seurat_v3"`, use `layer="counts"` and do not add default `normalize_total` / `log1p` steps inside atlasmtl core preprocessing.
+- Benchmark dataset manifests should explicitly carry `input_matrix_type` and `counts_layer` whenever preprocessing is configured, even when they match the defaults.
 
 ## Benchmark Comparator Constraints
 - Current runnable benchmark methods are `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, and `azimuth`.

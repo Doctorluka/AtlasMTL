@@ -80,6 +80,8 @@ The benchmark layer is intentionally conservative but no longer atlasmtl-only.
 
 - dataset manifest schema is documented in
   `documents/protocols/experiment_protocol.md`
+- preprocessing-aware manifests should now explicitly declare
+  `input_matrix_type` and `counts_layer` when they differ from the defaults
 - domain-shift split definitions are not yet standardized
 - comparator-aligned hierarchy and topology reporting is not yet standardized
 - most external comparators are evaluated as single-level label-transfer

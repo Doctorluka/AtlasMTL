@@ -79,6 +79,11 @@ Supported optional keys:
   - declared input gene namespace such as `symbol` or `ensembl`
 - `species`
   - species label such as `human`, `mouse`, or `rat`
+- `input_matrix_type`
+  - explicit input matrix declaration such as `infer`, `counts`, or `lognorm`
+- `counts_layer`
+  - raw-count layer name used by preprocessing, default recommendation:
+    `counts`
 - `gene_id_table`
   - optional path to a conversion table used during preprocessing
 - `feature_space`
@@ -134,6 +139,11 @@ Formal experiments should record:
   - original namespace, for example `symbol` or `ensembl`
 - `species`
   - for example `human`, `mouse`, or `rat`
+- `input_matrix_type`
+  - whether the incoming `adata.X` should be interpreted as `infer`,
+    `counts`, or `lognorm`
+- `counts_layer`
+  - the layer name containing raw counts, defaulting to `counts`
 - `gene_id_table`
   - conversion table or resource identifier when remapping is applied
 - duplicate-handling policy
