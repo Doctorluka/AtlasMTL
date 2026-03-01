@@ -4,15 +4,66 @@ from anndata import AnnData
 
 from .features import align_query_to_feature_panel, select_reference_features
 from .gene_ids import canonicalize_gene_ids
+from .matrix_semantics import detect_input_matrix_type, is_count_like_matrix
 from .metadata import attach_preprocess_metadata
 from .types import FeaturePanel, PreprocessConfig, PreprocessReport
+
+
+def _ensure_counts_layer(
+    adata: AnnData,
+    config: PreprocessConfig,
+) -> tuple[AnnData, dict[str, object]]:
+    detected_type = detect_input_matrix_type(
+        adata,
+        declared_type=config.input_matrix_type,
+        n_obs=config.counts_check_n_obs,
+        n_vals=config.counts_check_n_vals,
+        integer_tol=config.counts_check_integer_tol,
+    )
+    counts_layer = config.counts_layer
+    if counts_layer in adata.layers:
+        counts_ok = is_count_like_matrix(
+            adata.layers[counts_layer],
+            n_obs=config.counts_check_n_obs,
+            n_vals=config.counts_check_n_vals,
+            integer_tol=config.counts_check_integer_tol,
+        )
+        if not counts_ok:
+            raise ValueError(f"counts layer exists but is not count-like: adata.layers['{counts_layer}']")
+        return adata, {
+            "input_matrix_type_detected": detected_type,
+            "counts_available": True,
+            "counts_layer_used": counts_layer,
+            "counts_check_passed": True,
+        }
+
+    if detected_type == "counts":
+        adata.layers[counts_layer] = adata.X.copy()
+        return adata, {
+            "input_matrix_type_detected": detected_type,
+            "counts_available": True,
+            "counts_layer_used": counts_layer,
+            "counts_check_passed": True,
+        }
+
+    if config.counts_required:
+        raise ValueError(
+            f"adata.X is not count-like and raw counts must be provided in adata.layers['{counts_layer}']"
+        )
+    return adata, {
+        "input_matrix_type_detected": detected_type,
+        "counts_available": False,
+        "counts_layer_used": None,
+        "counts_check_passed": False,
+    }
 
 
 def preprocess_reference(
     adata: AnnData,
     config: PreprocessConfig,
 ) -> tuple[AnnData, FeaturePanel, PreprocessReport]:
-    canonical, canonical_report = canonicalize_gene_ids(adata, config)
+    with_counts, counts_meta = _ensure_counts_layer(adata.copy(), config)
+    canonical, canonical_report = canonicalize_gene_ids(with_counts, config)
     selected, panel, feature_report = select_reference_features(canonical, config)
     report = PreprocessReport(
         n_input_genes=canonical_report.n_input_genes,
@@ -26,6 +77,12 @@ def preprocess_reference(
         mapping_resource=canonical_report.mapping_resource,
         duplicate_policy=config.duplicate_policy,
         unmapped_policy=config.unmapped_policy,
+        input_matrix_type_declared=config.input_matrix_type,
+        input_matrix_type_detected=str(counts_meta["input_matrix_type_detected"]),
+        counts_available=bool(counts_meta["counts_available"]),
+        counts_layer_used=counts_meta["counts_layer_used"],
+        counts_check_passed=bool(counts_meta["counts_check_passed"]),
+        hvg_layer_used=feature_report.hvg_layer_used,
         ensembl_versions_stripped=canonical_report.ensembl_versions_stripped,
     )
     attach_preprocess_metadata(selected, config=config, report=report, feature_panel=panel)
@@ -37,7 +94,8 @@ def preprocess_query(
     feature_panel: FeaturePanel,
     config: PreprocessConfig,
 ) -> tuple[AnnData, PreprocessReport]:
-    canonical, canonical_report = canonicalize_gene_ids(adata, config)
+    with_counts, counts_meta = _ensure_counts_layer(adata.copy(), config)
+    canonical, canonical_report = canonicalize_gene_ids(with_counts, config)
     aligned, align_report = align_query_to_feature_panel(canonical, feature_panel, config)
     report = PreprocessReport(
         n_input_genes=canonical_report.n_input_genes,
@@ -51,6 +109,12 @@ def preprocess_query(
         mapping_resource=canonical_report.mapping_resource,
         duplicate_policy=config.duplicate_policy,
         unmapped_policy=config.unmapped_policy,
+        input_matrix_type_declared=config.input_matrix_type,
+        input_matrix_type_detected=str(counts_meta["input_matrix_type_detected"]),
+        counts_available=bool(counts_meta["counts_available"]),
+        counts_layer_used=counts_meta["counts_layer_used"],
+        counts_check_passed=bool(counts_meta["counts_check_passed"]),
+        hvg_layer_used=feature_panel.hvg_layer_used,
         matched_feature_genes=align_report.matched_feature_genes,
         missing_feature_genes=align_report.missing_feature_genes,
         ensembl_versions_stripped=canonical_report.ensembl_versions_stripped,
@@ -83,4 +147,6 @@ def feature_panel_from_model(model) -> FeaturePanel:
         hvg_method=preprocess_config.get("hvg_method"),
         n_top_genes=preprocess_config.get("n_top_genes"),
         hvg_batch_key=preprocess_config.get("hvg_batch_key"),
+        counts_layer=preprocess_config.get("counts_layer"),
+        hvg_layer_used=preprocess_config.get("counts_layer") if preprocess_config.get("feature_space") == "hvg" else None,
     )

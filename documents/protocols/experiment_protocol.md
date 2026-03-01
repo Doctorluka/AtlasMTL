@@ -138,6 +138,8 @@ Formal experiments should record:
   - conversion table or resource identifier when remapping is applied
 - duplicate-handling policy
 - unmapped-gene policy
+- whether `adata.X` was count-like at load time
+- the raw-count layer name, defaulting to `counts`
 
 ### Feature-space recommendation
 
@@ -160,8 +162,13 @@ protocol.
 
 Default recommendation for future preprocessing utilities:
 
+- validate whether `adata.X` is count-like before any feature selection
+- if `adata.X` is count-like, persist it to `adata.layers["counts"]`
+- if `adata.X` is not count-like, require `adata.layers["counts"]` and fail otherwise
 - `feature_space="hvg"`
 - `n_top_genes=3000`
+- `hvg_method="seurat_v3"` with `layer="counts"`
+- do not generate log-normalized matrices inside atlasmtl core preprocessing by default
 - whole matrix must be explicitly requested with `feature_space="whole"`
 
 This preprocessing layer is now implemented as explicit public APIs:

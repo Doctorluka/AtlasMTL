@@ -215,9 +215,11 @@ def test_benchmark_runner_supports_preprocessing_manifest_fields(tmp_path: Path)
     metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
     assert "preprocess" in metrics
     assert metrics["preprocess"]["config"]["feature_space"] == "whole"
+    assert metrics["preprocess"]["reference_report"]["counts_layer_used"] == "counts"
     result = metrics["results"][0]
     assert result["preprocess"]["config"]["var_names_type"] == "symbol"
     assert result["preprocess"]["feature_panel"]["gene_ids"] == ["ENSG1", "ENSG2"]
+    assert result["preprocess"]["feature_panel"]["counts_layer"] == "counts"
     run_manifest = json.loads((out_dir / "run_manifest.json").read_text(encoding="utf-8"))
     assert run_manifest["preprocess"]["config"]["species"] == "human"
 
@@ -473,9 +475,11 @@ def test_benchmark_runner_can_compare_atlasmtl_and_scanvi(tmp_path: Path):
     assert scanvi_result["label_columns"] == ["anno_lv1"]
     assert scanvi_result["model_source"] == "trained_in_runner"
     assert scanvi_result["prediction_metadata"]["comparator_name"] == "scanvi"
+    assert scanvi_result["prediction_metadata"]["counts_layer_used"] == "counts"
     assert scanvi_result["prediction_metadata"]["latent_shape"] == [4, 2]
     assert "b1" in scanvi_result["metrics_by_domain"]
     assert scanvi_result["predict_config_used"]["target_label_column"] == "anno_lv1"
+    assert scanvi_result["predict_config_used"]["counts_layer"] == "counts"
 
     summary = pd.read_csv(out_dir / "summary.csv")
     assert set(summary["method"]) == {"atlasmtl", "scanvi"}

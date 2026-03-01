@@ -10,10 +10,17 @@ class PreprocessConfig:
     species: Literal["human", "mouse", "rat"]
     gene_id_table: Optional[str] = None
     strip_ensembl_version: bool = True
+    input_matrix_type: Literal["infer", "counts", "lognorm"] = "infer"
+    counts_layer: str = "counts"
+    counts_required: bool = True
+    counts_check_n_obs: int = 100
+    counts_check_n_vals: int = 20000
+    counts_check_integer_tol: float = 1e-6
     feature_space: Literal["hvg", "whole"] = "hvg"
     n_top_genes: int = 3000
     hvg_method: Literal["seurat_v3"] = "seurat_v3"
     hvg_batch_key: Optional[str] = None
+    hvg_input_layer: Literal["auto", "counts", "X"] = "auto"
     duplicate_policy: Literal["sum", "mean", "first", "error"] = "sum"
     unmapped_policy: Literal["drop", "keep_original", "error"] = "drop"
     gene_symbol_column: str = "gene_symbol"
@@ -35,6 +42,8 @@ class FeaturePanel:
     hvg_method: Optional[str] = None
     n_top_genes: Optional[int] = None
     hvg_batch_key: Optional[str] = None
+    counts_layer: Optional[str] = None
+    hvg_layer_used: Optional[str] = None
     reference_dataset_name: Optional[str] = None
 
     def to_dict(self) -> Dict[str, object]:
@@ -55,6 +64,8 @@ class FeaturePanel:
             hvg_method=payload.get("hvg_method"),
             n_top_genes=payload.get("n_top_genes"),
             hvg_batch_key=payload.get("hvg_batch_key"),
+            counts_layer=payload.get("counts_layer"),
+            hvg_layer_used=payload.get("hvg_layer_used"),
             reference_dataset_name=payload.get("reference_dataset_name"),
         )
 
@@ -72,6 +83,12 @@ class PreprocessReport:
     mapping_resource: Optional[str]
     duplicate_policy: str
     unmapped_policy: str
+    input_matrix_type_declared: str = "infer"
+    input_matrix_type_detected: Optional[str] = None
+    counts_available: bool = False
+    counts_layer_used: Optional[str] = None
+    counts_check_passed: bool = False
+    hvg_layer_used: Optional[str] = None
     matched_feature_genes: Optional[int] = None
     missing_feature_genes: Optional[int] = None
     ensembl_versions_stripped: int = 0

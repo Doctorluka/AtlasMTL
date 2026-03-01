@@ -16,6 +16,7 @@ from atlasmtl.core.evaluate import (
     evaluate_predictions_by_group,
 )
 from atlasmtl.models.checksums import sha256_file
+from atlasmtl.preprocess.matrix_semantics import is_count_like_matrix
 
 
 def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
@@ -64,6 +65,19 @@ def _prepare_query(query: AnnData, *, batch_key: str) -> AnnData:
     return adata
 
 
+def _ensure_counts_layer(adata: AnnData, *, layer_name: str = "counts") -> AnnData:
+    if layer_name in adata.layers:
+        if not is_count_like_matrix(adata.layers[layer_name]):
+            raise ValueError(f"scanvi requires a count-like layer, but adata.layers['{layer_name}'] is invalid")
+        return adata
+    if not is_count_like_matrix(adata.X):
+        raise ValueError(
+            f"scanvi requires raw counts in adata.layers['{layer_name}'] when adata.X is not count-like"
+        )
+    adata.layers[layer_name] = adata.X.copy()
+    return adata
+
+
 def run_scanvi(
     manifest: Dict[str, Any],
     *,
@@ -96,9 +110,11 @@ def run_scanvi(
     accelerator, devices = _resolve_device(device)
     ref_adata = _prepare_reference(ref, label_column=label_column, batch_key=batch_key, unlabeled_category=unlabeled_category)
     query_adata = _prepare_query(query, batch_key=batch_key)
+    ref_adata = _ensure_counts_layer(ref_adata)
+    query_adata = _ensure_counts_layer(query_adata)
 
     train_start = time.perf_counter()
-    scvi.model.SCVI.setup_anndata(ref_adata, batch_key=batch_key, labels_key="_scanvi_label")
+    scvi.model.SCVI.setup_anndata(ref_adata, batch_key=batch_key, labels_key="_scanvi_label", layer="counts")
     scvi_model = scvi.model.SCVI(ref_adata, n_latent=n_latent)
     scvi_model.train(
         max_epochs=scvi_epochs,
@@ -253,11 +269,13 @@ def run_scanvi(
         "predict_config_used": {
             "target_label_column": label_column,
             "batch_key": batch_key,
+            "counts_layer": "counts",
             "query_max_epochs": query_epochs,
         },
         "prediction_metadata": {
             "method_family": "published_comparator",
             "comparator_name": "scanvi",
+            "counts_layer_used": "counts",
             "label_column": label_column,
             "batch_key": batch_key,
             "n_latent": n_latent,

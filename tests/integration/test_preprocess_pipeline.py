@@ -51,6 +51,10 @@ def test_preprocess_reference_and_query_roundtrip(tmp_path):
     ref_pp, feature_panel, ref_report = preprocess_reference(ref, cfg)
     assert ref_report.n_features_selected == ref_pp.n_vars
     assert "atlasmtl_preprocess" in ref_pp.uns
+    assert "counts" in ref_pp.layers
+    assert ref_pp.uns["atlasmtl_preprocess"]["report"]["counts_layer_used"] == "counts"
+    assert ref_pp.uns["atlasmtl_preprocess"]["feature_panel"]["counts_layer"] == "counts"
+    assert ref_pp.uns["atlasmtl_preprocess"]["feature_panel"]["hvg_layer_used"] is None
 
     model = build_model(
         adata=ref_pp,
@@ -73,6 +77,49 @@ def test_preprocess_reference_and_query_roundtrip(tmp_path):
     query.var_names = ["GATA1", "CD3D"]
     query_pp, query_report = preprocess_query(query, feature_panel, cfg)
     assert query_report.missing_feature_genes == 2
+    assert "counts" in query_pp.layers
 
     result = predict(model, query_pp, knn_correction="off", batch_size=1, device="cpu")
     assert "preprocess" in result.metadata
+
+
+def test_preprocess_reference_hvg_uses_counts_layer(tmp_path, monkeypatch):
+    mapping = str(_mapping_table(tmp_path))
+    ref = AnnData(
+        X=np.array(
+            [
+                [10.0, 0.0, 1.0, 0.0],
+                [11.0, 0.0, 1.0, 0.0],
+                [0.0, 8.0, 0.0, 1.0],
+                [0.0, 9.0, 0.0, 1.0],
+            ],
+            dtype=np.float32,
+        ),
+        obs=pd.DataFrame({"sample": ["s1", "s1", "s2", "s2"]}, index=["r1", "r2", "r3", "r4"]),
+    )
+    ref.var_names = ["GATA1", "CD3D", "MS4A1", "LYZ"]
+    calls = {}
+
+    def _fake_hvg(adata, **kwargs):
+        calls.update(kwargs)
+        return pd.DataFrame({"highly_variable": [True, True, False, False]}, index=adata.var_names)
+
+    monkeypatch.setattr("atlasmtl.preprocess.features.sc.pp.highly_variable_genes", _fake_hvg)
+
+    cfg = PreprocessConfig(
+        var_names_type="symbol",
+        species="human",
+        gene_id_table=mapping,
+        feature_space="hvg",
+        n_top_genes=2,
+        hvg_batch_key="sample",
+    )
+    ref_pp, feature_panel, ref_report = preprocess_reference(ref, cfg)
+
+    assert ref_pp.n_vars == 2
+    assert calls["layer"] == "counts"
+    assert calls["flavor"] == "seurat_v3"
+    assert feature_panel.hvg_layer_used == "counts"
+    assert feature_panel.counts_layer == "counts"
+    assert ref_report.hvg_layer_used == "counts"
+    assert ref_pp.uns["atlasmtl_preprocess"]["report"]["hvg_layer_used"] == "counts"

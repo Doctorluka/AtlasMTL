@@ -25,6 +25,8 @@ def select_reference_features(
             species=config.species,
             var_names_type_original=config.var_names_type,
             gene_id_table=config.gene_id_table,
+            counts_layer=config.counts_layer,
+            hvg_layer_used=None,
         )
         report = PreprocessReport(
             n_input_genes=int(adata.n_vars),
@@ -38,16 +40,25 @@ def select_reference_features(
             mapping_resource=config.gene_id_table,
             duplicate_policy=config.duplicate_policy,
             unmapped_policy=config.unmapped_policy,
+            input_matrix_type_declared=config.input_matrix_type,
+            counts_available=config.counts_layer in adata.layers,
+            counts_layer_used=config.counts_layer if config.counts_layer in adata.layers else None,
+            counts_check_passed=config.counts_layer in adata.layers,
+            hvg_layer_used=None,
         )
         return selected, panel, report
 
     if config.hvg_method != "seurat_v3":
         raise ValueError("only hvg_method='seurat_v3' is supported in the current preprocessing layer")
+    hvg_layer_used = config.counts_layer if config.hvg_input_layer in {"auto", "counts"} else None
     if config.hvg_batch_key is not None and config.hvg_batch_key not in adata.obs.columns:
         raise ValueError(f"hvg_batch_key not found in adata.obs: {config.hvg_batch_key}")
+    if hvg_layer_used is not None and hvg_layer_used not in adata.layers:
+        raise ValueError(f"HVG layer not found in adata.layers: {hvg_layer_used}")
 
     hvg_df = sc.pp.highly_variable_genes(
         adata,
+        layer=hvg_layer_used,
         n_top_genes=int(config.n_top_genes),
         flavor=config.hvg_method,
         batch_key=config.hvg_batch_key,
@@ -68,6 +79,8 @@ def select_reference_features(
         hvg_method=config.hvg_method,
         n_top_genes=int(config.n_top_genes),
         hvg_batch_key=config.hvg_batch_key,
+        counts_layer=config.counts_layer,
+        hvg_layer_used=hvg_layer_used,
     )
     report = PreprocessReport(
         n_input_genes=int(adata.n_vars),
@@ -81,6 +94,11 @@ def select_reference_features(
         mapping_resource=config.gene_id_table,
         duplicate_policy=config.duplicate_policy,
         unmapped_policy=config.unmapped_policy,
+        input_matrix_type_declared=config.input_matrix_type,
+        counts_available=config.counts_layer in adata.layers,
+        counts_layer_used=config.counts_layer if config.counts_layer in adata.layers else None,
+        counts_check_passed=config.counts_layer in adata.layers,
+        hvg_layer_used=hvg_layer_used,
     )
     return selected, panel, report
 
@@ -148,6 +166,11 @@ def align_query_to_feature_panel(
         mapping_resource=config.gene_id_table,
         duplicate_policy=config.duplicate_policy,
         unmapped_policy=config.unmapped_policy,
+        input_matrix_type_declared=config.input_matrix_type,
+        counts_available=config.counts_layer in adata.layers,
+        counts_layer_used=config.counts_layer if config.counts_layer in adata.layers else None,
+        counts_check_passed=config.counts_layer in adata.layers,
+        hvg_layer_used=feature_panel.hvg_layer_used,
         matched_feature_genes=int(matched_mask.sum()),
         missing_feature_genes=int((~matched_mask).sum()),
     )

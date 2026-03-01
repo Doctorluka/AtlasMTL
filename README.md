@@ -30,6 +30,7 @@ Recommended policy:
 - use versionless Ensembl IDs as the canonical internal gene namespace
 - keep readable symbols in `adata.var["gene_symbol"]`
 - record the original `var_names` type and species during preprocessing
+- require raw counts in `adata.layers["counts"]` for formal preprocessing runs
 - derive the final feature panel after canonicalization
 
 Bundled mapping resource:
@@ -55,6 +56,9 @@ The intended control surface is:
 
 - preprocessing step
   - declare `var_names_type` and `species`
+  - validate whether `adata.X` is count-like
+  - if `adata.X` is count-like, copy it into `adata.layers["counts"]`
+  - if `adata.X` is not count-like, require `adata.layers["counts"]`
   - map to versionless Ensembl IDs
   - select the final feature panel
 - `build_model()`
@@ -74,8 +78,11 @@ Implemented preprocessing API:
 Current defaults:
 
 - canonical internal namespace: versionless Ensembl
+- counts contract: `adata.layers["counts"]` is the required raw-count store
 - default feature space: `hvg`
 - default HVG count: `3000`
+- default HVG method: `seurat_v3` using `layer="counts"`
+- atlasmtl core preprocessing does not generate log-normalized matrices by default
 - whole matrix must be explicitly requested
 
 ## Quick start

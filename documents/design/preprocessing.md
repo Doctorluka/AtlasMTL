@@ -12,6 +12,8 @@ or inference.
 The preprocessing layer handles:
 
 - gene namespace normalization
+- counts-vs-non-counts input validation
+- raw-count layer enforcement
 - species-aware symbol / Ensembl mapping
 - Ensembl version stripping
 - duplicate and unmapped gene handling
@@ -44,9 +46,12 @@ Supporting types:
 
 - `var_names_type`: explicit user input
 - `species`: explicit user input
+- if `adata.X` is count-like, copy it into `adata.layers["counts"]`
+- if `adata.X` is not count-like, require `adata.layers["counts"]`
+- atlasmtl core preprocessing does not run `normalize_total` or `log1p`
 - default feature space: `hvg`
 - default `n_top_genes`: `3000`
-- default HVG method: `seurat_v3`
+- default HVG method: `seurat_v3` with `layer="counts"`
 - whole matrix requires explicit opt-in
 
 ## Metadata contract

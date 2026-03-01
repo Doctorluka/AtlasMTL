@@ -44,6 +44,9 @@ Treat `atlasmtl` primarily as a reliable `sc -> sc reference mapping` and multi-
 - Strip Ensembl version suffixes before alignment, and make duplicate/failed mappings explicit in metadata or protocol records rather than silently ignoring them.
 - For formal runs, prefer a reference-derived HVG panel after canonicalization. Use whole-matrix training only as an explicit ablation or when resources and experiment design justify it.
 - Bundled human/mouse/rat mapping baseline lives at `atlasmtl/resources/gene_id/biomart_human_mouse_rat.tsv.gz`; keep column names explicit and document any updates to that file.
+- Treat `adata.layers["counts"]` as the required raw-count contract for atlasmtl preprocessing and scANVI-style benchmark comparators.
+- If `adata.X` is count-like, preprocessing may copy it into `adata.layers["counts"]`; if `adata.X` is not count-like, formal preprocessing must require a valid counts layer instead of silently proceeding.
+- For `hvg_method="seurat_v3"`, use `layer="counts"` and do not add default `normalize_total` / `log1p` steps inside atlasmtl core preprocessing.
 
 ## Benchmark Comparator Constraints
 - Current runnable benchmark methods are `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, and `azimuth`.
