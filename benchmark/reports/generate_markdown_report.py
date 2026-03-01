@@ -151,6 +151,28 @@ def _collect_coordinate_rows(results: List[Dict[str, Any]]) -> List[List[Any]]:
     return rows
 
 
+def _collect_protocol_rows(results: List[Dict[str, Any]], target_label_column: str | None) -> List[List[Any]]:
+    rows: List[List[Any]] = []
+    for result in results:
+        contract = result.get("input_contract") or {}
+        label_columns = list(result.get("label_columns") or [])
+        resolved_label = target_label_column or (label_columns[-1] if label_columns else "")
+        rows.append(
+            [
+                result.get("method"),
+                contract.get("backend"),
+                resolved_label,
+                contract.get("label_scope"),
+                contract.get("reference_matrix_source"),
+                contract.get("query_matrix_source"),
+                contract.get("counts_layer"),
+                contract.get("normalization_mode"),
+                contract.get("feature_alignment"),
+            ]
+        )
+    return rows
+
+
 def build_report(payload: Dict[str, Any], *, target_label_column: str | None) -> str:
     results = payload.get("results", [])
     methods = [str(item.get("method")) for item in results]
@@ -182,6 +204,23 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
                 "Backend",
             ],
             _collect_main_rows(results, target_label_column),
+        ),
+        "",
+        "## Comparator Protocol",
+        "",
+        _markdown_table(
+            [
+                "Method",
+                "Backend",
+                "Target label",
+                "Label scope",
+                "Reference matrix",
+                "Query matrix",
+                "Counts layer",
+                "Normalization",
+                "Feature alignment",
+            ],
+            _collect_protocol_rows(results, target_label_column),
         ),
         "",
     ]

@@ -19,6 +19,7 @@ from atlasmtl.core.evaluate import (
 )
 from atlasmtl.models.checksums import artifact_checksums
 from benchmark.methods.config import resolve_counts_layer, resolve_reference_query_layers
+from benchmark.methods.result_schema import build_input_contract
 
 
 def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
@@ -180,6 +181,15 @@ def run_singler(
         "artifact_checksums": artifact_checksums(artifact_paths),
         "model_source": "external_comparator",
         "model_input_path": {"reference_h5ad": reference_h5ad, "query_h5ad": query_h5ad},
+        "input_contract": build_input_contract(
+            reference_matrix_source=f"layers/{reference_layer}",
+            query_matrix_source=f"layers/{query_layer}",
+            counts_layer=counts_layer,
+            feature_alignment="shared_genes_intersection",
+            normalization_mode="method_internal_log1p",
+            label_scope="single_level",
+            backend="singler",
+        ),
         "train_config_used": method_cfg,
         "predict_config_used": {
             "target_label_column": target_label_column,
@@ -195,6 +205,7 @@ def run_singler(
             "counts_layer": counts_layer,
             "reference_layer": reference_layer,
             "query_layer": query_layer,
+            "matrix_source": f"layers/{query_layer}",
             "normalize_log1p": normalize_log1p,
             "use_pruned_labels": use_pruned_labels,
             "fine_tune": fine_tune,

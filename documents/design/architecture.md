@@ -313,6 +313,8 @@ The current benchmark path is:
 4. atlasmtl and comparators run against those concrete files
 5. method results are merged into `metrics.json`, `summary.csv`, and
    `run_manifest.json`
+6. optional paper exports derive both performance tables and comparator
+   protocol tables from the unified result schema
 
 ### Comparator matrix semantics
 
@@ -332,6 +334,25 @@ matrices:
 This is an intentional benchmark-layer distinction, not a core atlasmtl model
 conflict. Formal interpretation should therefore compare methods on shared
 label outputs, while recording matrix semantics in result metadata.
+
+### Unified result schema for paper use
+
+Each benchmark result should now be read as having two complementary payloads:
+
+- performance payload
+  - `metrics`
+  - `behavior_metrics`
+  - optional grouped and hierarchy metrics
+- protocol payload
+  - `input_contract`
+  - backend and matrix-source details
+  - normalization and feature-alignment mode
+
+This split is important for manuscript preparation because the paper needs to
+distinguish:
+
+- how well a method performed
+- what exact data contract and preprocessing assumptions that method used
 
 ### Current architectural risks and resolved conflicts
 

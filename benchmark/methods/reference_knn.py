@@ -12,6 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from atlasmtl.core.data import extract_matrix
 from atlasmtl.core.evaluate import evaluate_predictions
+from benchmark.methods.result_schema import build_input_contract
 
 
 def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
@@ -108,11 +109,21 @@ def run_reference_knn(
         "artifact_checksums": {},
         "model_source": "reference_knn_baseline",
         "model_input_path": None,
+        "input_contract": build_input_contract(
+            reference_matrix_source="X",
+            query_matrix_source="X",
+            counts_layer=manifest.get("counts_layer"),
+            feature_alignment="exact_train_gene_order",
+            normalization_mode=f"atlasmtl_extract_matrix:{input_transform}",
+            label_scope="multi_level_shared_baseline",
+            backend="reference_knn",
+        ),
         "train_config_used": method_cfg,
         "predict_config_used": {"input_transform": input_transform, "k": k},
         "prediction_metadata": {
             "input_transform": input_transform,
             "k": int(k),
             "method_family": "local_baseline",
+            "matrix_source": "X",
         },
     }

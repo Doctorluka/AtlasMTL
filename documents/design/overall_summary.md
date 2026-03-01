@@ -176,6 +176,21 @@ That is acceptable as long as:
 - wrappers record their actual input layers in metadata
 - formal interpretation compares shared label outputs first
 
+### Paper-facing output design
+
+The benchmark output format should now be treated as two coordinated layers:
+
+- metrics layer
+  - numerical performance used for tables, figures, and statistical summaries
+- protocol layer
+  - method backend, matrix source, counts layer, normalization mode, and
+    feature-alignment contract
+
+This design is necessary because two methods can achieve similar accuracy while
+operating under meaningfully different preprocessing assumptions. For a paper,
+those assumptions must be exportable in a stable machine-readable table rather
+than reconstructed manually from ad hoc notes.
+
 ## Main algorithmic structure
 
 ### 1. Shared multi-task encoder

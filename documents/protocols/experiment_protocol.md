@@ -27,6 +27,16 @@ The runner currently supports atlasmtl plus these comparator methods:
 - `symphony`
 - `azimuth`
 
+The benchmark reporting layer should be interpreted as two synchronized tables:
+
+- performance tables
+  - accuracy, macro-F1, calibration, coverage, and related benchmark metrics
+- protocol tables
+  - backend, target label, matrix sources, counts layer, normalization mode,
+    and feature-alignment policy
+
+Both are needed for paper-ready reporting.
+
 ## Benchmark philosophy
 
 The main benchmark question is:

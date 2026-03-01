@@ -127,6 +127,28 @@ def _coordinate_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _protocol_table(results: List[Dict[str, Any]], target_label_column: str | None) -> pd.DataFrame:
+    rows: List[Dict[str, Any]] = []
+    for result in results:
+        label_columns = list(result.get("label_columns") or [])
+        resolved_label = target_label_column or (label_columns[-1] if label_columns else None)
+        contract = result.get("input_contract") or {}
+        rows.append(
+            {
+                "method": result.get("method"),
+                "backend": contract.get("backend"),
+                "target_label_column": resolved_label,
+                "label_scope": contract.get("label_scope"),
+                "reference_matrix_source": contract.get("reference_matrix_source"),
+                "query_matrix_source": contract.get("query_matrix_source"),
+                "counts_layer": contract.get("counts_layer"),
+                "normalization_mode": contract.get("normalization_mode"),
+                "feature_alignment": contract.get("feature_alignment"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def _format_value(value: Any) -> str:
     if value is None:
         return ""
@@ -168,9 +190,11 @@ def main() -> None:
     domain_df = _domain_table(payload["results"], args.target_label_column)
     atlas_df = _atlasmtl_table(payload["results"], args.target_label_column)
     coordinate_df = _coordinate_table(payload["results"])
+    protocol_df = _protocol_table(payload["results"], args.target_label_column)
 
     tables = {
         "main_comparison": main_df,
+        "comparator_protocol": protocol_df,
         "domain_comparison": domain_df,
         "atlasmtl_analysis": atlas_df,
         "coordinate_diagnostics": coordinate_df,

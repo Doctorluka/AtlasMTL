@@ -17,6 +17,7 @@ from atlasmtl.core.evaluate import (
 )
 from atlasmtl.models.checksums import sha256_file
 from benchmark.methods.config import resolve_counts_layer
+from benchmark.methods.result_schema import build_input_contract
 from atlasmtl.preprocess.matrix_semantics import is_count_like_matrix
 
 
@@ -267,6 +268,15 @@ def run_scanvi(
         "artifact_checksums": artifact_checksums,
         "model_source": "trained_in_runner",
         "model_input_path": None,
+        "input_contract": build_input_contract(
+            reference_matrix_source=f"layers/{counts_layer}",
+            query_matrix_source=f"layers/{counts_layer}",
+            counts_layer=counts_layer,
+            feature_alignment="shared_preprocessed_var_space",
+            normalization_mode="scvi_count_model_internal",
+            label_scope="single_level",
+            backend="scanvi",
+        ),
         "train_config_used": method_cfg,
         "predict_config_used": {
             "target_label_column": label_column,
@@ -278,6 +288,7 @@ def run_scanvi(
             "method_family": "published_comparator",
             "comparator_name": "scanvi",
             "counts_layer_used": counts_layer,
+            "matrix_source": f"layers/{counts_layer}",
             "label_column": label_column,
             "batch_key": batch_key,
             "n_latent": n_latent,

@@ -29,6 +29,7 @@ from atlasmtl.core.evaluate import (
 )
 from atlasmtl.models import artifact_checksums, resolve_manifest_paths
 from atlasmtl.preprocess import PreprocessConfig, preprocess_query, preprocess_reference
+from benchmark.methods.result_schema import build_input_contract
 from benchmark.methods import run_method
 
 PROTOCOL_VERSION = 1
@@ -414,6 +415,17 @@ def _run_atlasmtl(
         "artifact_checksums": artifact_checksums(artifact_paths) if artifact_paths else {},
         "model_source": model_source,
         "model_input_path": model_input_path,
+        "input_contract": build_input_contract(
+            reference_matrix_source="preprocessed_h5ad:X",
+            query_matrix_source="preprocessed_h5ad:X",
+            counts_layer=((manifest.get("preprocess") or {}).get("config") or {}).get("counts_layer")
+            if isinstance(manifest.get("preprocess"), dict)
+            else manifest.get("counts_layer"),
+            feature_alignment="reference_feature_panel_exact_order",
+            normalization_mode="atlasmtl_core_no_default_lognorm",
+            label_scope="multi_level",
+            backend="atlasmtl",
+        ),
         "train_config_used": train_cfg if not atlasmtl_model else None,
         "predict_config_used": pred_cfg,
         "prediction_metadata": result.metadata,
@@ -435,6 +447,13 @@ def _write_reports(payload: Dict[str, Any], output_dir: Path) -> None:
                 "level": level,
                 "split_name": (result.get("protocol_context") or {}).get("split_name"),
                 "model_source": result.get("model_source"),
+                "backend": ((result.get("input_contract") or {}).get("backend")),
+                "reference_matrix_source": ((result.get("input_contract") or {}).get("reference_matrix_source")),
+                "query_matrix_source": ((result.get("input_contract") or {}).get("query_matrix_source")),
+                "counts_layer": ((result.get("input_contract") or {}).get("counts_layer")),
+                "normalization_mode": ((result.get("input_contract") or {}).get("normalization_mode")),
+                "feature_alignment": ((result.get("input_contract") or {}).get("feature_alignment")),
+                "label_scope": ((result.get("input_contract") or {}).get("label_scope")),
                 "knn_vote_mode": (result.get("predict_config_used") or {}).get("knn_vote_mode", "majority"),
                 "knn_reference_mode": (result.get("predict_config_used") or {}).get("knn_reference_mode", "full"),
                 "knn_index_mode": (result.get("predict_config_used") or {}).get("knn_index_mode", "exact"),
@@ -459,6 +478,10 @@ def _write_reports(payload: Dict[str, Any], output_dir: Path) -> None:
                     "domain": domain,
                     "level": level,
                     "split_name": (result.get("protocol_context") or {}).get("split_name"),
+                    "backend": ((result.get("input_contract") or {}).get("backend")),
+                    "reference_matrix_source": ((result.get("input_contract") or {}).get("reference_matrix_source")),
+                    "query_matrix_source": ((result.get("input_contract") or {}).get("query_matrix_source")),
+                    "counts_layer": ((result.get("input_contract") or {}).get("counts_layer")),
                     "knn_vote_mode": (result.get("predict_config_used") or {}).get("knn_vote_mode", "majority"),
                     "knn_reference_mode": (result.get("predict_config_used") or {}).get("knn_reference_mode", "full"),
                     "knn_index_mode": (result.get("predict_config_used") or {}).get("knn_index_mode", "exact"),

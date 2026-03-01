@@ -77,3 +77,10 @@ Comparator wrappers have also been aligned to this benchmark-level contract:
   - preprocessing
   - atlasmtl core
   - comparator-specific benchmark routing
+
+The benchmark result schema now also carries a unified `input_contract` block
+per method so paper exports can distinguish:
+
+- performance metrics
+- protocol-level assumptions such as matrix source, counts layer, normalization
+  path, backend, and feature-alignment mode

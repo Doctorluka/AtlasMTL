@@ -18,6 +18,7 @@ from atlasmtl.core.evaluate import (
 )
 from atlasmtl.models.checksums import artifact_checksums
 from benchmark.methods.config import resolve_counts_layer, resolve_reference_query_layers
+from benchmark.methods.result_schema import build_input_contract
 
 
 def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
@@ -202,6 +203,15 @@ def run_azimuth(
         "artifact_checksums": artifact_checksums(artifact_paths),
         "model_source": "external_comparator",
         "model_input_path": {"reference_h5ad": reference_h5ad, "query_h5ad": query_h5ad},
+        "input_contract": build_input_contract(
+            reference_matrix_source=f"layers/{reference_layer}",
+            query_matrix_source=f"layers/{query_layer}",
+            counts_layer=counts_layer,
+            feature_alignment="shared_genes_or_homolog_conversion",
+            normalization_mode="azimuth_native_or_anchor_transfer_internal",
+            label_scope="single_level",
+            backend=metadata.get("implementation_backend", "azimuth_native"),
+        ),
         "train_config_used": method_cfg,
         "predict_config_used": {
             "target_label_column": target_label_column,
@@ -209,6 +219,7 @@ def run_azimuth(
             "counts_layer": counts_layer,
             "reference_layer": reference_layer,
             "query_layer": query_layer,
+            "matrix_source": f"layers/{query_layer}",
             "nfeatures": nfeatures,
             "npcs": npcs,
             "k_anchor": k_anchor,
@@ -230,6 +241,7 @@ def run_azimuth(
             "counts_layer": counts_layer,
             "reference_layer": reference_layer,
             "query_layer": query_layer,
+            "matrix_source": f"layers/{query_layer}",
             "nfeatures": int(metadata.get("nfeatures", nfeatures)),
             "npcs": int(metadata.get("npcs", npcs)),
             "dims": metadata.get("dims", dims),

@@ -15,6 +15,7 @@ from atlasmtl.core.evaluate import (
     evaluate_predictions_by_group,
 )
 from atlasmtl.models.checksums import artifact_checksums
+from benchmark.methods.result_schema import build_input_contract
 
 
 def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
@@ -179,6 +180,15 @@ def run_celltypist(
         "artifact_checksums": artifact_checksums(artifact_paths),
         "model_source": "external_comparator",
         "model_input_path": artifact_paths,
+        "input_contract": build_input_contract(
+            reference_matrix_source="external_celltypist_model",
+            query_matrix_source="X",
+            counts_layer=manifest.get("counts_layer"),
+            feature_alignment="celltypist_model_features_internal",
+            normalization_mode="expects_prepared_expression_in_X",
+            label_scope="single_level_or_per_level_model",
+            backend="celltypist",
+        ),
         "train_config_used": method_cfg,
         "predict_config_used": {
             "majority_voting": majority_voting,
@@ -190,6 +200,7 @@ def run_celltypist(
             "comparator_name": "celltypist",
             "majority_voting": majority_voting,
             "mode": mode,
+            "matrix_source": "X",
             "matched_features": matched_features,
             "probability_summary": probability_summary,
         },
