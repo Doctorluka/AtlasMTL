@@ -4,6 +4,20 @@ import json
 from pathlib import Path
 from typing import Dict, Optional
 
+import numpy as np
+
+
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
 
 def default_manifest_path(model_path: str) -> str:
     return model_path.replace(".pth", "_manifest.json")
@@ -28,9 +42,11 @@ def build_manifest_payload(
     reference_storage: str,
     reference_path: Optional[str],
     input_transform: str,
+    preprocess: Optional[Dict[str, object]] = None,
+    checksums: Optional[Dict[str, str]] = None,
 ) -> Dict[str, object]:
     parent = Path(model_path).resolve().parent
-    return {
+    payload: Dict[str, object] = {
         "schema_version": 1,
         "model_path": _relative_to_parent(model_path, parent),
         "metadata_path": _relative_to_parent(metadata_path, parent),
@@ -38,11 +54,16 @@ def build_manifest_payload(
         "reference_path": _relative_to_parent(reference_path, parent),
         "input_transform": input_transform,
     }
+    if preprocess:
+        payload["preprocess"] = dict(preprocess)
+    if checksums:
+        payload["checksums"] = dict(checksums)
+    return payload
 
 
 def save_manifest(payload: Dict[str, object], path: str) -> None:
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, sort_keys=True)
+        json.dump(_json_safe(payload), f, indent=2, sort_keys=True)
 
 
 def load_manifest(path: str) -> Dict[str, object]:
@@ -66,4 +87,5 @@ def resolve_manifest_paths(manifest_path: str) -> Dict[str, Optional[str]]:
         "reference_storage": manifest.get("reference_storage", "full"),
         "reference_path": _resolve("reference_path"),
         "input_transform": manifest.get("input_transform", "binary"),
+        "preprocess": manifest.get("preprocess"),
     }

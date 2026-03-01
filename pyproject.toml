@@ -32,3 +32,6 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["atlasmtl*"]
+
+[tool.setuptools.package-data]
+"atlasmtl.resources.gene_id" = ["*.md", "*.tsv.gz"]

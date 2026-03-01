@@ -8,6 +8,12 @@ __pycache__/
 .env
 .ipynb_checkpoints/
 .DS_Store
+.pytest_cache/
+.coverage
+htmlcov/
 benchmark/reports/generated/
+tests/integration/logs/
+.r_libs/
+data/test_adatas/*.h5ad
 
 vendor/

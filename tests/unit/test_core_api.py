@@ -93,6 +93,7 @@ def test_predict_closed_loop_unknown_uses_knn_confidence():
         margin_threshold=0.9,
         knn_k=2,
         knn_conf_low=0.75,
+        knn_index_mode="pynndescent",
         device="cpu",
     )
     pred = result.predictions

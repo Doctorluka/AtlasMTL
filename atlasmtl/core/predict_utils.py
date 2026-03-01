@@ -12,6 +12,18 @@ from ..utils import progress_iter
 from ..version import __version__
 
 
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
+
+
 def run_model_in_batches(
     model,
     X: np.ndarray,
@@ -69,13 +81,17 @@ def build_prediction_metadata(
     knn_k: int,
     knn_conf_low: float,
     input_transform: str,
+    calibration_applied: bool,
+    calibration_method: Optional[str],
+    calibration_temperatures: Optional[Dict[str, float]],
     knn_space_used: str,
     device_used: str,
     device_requested: str,
     num_threads_used: int,
     runtime_summary: Dict[str, object],
+    preprocess_metadata: Optional[Dict[str, object]] = None,
 ) -> Dict[str, object]:
-    return {
+    payload: Dict[str, object] = {
         "atlasmtl_version": __version__,
         "knn_correction": knn_correction,
         "confidence_high": confidence_high,
@@ -85,6 +101,8 @@ def build_prediction_metadata(
         "knn_conf_low": knn_conf_low,
         "latent_source": model.latent_source,
         "input_transform": input_transform,
+        "calibration_applied": bool(calibration_applied),
+        "calibration_method": calibration_method,
         "knn_space_used": knn_space_used,
         "device_requested": device_requested,
         "device_used": device_used,
@@ -92,6 +110,13 @@ def build_prediction_metadata(
         "prediction_runtime": runtime_summary,
         "train_config": model.train_config,
     }
+    if calibration_temperatures:
+        payload["calibration_temperatures"] = dict(calibration_temperatures)
+        for col, temp in calibration_temperatures.items():
+            payload[f"temperature_{col}"] = float(temp)
+    if preprocess_metadata is not None:
+        payload["preprocess"] = preprocess_metadata
+    return _json_safe(payload)
 
 
 def append_level_predictions(
@@ -107,9 +132,12 @@ def append_level_predictions(
     knn_correction: str,
     knn_conf_low: float,
     knn_k: int,
+    knn_vote_mode: str = "majority",
+    knn_index_mode: str = "exact",
     query_space: Optional[np.ndarray],
     ref_space: Optional[np.ndarray],
     ref_labels: np.ndarray,
+    openset_unknown: Optional[np.ndarray] = None,
 ) -> None:
     max_prob, margin = mtl_confidence(probs)
     raw_idx = probs.argmax(axis=1)
@@ -140,6 +168,8 @@ def append_level_predictions(
             ref_labels=ref_labels,
             query_coords=query_space[apply_mask],
             k=knn_k,
+            vote_mode=knn_vote_mode,
+            index_mode=knn_index_mode,
         )
         used_knn[apply_mask] = True
         knn_label[apply_mask] = knn_labels.astype(object)
@@ -148,6 +178,8 @@ def append_level_predictions(
 
     mtl_unknown = max_prob < confidence_low
     is_unknown = closed_loop_unknown_mask(mtl_unknown, is_low, used_knn, is_low_knn_conf)
+    if openset_unknown is not None:
+        is_unknown = is_unknown | openset_unknown
     final_label = knn_label.astype(object)
     final_label[is_unknown] = "Unknown"
 

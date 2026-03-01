@@ -13,9 +13,57 @@ from torch.utils.data import DataLoader, TensorDataset
 from .data import compute_coord_stats, extract_matrix, scale_coords
 from .model import AtlasMTLModel
 from .runtime import configure_torch_threads, resolve_device
+from ..mapping.calibration import fit_temperature_scaling
 from ..models import ReferenceData
+from ..models.presets import resolve_preset
 from .types import TrainedModel
 from ..utils import RuntimeMonitor, progress_iter, resolve_show_summary
+
+
+def _domain_mean_penalty(z: torch.Tensor, domains: torch.Tensor) -> torch.Tensor:
+    """Lightweight domain alignment penalty based on mean embedding matching."""
+    unique = torch.unique(domains)
+    if unique.numel() <= 1:
+        return torch.zeros((), device=z.device)
+    means = []
+    for d in unique:
+        mask = domains == d
+        if torch.any(mask):
+            means.append(z[mask].mean(dim=0))
+    if len(means) <= 1:
+        return torch.zeros((), device=z.device)
+    penalty = torch.zeros((), device=z.device)
+    pairs = 0
+    for i in range(len(means)):
+        for j in range(i + 1, len(means)):
+            diff = means[i] - means[j]
+            penalty = penalty + torch.mean(diff * diff)
+            pairs += 1
+    return penalty / float(max(pairs, 1))
+
+
+def _topology_loss(
+    pred_coords: torch.Tensor,
+    target_coords: torch.Tensor,
+    *,
+    k: int,
+) -> torch.Tensor:
+    """Neighborhood distance preservation loss within a minibatch."""
+    if k <= 0:
+        return torch.zeros((), device=pred_coords.device)
+    n = int(pred_coords.shape[0])
+    if n <= 1:
+        return torch.zeros((), device=pred_coords.device)
+    k_eff = min(int(k), n - 1)
+    with torch.no_grad():
+        dist_target = torch.cdist(target_coords, target_coords)
+        dist_target.fill_diagonal_(float("inf"))
+        nn_idx = torch.topk(dist_target, k_eff, largest=False).indices
+    dist_pred = torch.cdist(pred_coords, pred_coords)
+    row = torch.arange(n, device=pred_coords.device).unsqueeze(1).expand(n, k_eff)
+    d_t = dist_target[row, nn_idx]
+    d_p = dist_pred[row, nn_idx]
+    return torch.mean((d_p - d_t) ** 2)
 
 
 def _build_resource_summary(
@@ -71,6 +119,16 @@ def build_model(
     early_stopping_patience: Optional[int] = None,
     early_stopping_min_delta: float = 0.0,
     random_state: int = 42,
+    preset: Optional[str] = None,
+    domain_key: Optional[str] = None,
+    domain_loss_weight: float = 0.0,
+    domain_loss_method: str = "mean",
+    topology_loss_weight: float = 0.0,
+    topology_k: int = 10,
+    topology_coord: str = "latent",
+    calibration_method: Optional[str] = None,
+    calibration_max_iter: int = 100,
+    calibration_lr: float = 0.05,
     reference_storage: str = "external",
     reference_path: Optional[str] = None,
     num_threads: Union[int, str, None] = 10,
@@ -156,6 +214,14 @@ def build_model(
     """
     coord_targets = dict(coord_targets or {})
     coord_loss_weights = coord_loss_weights or {"latent": 0.5, "umap": 0.2}
+    if preset is not None:
+        cfg = resolve_preset(preset)
+        if hidden_sizes is None and "hidden_sizes" in cfg:
+            hidden_sizes = cfg["hidden_sizes"]
+        if dropout_rate == 0.3 and "dropout_rate" in cfg:
+            dropout_rate = float(cfg["dropout_rate"])
+        if learning_rate == 1e-3 and "learning_rate" in cfg:
+            learning_rate = float(cfg["learning_rate"])
 
     for col in label_columns:
         if col not in adata.obs.columns:
@@ -163,7 +229,18 @@ def build_model(
     for name, key in coord_targets.items():
         if key not in adata.obsm:
             raise ValueError(f"Missing coordinate target in adata.obsm: {key} for {name}")
+    if domain_key is not None and domain_key not in adata.obs.columns:
+        raise ValueError(f"Missing domain_key column in adata.obs: {domain_key}")
+    if domain_loss_method != "mean":
+        raise ValueError("domain_loss_method must be 'mean'")
+    if domain_loss_weight < 0:
+        raise ValueError("domain_loss_weight must be >= 0")
+    if topology_loss_weight < 0:
+        raise ValueError("topology_loss_weight must be >= 0")
+    if topology_k < 0:
+        raise ValueError("topology_k must be >= 0")
 
+    preprocess_metadata = dict(adata.uns.get("atlasmtl_preprocess", {})) if "atlasmtl_preprocess" in adata.uns else None
     X = extract_matrix(adata, input_transform=input_transform)
     y_arrays: List[np.ndarray] = []
     label_encoders: Dict[str, LabelEncoder] = {}
@@ -199,6 +276,12 @@ def build_model(
     x_t = torch.tensor(X, dtype=torch.float32)
     y_t = [torch.tensor(y, dtype=torch.long) for y in y_arrays]
     c_t = {k: torch.tensor(v, dtype=torch.float32) for k, v in coord_data.items()}
+    d_t = None
+    domain_encoder = None
+    if domain_key is not None:
+        domain_encoder = LabelEncoder()
+        domains = domain_encoder.fit_transform(adata.obs[domain_key].astype(str).values)
+        d_t = torch.tensor(domains, dtype=torch.long)
 
     task_weights = task_weights or [1.0 for _ in label_columns]
     if len(task_weights) != len(label_columns):
@@ -219,20 +302,26 @@ def build_model(
             shuffle=True,
         )
 
-    train_dataset = TensorDataset(
+    train_tensors = [
         x_t[train_indices],
         *[tensor[train_indices] for tensor in y_t],
         *[c_t[name][train_indices] for name in coord_names],
-    )
+    ]
+    if d_t is not None:
+        train_tensors.append(d_t[train_indices])
+    train_dataset = TensorDataset(*train_tensors)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     val_loader = None
     if len(val_indices) > 0:
-        val_dataset = TensorDataset(
+        val_tensors = [
             x_t[val_indices],
             *[tensor[val_indices] for tensor in y_t],
             *[c_t[name][val_indices] for name in coord_names],
-        )
+        ]
+        if d_t is not None:
+            val_tensors.append(d_t[val_indices])
+        val_dataset = TensorDataset(*val_tensors)
         val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     best_state = None
@@ -260,13 +349,26 @@ def build_model(
                 coord_names[i]: batch[1 + len(label_columns) + i].to(resolved_device)
                 for i in range(len(coord_names))
             }
-            logits, coords, _ = model(bx)
+            domains_batch = None
+            if d_t is not None:
+                domains_batch = batch[1 + len(label_columns) + len(coord_names)].to(resolved_device)
+            logits, coords, z = model(bx)
             loss_cls = sum(task_weights[i] * ce(logits[i], by[i]) for i in range(len(by)))
             loss_coord = sum(
                 coord_loss_weights.get(name, 0.0) * huber(coords[name], bc[name])
                 for name in coord_names
             )
-            loss = loss_cls + loss_coord
+            loss_domain = torch.zeros((), device=resolved_device)
+            if domains_batch is not None and domain_loss_weight > 0:
+                loss_domain = _domain_mean_penalty(z, domains_batch) * float(domain_loss_weight)
+            loss_topo = torch.zeros((), device=resolved_device)
+            if topology_loss_weight > 0 and topology_coord in coord_names:
+                loss_topo = _topology_loss(
+                    coords[topology_coord],
+                    bc[topology_coord],
+                    k=int(topology_k),
+                ) * float(topology_loss_weight)
+            loss = loss_cls + loss_coord + loss_domain + loss_topo
             opt.zero_grad()
             loss.backward()
             opt.step()
@@ -291,13 +393,24 @@ def build_model(
                     coord_names[i]: batch[1 + len(label_columns) + i].to(resolved_device)
                     for i in range(len(coord_names))
                 }
-                logits, coords, _ = model(bx)
+                logits, coords, z = model(bx)
                 loss_cls = sum(task_weights[i] * ce(logits[i], by[i]) for i in range(len(by)))
                 loss_coord = sum(
                     coord_loss_weights.get(name, 0.0) * huber(coords[name], bc[name])
                     for name in coord_names
                 )
-                batch_loss = (loss_cls + loss_coord).item()
+                loss_domain = torch.zeros((), device=resolved_device)
+                if d_t is not None and domain_loss_weight > 0:
+                    domains_batch = batch[1 + len(label_columns) + len(coord_names)].to(resolved_device)
+                    loss_domain = _domain_mean_penalty(z, domains_batch) * float(domain_loss_weight)
+                loss_topo = torch.zeros((), device=resolved_device)
+                if topology_loss_weight > 0 and topology_coord in coord_names:
+                    loss_topo = _topology_loss(
+                        coords[topology_coord],
+                        bc[topology_coord],
+                        k=int(topology_k),
+                    ) * float(topology_loss_weight)
+                batch_loss = (loss_cls + loss_coord + loss_domain + loss_topo).item()
                 total_val_loss += batch_loss * len(bx)
                 total_val_items += len(bx)
 
@@ -321,6 +434,50 @@ def build_model(
     if best_state is not None:
         model.load_state_dict(best_state)
 
+    calibration_payload: Optional[Dict[str, object]] = None
+    if calibration_method is not None:
+        if calibration_method != "temperature_scaling":
+            raise ValueError("calibration_method must be None or 'temperature_scaling'")
+        if val_loader is None:
+            raise ValueError("temperature scaling requires val_fraction > 0 to fit calibration temperatures")
+        model.eval()
+        val_logits_parts: Optional[List[List[torch.Tensor]]] = None
+        val_targets_parts: List[List[torch.Tensor]] = [[] for _ in label_columns]
+        with torch.no_grad():
+            for batch in val_loader:
+                bx = batch[0].to(resolved_device)
+                by = [batch[i + 1].to(resolved_device) for i in range(len(label_columns))]
+                logits_out, _, _ = model(bx)
+                if val_logits_parts is None:
+                    val_logits_parts = [[] for _ in range(len(logits_out))]
+                for i, logit in enumerate(logits_out):
+                    val_logits_parts[i].append(logit.detach())
+                    val_targets_parts[i].append(by[i].detach())
+
+        if val_logits_parts is None:
+            raise ValueError("no validation batches available for calibration")
+        temperatures: Dict[str, float] = {}
+        for i, col in enumerate(label_columns):
+            head_logits = torch.cat(val_logits_parts[i], dim=0)
+            head_targets = torch.cat(val_targets_parts[i], dim=0)
+            calibrator = fit_temperature_scaling(
+                head_logits,
+                head_targets,
+                max_iter=calibration_max_iter,
+                lr=calibration_lr,
+                device=resolved_device,
+            )
+            temperatures[col] = calibrator.temperature
+        calibration_payload = {
+            "method": calibration_method,
+            "split": "val",
+            "temperatures": temperatures,
+            "max_iter": int(calibration_max_iter),
+            "lr": float(calibration_lr),
+            "val_fraction": float(val_fraction),
+            "random_state": int(random_state),
+        }
+
     ref_coords = {
         f"X_ref_{k}": np.asarray(adata.obsm[v], dtype=np.float32) for k, v in coord_targets.items()
     }
@@ -337,6 +494,7 @@ def build_model(
         runtime_summary=train_runtime,
     )
     train_config = {
+        "preset": preset,
         "hidden_sizes": hidden_sizes or [256, 128],
         "dropout_rate": dropout_rate,
         "batch_size": batch_size,
@@ -351,6 +509,14 @@ def build_model(
         "early_stopping_patience": early_stopping_patience,
         "early_stopping_min_delta": early_stopping_min_delta,
         "random_state": random_state,
+        "domain_key": domain_key,
+        "domain_loss_weight": float(domain_loss_weight),
+        "domain_loss_method": domain_loss_method,
+        "domains": None if domain_encoder is None else [str(x) for x in domain_encoder.classes_],
+        "topology_loss_weight": float(topology_loss_weight),
+        "topology_k": int(topology_k),
+        "topology_coord": topology_coord,
+        "calibration": calibration_payload,
         "reference_storage": reference_storage,
         "coord_enabled": bool(coord_targets),
         "resolved_coord_targets": coord_targets,
@@ -364,6 +530,8 @@ def build_model(
         "last_val_loss": None if last_val_loss is None else round(last_val_loss, 6),
         "resource_summary": resource_summary,
     }
+    if preprocess_metadata is not None:
+        train_config["preprocess"] = preprocess_metadata
 
     trained_model = TrainedModel(
         model=model,

@@ -40,8 +40,24 @@ Important optional controls:
 - `input_transform`
 - `val_fraction`
 - `early_stopping_patience`
+- `early_stopping_min_delta`
+- `random_state`
+- `preset`
+- `domain_key`
+- `domain_loss_weight`
+- `domain_loss_method`
+- `topology_loss_weight`
+- `topology_k`
+- `topology_coord`
+- `calibration_method`
+- `calibration_max_iter`
+- `calibration_lr`
 - `reference_storage`
+- `reference_path`
+- `num_threads`
+- `device`
 - `show_progress`
+- `show_summary`
 
 Coordinate behavior:
 - `coord_targets=None` means no-coordinate training
@@ -53,6 +69,11 @@ Defaults that should remain stable unless a versioned change is announced:
 - `reference_storage="external"`
 - `num_threads=10`
 - `device="auto"`
+- `domain_loss_method="mean"`
+- `domain_loss_weight=0.0`
+- `topology_loss_weight=0.0`
+- `topology_k=10`
+- `topology_coord="latent"`
 
 ### `predict(...) -> PredictionResult`
 
@@ -67,8 +88,21 @@ Important optional controls:
 - `margin_threshold`
 - `knn_k`
 - `knn_conf_low`
+- `knn_vote_mode`
+- `knn_reference_mode`
+- `knn_index_mode`
 - `input_transform`
+- `apply_calibration`
+- `openset_method`
+- `openset_threshold`
+- `openset_label_column`
+- `hierarchy_rules`
+- `enforce_hierarchy`
 - `batch_size`
+- `num_threads`
+- `device`
+- `show_progress`
+- `show_summary`
 
 Defaults that should remain stable unless a versioned change is announced:
 - `knn_correction="low_conf_only"`
@@ -77,6 +111,9 @@ Defaults that should remain stable unless a versioned change is announced:
 - `margin_threshold=0.2`
 - `knn_k=15`
 - `knn_conf_low=0.6`
+- `knn_vote_mode="majority"`
+- `knn_reference_mode="full"`
+- `knn_index_mode="exact"`
 
 ## `TrainedModel`
 
@@ -85,7 +122,8 @@ Stable responsibilities:
 - hold label encoders and training gene order
 - hold coordinate scaling statistics
 - hold or resolve reference data needed for KNN
-- hold training metadata including elapsed time and resource summary
+- hold training metadata including elapsed time, resource summary, and optional
+  calibration/domain/topology settings
 - expose progress-aware train/predict execution through the public API
 - save and load artifact bundles
 
@@ -104,6 +142,8 @@ Stable responsibilities:
 - keep full prediction outputs in memory
 - allow selective export without forcing everything into `AnnData`
 - retain prediction runtime/resource metadata for benchmark accounting
+- retain calibration, KNN, open-set, and hierarchy metadata for export and
+  traceability
 
 Stable methods:
 - `to_adata(adata, mode="standard", include_coords=False, include_metadata=True)`
@@ -150,6 +190,16 @@ Optional coordinates:
 Metadata:
 - `uns["atlasmtl"]`
 
+The metadata payload may contain:
+
+- threshold settings
+- `train_config`
+- device/thread/runtime summaries
+- calibration metadata
+- KNN mode metadata
+- open-set metadata
+- hierarchy metadata
+
 ## CLI contract
 
 ### `scripts/train_atlasmtl.py`
@@ -170,6 +220,12 @@ Stable user-facing controls:
 - device selection
 - validation / early stopping
 - reference storage mode
+
+Current limitation:
+
+- the CLI intentionally exposes only a stable subset of the Python training API
+- `preset`, calibration controls, domain controls, and topology controls are
+  currently Python API features, not CLI flags
 
 ### `scripts/predict_atlasmtl.py`
 
@@ -193,6 +249,13 @@ Stable user-facing controls:
 - coordinate writeback
 - metadata writeback
 
+Current limitation:
+
+- the CLI intentionally exposes only a stable subset of the Python prediction
+  API
+- KNN vote/reference/index variants, open-set controls, and hierarchy controls
+  currently require the Python API
+
 ## Artifact contract
 
 Recommended bundle:
@@ -200,6 +263,12 @@ Recommended bundle:
 - `model_metadata.pkl`
 - `model_reference.pkl`
 - `model_manifest.json`
+
+Current artifact additions:
+
+- `model_manifest.json["checksums"]`
+- optional gzip-compressed external reference assets
+- train, predict, and benchmark run manifests
 
 Manifest purpose:
 - stable entry point for automation

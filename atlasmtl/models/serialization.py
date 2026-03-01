@@ -7,6 +7,7 @@ from typing import Optional
 import torch
 
 from ..core.model import AtlasMTLModel
+from .checksums import artifact_checksums
 from .manifest import (
     build_manifest_payload,
     default_manifest_path,
@@ -47,6 +48,13 @@ def save_trained_model_metadata(trained_model, path: str) -> None:
             f,
         )
     manifest_path = default_manifest_path(path)
+    checksums = artifact_checksums(
+        {
+            "model_path": str(Path(path).resolve()),
+            "metadata_path": str(Path(meta_path).resolve()),
+            "reference_path": None if reference_storage != "external" else str(Path(reference_path).resolve()),
+        }
+    )
     save_manifest(
         build_manifest_payload(
             model_path=path,
@@ -54,6 +62,8 @@ def save_trained_model_metadata(trained_model, path: str) -> None:
             reference_storage=reference_storage,
             reference_path=reference_path,
             input_transform=trained_model.input_transform,
+            preprocess=trained_model.train_config.get("preprocess") if isinstance(trained_model.train_config, dict) else None,
+            checksums=checksums,
         ),
         manifest_path,
     )
@@ -75,6 +85,7 @@ def _resolve_artifact_paths(path: str) -> dict[str, Optional[str]]:
         "reference_storage": "full",
         "reference_path": None,
         "input_transform": "binary",
+        "preprocess": None,
     }
 
 
@@ -106,4 +117,6 @@ def load_trained_model_metadata(cls, path: str, device: Optional[torch.device] =
     meta.setdefault("reference_storage", reference_storage)
     meta.setdefault("input_transform", artifact_paths.get("input_transform", "binary"))
     meta.setdefault("train_config", {})
+    if artifact_paths.get("preprocess") and "preprocess" not in meta["train_config"]:
+        meta["train_config"]["preprocess"] = artifact_paths.get("preprocess")
     return cls(model=model, **meta)

@@ -2,9 +2,25 @@
 """Run atlasmtl inference and write AnnData output."""
 
 import argparse
+import json
+from pathlib import Path
 from anndata import read_h5ad
+import numpy as np
 
 from atlasmtl import TrainedModel, predict
+from atlasmtl.preprocess import PreprocessConfig, feature_panel_from_model, preprocess_query
+
+
+def _json_safe(value):
+    if isinstance(value, dict):
+        return {str(k): _json_safe(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json_safe(v) for v in value]
+    if isinstance(value, np.ndarray):
+        return value.tolist()
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
 
 
 def parse_args() -> argparse.Namespace:
@@ -97,6 +113,35 @@ def parse_args() -> argparse.Namespace:
         help="Execution device. Default: auto.",
     )
     parser.add_argument(
+        "--var-names-type",
+        choices=["symbol", "ensembl"],
+        default=None,
+        help="Optional preprocessing input gene namespace for query data. Requires --species when set.",
+    )
+    parser.add_argument(
+        "--species",
+        choices=["human", "mouse", "rat"],
+        default=None,
+        help="Optional preprocessing species for query data. Requires --var-names-type when set.",
+    )
+    parser.add_argument(
+        "--gene-id-table",
+        default=None,
+        help="Optional path to a gene-id mapping table. Defaults to the packaged atlasmtl resource.",
+    )
+    parser.add_argument(
+        "--duplicate-policy",
+        choices=["sum", "mean", "first", "error"],
+        default="sum",
+        help="How to aggregate duplicate canonical genes during preprocessing. Default: sum.",
+    )
+    parser.add_argument(
+        "--unmapped-policy",
+        choices=["drop", "keep_original", "error"],
+        default="drop",
+        help="How to handle unmapped genes during preprocessing. Default: drop.",
+    )
+    parser.add_argument(
         "--no-progress",
         action="store_true",
         help="Disable the inference progress bar.",
@@ -109,6 +154,31 @@ def main() -> None:
 
     model = TrainedModel.load(args.model)
     adata = read_h5ad(args.adata)
+    preprocess_payload = None
+    if args.var_names_type is not None or args.species is not None:
+        if args.var_names_type is None or args.species is None:
+            raise ValueError("Specify both --var-names-type and --species to enable preprocessing.")
+        train_preprocess = {}
+        if isinstance(model.train_config, dict):
+            train_preprocess = dict(model.train_config.get("preprocess") or {})
+        preprocess_config = PreprocessConfig(
+            var_names_type=args.var_names_type,
+            species=args.species,
+            gene_id_table=args.gene_id_table or (train_preprocess.get("config") or {}).get("gene_id_table"),
+            feature_space=str((train_preprocess.get("config") or {}).get("feature_space", "whole")),
+            n_top_genes=int((train_preprocess.get("config") or {}).get("n_top_genes", 3000)),
+            hvg_method=str((train_preprocess.get("config") or {}).get("hvg_method", "seurat_v3")),
+            hvg_batch_key=(train_preprocess.get("config") or {}).get("hvg_batch_key"),
+            duplicate_policy=args.duplicate_policy,
+            unmapped_policy=args.unmapped_policy,
+        )
+        feature_panel = feature_panel_from_model(model)
+        adata, preprocess_report = preprocess_query(adata, feature_panel, preprocess_config)
+        preprocess_payload = {
+            "config": preprocess_config.to_dict(),
+            "feature_panel": feature_panel.to_dict(),
+            "query_report": preprocess_report.to_dict(),
+        }
     result = predict(
         model,
         adata,
@@ -131,6 +201,25 @@ def main() -> None:
         include_metadata=not args.skip_metadata,
     )
     adata.write_h5ad(args.out)
+    out_dir = Path(args.out).resolve().parent
+    (out_dir / "predict_run_manifest.json").write_text(
+        json.dumps(
+            _json_safe(
+                {
+                "schema_version": 1,
+                "command": "predict_atlasmtl",
+                "model": str(Path(args.model).resolve()),
+                "out": str(Path(args.out).resolve()),
+                "device": args.device,
+                "prediction_metadata": result.metadata,
+                "preprocess": preprocess_payload,
+                }
+            ),
+            indent=2,
+            sort_keys=True,
+        ),
+        encoding="utf-8",
+    )
 
 
 if __name__ == "__main__":
