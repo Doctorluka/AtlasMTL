@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 from typing import Any, Dict, Tuple
 
@@ -19,17 +18,7 @@ from atlasmtl.models.checksums import sha256_file
 from benchmark.methods.config import resolve_counts_layer
 from benchmark.methods.result_schema import build_input_contract
 from atlasmtl.preprocess.matrix_semantics import is_count_like_matrix
-
-
-def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
-    throughput = float(n_items / elapsed_seconds) if elapsed_seconds > 0 else None
-    return {
-        "phase": phase,
-        "elapsed_seconds": float(elapsed_seconds),
-        "items_per_second": throughput,
-        "process_peak_rss_gb": None,
-        "gpu_peak_memory_gb": None,
-    }
+from atlasmtl.utils.monitoring import SampledResourceTracker
 
 
 def _resolve_device(device: str) -> Tuple[str, int]:
@@ -116,7 +105,8 @@ def run_scanvi(
     ref_adata = _ensure_counts_layer(ref_adata, layer_name=counts_layer)
     query_adata = _ensure_counts_layer(query_adata, layer_name=counts_layer)
 
-    train_start = time.perf_counter()
+    train_monitor = SampledResourceTracker(device=device)
+    train_monitor.start()
     scvi.model.SCVI.setup_anndata(ref_adata, batch_key=batch_key, labels_key="_scanvi_label", layer=counts_layer)
     scvi_model = scvi.model.SCVI(ref_adata, n_latent=n_latent)
     scvi_model.train(
@@ -145,7 +135,7 @@ def run_scanvi(
         batch_size=batch_size,
         enable_progress_bar=False,
     )
-    train_elapsed = time.perf_counter() - train_start
+    train_usage = train_monitor.finish(phase="train", num_items=ref_adata.n_obs, device_used=device)
 
     artifact_paths = None
     artifact_checksums = {}
@@ -172,7 +162,8 @@ def run_scanvi(
         artifact_paths = {"scanvi_model_dir": str(model_dir), "scanvi_metadata": str(metadata_path)}
         artifact_checksums = {"scanvi_metadata": sha256_file(str(metadata_path))}
 
-    predict_start = time.perf_counter()
+    predict_monitor = SampledResourceTracker(device=device)
+    predict_monitor.start()
     scvi.model.SCANVI.prepare_query_anndata(query_adata, scanvi_model)
     query_model = scvi.model.SCANVI.load_query_data(
         query_adata,
@@ -210,7 +201,7 @@ def run_scanvi(
     sorted_probs = np.sort(probs, axis=1)
     top2 = sorted_probs[:, -2] if sorted_probs.shape[1] > 1 else np.zeros_like(top1)
     latent = query_model.get_latent_representation()
-    predict_elapsed = time.perf_counter() - predict_start
+    predict_usage = predict_monitor.finish(phase="predict", num_items=query_adata.n_obs, device_used=device)
 
     pred_df = pd.DataFrame(index=query_adata.obs_names)
     pred_df[f"pred_{label_column}"] = pred_labels.astype(str)
@@ -261,8 +252,8 @@ def run_scanvi(
         "behavior_metrics_by_domain": behavior_by_domain,
         "hierarchy_metrics": None,
         "coordinate_metrics": None,
-        "train_usage": _runtime_payload(phase="train", elapsed_seconds=train_elapsed, n_items=ref_adata.n_obs),
-        "predict_usage": _runtime_payload(phase="predict", elapsed_seconds=predict_elapsed, n_items=query_adata.n_obs),
+        "train_usage": train_usage,
+        "predict_usage": predict_usage,
         "artifact_sizes": None,
         "artifact_paths": artifact_paths,
         "artifact_checksums": artifact_checksums,

@@ -419,9 +419,33 @@ Reported through `train_usage`, `predict_usage`, and `artifact_sizes`:
 - throughput
 - peak RSS
 - peak GPU memory when available
+- average RSS when available
+- average GPU memory when available
+- average CPU utilization / core-equivalent usage when available
+- CPU thread count / effective CPU core usage when available
+- device used (`cpu` or `cuda`)
 - artifact sizes in MB
 
 These are supporting engineering metrics.
+
+For formal benchmark reporting, the preferred resource table should include at
+least:
+
+- train elapsed seconds
+- predict elapsed seconds
+- train peak RSS
+- predict peak RSS
+- train peak GPU memory
+- predict peak GPU memory
+- average memory where the runner can provide it
+- average GPU memory where the runner can provide it
+- average CPU utilization or core-equivalent usage where the runner can provide it
+- CPU thread/core count used
+- device used
+
+When atlasmtl is benchmarked on both CPU and GPU, treat them as separate
+benchmark variants and label them explicitly in manifests, result tables, and
+paper figures.
 
 ### Coordinate metrics
 

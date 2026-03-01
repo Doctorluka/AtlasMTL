@@ -51,6 +51,10 @@ Treat `atlasmtl` primarily as a reliable `sc -> sc reference mapping` and multi-
 - For real benchmark runs, prefer storing large runtime artifacts under the
   user's private `~/tmp/` workspace and keep only reproducible summaries,
   manifests, and scripts inside the repo.
+- Resource benchmarking is part of the formal benchmark contract. When updating
+  benchmark code or reports, preserve or extend structured fields for elapsed
+  time, peak RSS, peak GPU memory, device used, and thread/core usage, and keep
+  CPU-mode and GPU-mode atlasmtl runs distinguishable in manifests and tables.
 
 ## Benchmark Comparator Constraints
 - Current runnable benchmark methods are `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, and `azimuth`.

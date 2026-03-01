@@ -39,7 +39,10 @@ Runtime/resource recording status:
 Recommended next action after this run:
 
 1. preserve `all_methods_final_v2` as the canonical sampled single-level bundle
-2. if KNN correction needs formal evaluation, prepare reference/query latent or
+2. extend comparator wrappers toward fully standardized average/peak memory and
+   CPU-usage reporting, then rerun the formal resource table export
+3. benchmark AtlasMTL CPU and GPU modes as separate formal variants
+4. if KNN correction needs formal evaluation, prepare reference/query latent or
    coordinate targets
-3. if a strict native Azimuth result is required, rerun with a setup that
+5. if a strict native Azimuth result is required, rerun with a setup that
    avoids fallback and record the backend explicitly

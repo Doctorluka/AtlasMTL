@@ -58,6 +58,10 @@ Paper-oriented exports now include:
 - `comparator_protocol`
   - method protocol table describing backend, matrix source, counts layer,
     normalization mode, and feature-alignment contract
+- `runtime_resources`
+  - per-method runtime and resource table describing device, threads, elapsed
+    time, average/peak RSS, average/peak GPU memory, and CPU core-equivalent
+    averages when available
 
 ## Metric focus today
 
@@ -68,6 +72,16 @@ Paper-oriented exports now include:
 - hierarchy path consistency metrics when hierarchy rules are supplied
 - runtime and artifact accounting
 - coordinate RMSE, trustworthiness, continuity, and neighbor overlap
+- runtime/resource accounting:
+  - train and predict elapsed seconds
+  - throughput
+  - average CPU core-equivalent usage when available
+  - average RSS
+  - peak RSS
+  - average GPU memory when available
+  - peak GPU memory when available
+  - device used
+  - thread count when available
 
 ## Runtime environments
 
@@ -105,3 +119,6 @@ Paper-oriented exports now include:
 - most external comparators are evaluated as single-level label-transfer
   methods, so comparator fairness currently depends on fixing one shared target
   label column
+- comparator wrappers do not yet report fully standardized average memory,
+  average GPU memory, or exact CPU core occupancy; current reporting is
+  strongest for atlasmtl and weaker for some external wrappers

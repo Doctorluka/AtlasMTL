@@ -149,6 +149,38 @@ def _protocol_table(results: List[Dict[str, Any]], target_label_column: str | No
     return pd.DataFrame(rows)
 
 
+def _runtime_resource_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
+    rows: List[Dict[str, Any]] = []
+    for result in results:
+        train_usage = result.get("train_usage") or {}
+        predict_usage = result.get("predict_usage") or {}
+        rows.append(
+            {
+                "method": result.get("method"),
+                "backend": (result.get("input_contract") or {}).get("backend"),
+                "device_used": predict_usage.get("device_used") or train_usage.get("device_used"),
+                "num_threads_used": predict_usage.get("num_threads_used") or train_usage.get("num_threads_used"),
+                "train_elapsed_seconds": train_usage.get("elapsed_seconds"),
+                "predict_elapsed_seconds": predict_usage.get("elapsed_seconds"),
+                "train_items_per_second": train_usage.get("items_per_second"),
+                "predict_items_per_second": predict_usage.get("items_per_second"),
+                "train_cpu_percent_avg": train_usage.get("cpu_percent_avg"),
+                "predict_cpu_percent_avg": predict_usage.get("cpu_percent_avg"),
+                "train_cpu_core_equiv_avg": train_usage.get("cpu_core_equiv_avg"),
+                "predict_cpu_core_equiv_avg": predict_usage.get("cpu_core_equiv_avg"),
+                "train_process_avg_rss_gb": train_usage.get("process_avg_rss_gb"),
+                "predict_process_avg_rss_gb": predict_usage.get("process_avg_rss_gb"),
+                "train_process_peak_rss_gb": train_usage.get("process_peak_rss_gb"),
+                "predict_process_peak_rss_gb": predict_usage.get("process_peak_rss_gb"),
+                "train_gpu_avg_memory_gb": train_usage.get("gpu_avg_memory_gb"),
+                "predict_gpu_avg_memory_gb": predict_usage.get("gpu_avg_memory_gb"),
+                "train_gpu_peak_memory_gb": train_usage.get("gpu_peak_memory_gb"),
+                "predict_gpu_peak_memory_gb": predict_usage.get("gpu_peak_memory_gb"),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def _format_value(value: Any) -> str:
     if value is None:
         return ""
@@ -191,10 +223,12 @@ def main() -> None:
     atlas_df = _atlasmtl_table(payload["results"], args.target_label_column)
     coordinate_df = _coordinate_table(payload["results"])
     protocol_df = _protocol_table(payload["results"], args.target_label_column)
+    runtime_df = _runtime_resource_table(payload["results"])
 
     tables = {
         "main_comparison": main_df,
         "comparator_protocol": protocol_df,
+        "runtime_resources": runtime_df,
         "domain_comparison": domain_df,
         "atlasmtl_analysis": atlas_df,
         "coordinate_diagnostics": coordinate_df,

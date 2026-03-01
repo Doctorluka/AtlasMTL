@@ -201,6 +201,21 @@ This means:
 - runtime comparison is already usable
 - memory comparison is not yet fully comparator-complete
 
+Recommended benchmark resource table for the next formal run:
+
+- train / predict elapsed seconds
+- train / predict throughput
+- train / predict average RSS
+- train / predict peak RSS
+- train / predict average GPU memory
+- train / predict peak GPU memory
+- average CPU core-equivalent usage
+- configured thread count
+- device used
+
+For AtlasMTL itself, CPU and GPU runs should be reported as separate variants
+rather than merged into one method row.
+
 ## 5. Paper-facing conclusion
 
 This sampled run is sufficient to support three manuscript-level points:

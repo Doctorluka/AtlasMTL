@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from pathlib import Path
 from typing import Any, Dict
 
@@ -12,18 +11,8 @@ from sklearn.preprocessing import LabelEncoder
 
 from atlasmtl.core.data import extract_matrix
 from atlasmtl.core.evaluate import evaluate_predictions
+from atlasmtl.utils.monitoring import SampledResourceTracker
 from benchmark.methods.result_schema import build_input_contract
-
-
-def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
-    throughput = float(n_items / elapsed_seconds) if elapsed_seconds > 0 else None
-    return {
-        "phase": phase,
-        "elapsed_seconds": float(elapsed_seconds),
-        "items_per_second": throughput,
-        "process_peak_rss_gb": None,
-        "gpu_peak_memory_gb": None,
-    }
 
 
 def _prediction_frame(
@@ -60,7 +49,8 @@ def run_reference_knn(
     query = read_h5ad(str(manifest["query_h5ad"]))
     label_columns = list(manifest["label_columns"])
 
-    train_start = time.perf_counter()
+    train_monitor = SampledResourceTracker(device="cpu")
+    train_monitor.start()
     X_ref = extract_matrix(ref, input_transform=input_transform)
     encoders: Dict[str, LabelEncoder] = {}
     classifiers: Dict[str, KNeighborsClassifier] = {}
@@ -71,12 +61,13 @@ def run_reference_knn(
         clf.fit(X_ref, y_ref)
         encoders[col] = encoder
         classifiers[col] = clf
-    train_elapsed = time.perf_counter() - train_start
+    train_usage = train_monitor.finish(phase="train", num_items=ref.n_obs, device_used="cpu")
 
-    predict_start = time.perf_counter()
+    predict_monitor = SampledResourceTracker(device="cpu")
+    predict_monitor.start()
     X_query = extract_matrix(query, train_genes=list(ref.var_names), input_transform=input_transform)
     pred_df = _prediction_frame(classifiers, encoders, X_query, query.obs_names)
-    predict_elapsed = time.perf_counter() - predict_start
+    predict_usage = predict_monitor.finish(phase="predict", num_items=query.n_obs, device_used="cpu")
 
     true_df = query.obs.loc[:, label_columns].copy()
     metrics = evaluate_predictions(pred_df, true_df, label_columns)
@@ -102,8 +93,8 @@ def run_reference_knn(
         "behavior_metrics_by_domain": None,
         "hierarchy_metrics": None,
         "coordinate_metrics": None,
-        "train_usage": _runtime_payload(phase="train", elapsed_seconds=train_elapsed, n_items=ref.n_obs),
-        "predict_usage": _runtime_payload(phase="predict", elapsed_seconds=predict_elapsed, n_items=query.n_obs),
+        "train_usage": train_usage,
+        "predict_usage": predict_usage,
         "artifact_sizes": None,
         "artifact_paths": None,
         "artifact_checksums": {},

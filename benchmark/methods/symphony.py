@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
-import time
 from pathlib import Path
 from typing import Any, Dict
 
@@ -17,19 +15,9 @@ from atlasmtl.core.evaluate import (
     evaluate_predictions_by_group,
 )
 from atlasmtl.models.checksums import artifact_checksums
+from atlasmtl.utils.monitoring import run_subprocess_monitored
 from benchmark.methods.config import resolve_counts_layer, resolve_reference_query_layers
 from benchmark.methods.result_schema import build_input_contract
-
-
-def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
-    throughput = float(n_items / elapsed_seconds) if elapsed_seconds > 0 else None
-    return {
-        "phase": phase,
-        "elapsed_seconds": float(elapsed_seconds),
-        "items_per_second": throughput,
-        "process_peak_rss_gb": None,
-        "gpu_peak_memory_gb": None,
-    }
 
 
 def _resolve_path(value: str, *, manifest_path: Path) -> str:
@@ -102,15 +90,14 @@ def run_symphony(
     env["R_LIBS_USER"] = str((Path(__file__).resolve().parents[2] / ".r_libs").resolve())
     command = ["Rscript", "benchmark/methods/run_symphony.R", "--config", str(config_json)]
 
-    elapsed_start = time.perf_counter()
-    completed = subprocess.run(
+    completed, runtime_usage = run_subprocess_monitored(
         command,
         cwd=Path(__file__).resolve().parents[2],
         env=env,
-        text=True,
-        capture_output=True,
+        phase="map",
+        n_items=int(read_h5ad(query_h5ad).n_obs),
+        device="cpu",
     )
-    elapsed = time.perf_counter() - elapsed_start
     if completed.returncode != 0:
         raise RuntimeError(
             "Symphony comparator failed:\n"
@@ -180,8 +167,8 @@ def run_symphony(
         "behavior_metrics_by_domain": behavior_by_domain,
         "hierarchy_metrics": None,
         "coordinate_metrics": None,
-        "train_usage": _runtime_payload(phase="map", elapsed_seconds=elapsed, n_items=query.n_obs),
-        "predict_usage": _runtime_payload(phase="predict", elapsed_seconds=elapsed, n_items=query.n_obs),
+        "train_usage": runtime_usage,
+        "predict_usage": {**runtime_usage, "phase": "predict"},
         "artifact_sizes": None,
         "artifact_paths": artifact_paths,
         "artifact_checksums": artifact_checksums(artifact_paths),

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import time
 from pathlib import Path
 from typing import Any, Dict, Iterable, Mapping
 
@@ -16,18 +15,8 @@ from atlasmtl.core.evaluate import (
     evaluate_predictions_by_group,
 )
 from atlasmtl.models.checksums import artifact_checksums
+from atlasmtl.utils.monitoring import SampledResourceTracker
 from benchmark.methods.result_schema import build_input_contract
-
-
-def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
-    throughput = float(n_items / elapsed_seconds) if elapsed_seconds > 0 else None
-    return {
-        "phase": phase,
-        "elapsed_seconds": float(elapsed_seconds),
-        "items_per_second": throughput,
-        "process_peak_rss_gb": None,
-        "gpu_peak_memory_gb": None,
-    }
 
 
 def _resolve_path(value: str, *, manifest_path: Path) -> str:
@@ -104,11 +93,13 @@ def run_celltypist(
         query.X = query.X.toarray()
     true_df = query.obs.loc[:, list(model_map)].copy()
 
-    load_start = time.perf_counter()
+    load_monitor = SampledResourceTracker(device="cpu")
+    load_monitor.start()
     loaded_models = {level: models.Model.load(model=path) for level, path in model_map.items()}
-    load_elapsed = time.perf_counter() - load_start
+    load_usage = load_monitor.finish(phase="load_model", num_items=len(model_map), device_used="cpu")
 
-    predict_start = time.perf_counter()
+    predict_monitor = SampledResourceTracker(device="cpu")
+    predict_monitor.start()
     pred_df = pd.DataFrame(index=query.obs_names)
     probability_summary: Dict[str, Dict[str, float]] = {}
     matched_features: Dict[str, int] = {}
@@ -131,7 +122,7 @@ def run_celltypist(
             "mean_margin": float(np.mean(pred_df[f"margin_{level}"])) if len(top1) else 0.0,
         }
         matched_features[level] = int(len(getattr(model.classifier, "features", [])))
-    predict_elapsed = time.perf_counter() - predict_start
+    predict_usage = predict_monitor.finish(phase="predict", num_items=query.n_obs, device_used="cpu")
 
     metrics = evaluate_predictions(pred_df, true_df, list(model_map))
     behavior = evaluate_prediction_behavior(pred_df, true_df, list(model_map))
@@ -176,8 +167,8 @@ def run_celltypist(
         "behavior_metrics_by_domain": behavior_by_domain,
         "hierarchy_metrics": None,
         "coordinate_metrics": None,
-        "train_usage": _runtime_payload(phase="load_model", elapsed_seconds=load_elapsed, n_items=len(model_map)),
-        "predict_usage": _runtime_payload(phase="predict", elapsed_seconds=predict_elapsed, n_items=query.n_obs),
+        "train_usage": load_usage,
+        "predict_usage": predict_usage,
         "artifact_sizes": None,
         "artifact_paths": artifact_paths,
         "artifact_checksums": artifact_checksums(artifact_paths),

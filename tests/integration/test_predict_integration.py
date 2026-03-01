@@ -121,6 +121,8 @@ def test_trained_model_resource_usage_helpers(capsys):
     usage = model.get_resource_usage()
     assert usage["phase"] == "train"
     assert usage["device_used"] == "cpu"
+    assert "process_avg_rss_gb" in usage
+    assert "cpu_core_equiv_avg" in usage
 
     model.show_resource_usage()
     captured = capsys.readouterr()

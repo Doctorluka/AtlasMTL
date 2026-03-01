@@ -173,6 +173,34 @@ def _collect_protocol_rows(results: List[Dict[str, Any]], target_label_column: s
     return rows
 
 
+def _collect_runtime_rows(results: List[Dict[str, Any]]) -> List[List[Any]]:
+    rows: List[List[Any]] = []
+    for result in results:
+        train_usage = result.get("train_usage") or {}
+        predict_usage = result.get("predict_usage") or {}
+        rows.append(
+            [
+                result.get("method"),
+                (result.get("input_contract") or {}).get("backend"),
+                predict_usage.get("device_used") or train_usage.get("device_used"),
+                predict_usage.get("num_threads_used") or train_usage.get("num_threads_used"),
+                train_usage.get("elapsed_seconds"),
+                predict_usage.get("elapsed_seconds"),
+                train_usage.get("cpu_core_equiv_avg"),
+                predict_usage.get("cpu_core_equiv_avg"),
+                train_usage.get("process_avg_rss_gb"),
+                predict_usage.get("process_avg_rss_gb"),
+                train_usage.get("process_peak_rss_gb"),
+                predict_usage.get("process_peak_rss_gb"),
+                train_usage.get("gpu_avg_memory_gb"),
+                predict_usage.get("gpu_avg_memory_gb"),
+                train_usage.get("gpu_peak_memory_gb"),
+                predict_usage.get("gpu_peak_memory_gb"),
+            ]
+        )
+    return rows
+
+
 def build_report(payload: Dict[str, Any], *, target_label_column: str | None) -> str:
     results = payload.get("results", [])
     methods = [str(item.get("method")) for item in results]
@@ -221,6 +249,30 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
                 "Feature alignment",
             ],
             _collect_protocol_rows(results, target_label_column),
+        ),
+        "",
+        "## Runtime Resources",
+        "",
+        _markdown_table(
+            [
+                "Method",
+                "Backend",
+                "Device",
+                "Threads",
+                "Train seconds",
+                "Predict seconds",
+                "Train CPU core avg",
+                "Predict CPU core avg",
+                "Train avg RSS (GB)",
+                "Predict avg RSS (GB)",
+                "Train peak RSS (GB)",
+                "Predict peak RSS (GB)",
+                "Train GPU avg (GB)",
+                "Predict GPU avg (GB)",
+                "Train GPU peak (GB)",
+                "Predict GPU peak (GB)",
+            ],
+            _collect_runtime_rows(results),
         ),
         "",
     ]

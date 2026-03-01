@@ -11,6 +11,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+.tmp/
 benchmark/reports/generated/
 tests/integration/logs/
 .r_libs/
