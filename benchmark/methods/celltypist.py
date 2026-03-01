@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, Mapping
 
 import numpy as np
 import pandas as pd
+from scipy import sparse
 from anndata import read_h5ad
 
 from atlasmtl.core.evaluate import (
@@ -99,6 +100,8 @@ def run_celltypist(
         raise ValueError("celltypist method config `mode` must be `best_match`/`best match` or `prob_match`/`prob match`")
 
     query = read_h5ad(str(manifest["query_h5ad"]))
+    if sparse.issparse(query.X):
+        query.X = query.X.toarray()
     true_df = query.obs.loc[:, list(model_map)].copy()
 
     load_start = time.perf_counter()

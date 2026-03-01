@@ -27,6 +27,15 @@ Added run records and summaries for:
 - multi-level AtlasMTL results
 - overall assessment and remaining blockers
 
+Follow-up comparator closure:
+
+- resolved the sampled real-data `celltypist` path with a query-matrix
+  compatibility fix in `benchmark/methods/celltypist.py`
+- completed a unified all-method sampled benchmark bundle at
+  `~/tmp/atlasmtl_real_mapping_benchmark_20260301/single_level_benchmark/all_methods_final_v2/`
+- `azimuth` completed in fallback mode
+  (`seurat_anchor_transfer_fallback`), and the result is now recorded as such
+
 Runtime storage policy for this run:
 
 - repo keeps the reproducible dossier
