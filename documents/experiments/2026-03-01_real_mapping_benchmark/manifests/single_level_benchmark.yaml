@@ -1,0 +1,67 @@
+dataset_name: sampled_real_mapping_20260301
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: sampled_real_mapping_split
+split_description: sampled reference/query benchmark on real atlasmtl test adatas
+reference_subset: sampled_adata_10k
+query_subset: sampled_adata_3000
+reference_h5ad: /home/data/fhz/tmp/atlasmtl_real_mapping_benchmark_20260301/prepared/reference_preprocessed.h5ad
+query_h5ad: /home/data/fhz/tmp/atlasmtl_real_mapping_benchmark_20260301/prepared/query_preprocessed.h5ad
+label_columns:
+  - anno_lv4
+domain_key: sample
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: anno_lv4
+    model: /home/data/fhz/tmp/atlasmtl_real_mapping_benchmark_20260301/prepared/celltypist_anno_lv4.pkl
+    mode: best_match
+  scanvi:
+    target_label_column: anno_lv4
+    batch_key: sample
+    scvi_max_epochs: 5
+    scanvi_max_epochs: 5
+    query_max_epochs: 5
+    batch_size: 256
+    n_latent: 16
+  singler:
+    target_label_column: anno_lv4
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+    do_normalize: true
+    K: 20
+    d: 20
+    topn: 2000
+    knn_k: 5
+  azimuth:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 2000
+    npcs: 30
+  reference_knn:
+    input_transform: binary
+train:
+  hidden_sizes: [256, 128]
+  dropout_rate: 0.2
+  batch_size: 256
+  num_epochs: 8
+  learning_rate: 0.001
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 3
+  random_state: 2026
+  reference_storage: external
+predict:
+  knn_correction: "off"
+  batch_size: 256
+  input_transform: binary

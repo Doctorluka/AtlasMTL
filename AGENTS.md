@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository root is `/home/data/fhz/project/phmap_package/atlasmtl`. The Python package lives in `atlasmtl/`. Keep public entrypoints thin in `atlasmtl/core/api.py`; training, inference, runtime helpers, data transforms, and typed result/model containers now live in `atlasmtl/core/train.py`, `predict.py`, `runtime.py`, `data.py`, and `types.py`. Put confidence and KNN logic in `atlasmtl/mapping/`, AnnData writeback/export helpers in `atlasmtl/io/`, artifact serialization/manifest handling in `atlasmtl/models/`, plotting in `atlasmtl/pl/`, and reusable monitoring/progress helpers in `atlasmtl/utils/`. Benchmark protocol and runner skeleton belong in `benchmark/`, design docs in `documents/design/`, planning notes in `plan/`, and tests under `tests/unit`, `tests/integration`, and `tests/regression`. Do not modify `vendor/phmap_snapshot/`.
+This repository root is `/home/data/fhz/project/phmap_package/atlasmtl`. The Python package lives in `atlasmtl/`. Keep public entrypoints thin in `atlasmtl/core/api.py`; training, inference, runtime helpers, data transforms, and typed result/model containers now live in `atlasmtl/core/train.py`, `predict.py`, `runtime.py`, `data.py`, and `types.py`. Put confidence and KNN logic in `atlasmtl/mapping/`, AnnData writeback/export helpers in `atlasmtl/io/`, artifact serialization/manifest handling in `atlasmtl/models/`, plotting in `atlasmtl/pl/`, and reusable monitoring/progress helpers in `atlasmtl/utils/`. Benchmark protocol and runner skeleton belong in `benchmark/`, design docs in `documents/design/`, experiment dossiers and run-specific materials in `documents/experiments/`, planning notes in `plan/`, and tests under `tests/unit`, `tests/integration`, and `tests/regression`. Do not modify `vendor/phmap_snapshot/`.
 
 ## Build, Test, and Development Commands
 - `pip install -e .` installs the package in editable mode.
@@ -48,6 +48,9 @@ Treat `atlasmtl` primarily as a reliable `sc -> sc reference mapping` and multi-
 - If `adata.X` is count-like, preprocessing may copy it into `adata.layers["counts"]`; if `adata.X` is not count-like, formal preprocessing must require a valid counts layer instead of silently proceeding.
 - For `hvg_method="seurat_v3"`, use `layer="counts"` and do not add default `normalize_total` / `log1p` steps inside atlasmtl core preprocessing.
 - Benchmark dataset manifests should explicitly carry `input_matrix_type` and `counts_layer` whenever preprocessing is configured, even when they match the defaults.
+- For real benchmark runs, prefer storing large runtime artifacts under the
+  user's private `~/tmp/` workspace and keep only reproducible summaries,
+  manifests, and scripts inside the repo.
 
 ## Benchmark Comparator Constraints
 - Current runnable benchmark methods are `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, and `azimuth`.

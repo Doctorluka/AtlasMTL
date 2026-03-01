@@ -27,6 +27,11 @@ The benchmark layer is intentionally conservative but no longer atlasmtl-only.
 - `reports/`
   - generated benchmark outputs and downstream summaries
 
+Run-specific real-data dossiers should live under `documents/experiments/`
+instead of `tests/`. Keep large runtime artifacts outside the repo, preferably
+under the user's private `~/tmp/` workspace, and keep only manifests, scripts,
+and human-readable summaries in git.
+
 ## Current runner outputs
 
 `benchmark/pipelines/run_benchmark.py` writes:
