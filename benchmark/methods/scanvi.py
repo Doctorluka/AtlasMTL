@@ -16,6 +16,7 @@ from atlasmtl.core.evaluate import (
     evaluate_predictions_by_group,
 )
 from atlasmtl.models.checksums import sha256_file
+from benchmark.methods.config import resolve_counts_layer
 from atlasmtl.preprocess.matrix_semantics import is_count_like_matrix
 
 
@@ -87,6 +88,7 @@ def run_scanvi(
     import scvi
 
     method_cfg = dict((manifest.get("method_configs") or {}).get("scanvi") or {})
+    counts_layer = resolve_counts_layer(manifest, method_cfg)
     label_columns = list(manifest["label_columns"])
     label_column = str(method_cfg.get("target_label_column") or label_columns[-1])
     if label_column not in label_columns:
@@ -110,11 +112,11 @@ def run_scanvi(
     accelerator, devices = _resolve_device(device)
     ref_adata = _prepare_reference(ref, label_column=label_column, batch_key=batch_key, unlabeled_category=unlabeled_category)
     query_adata = _prepare_query(query, batch_key=batch_key)
-    ref_adata = _ensure_counts_layer(ref_adata)
-    query_adata = _ensure_counts_layer(query_adata)
+    ref_adata = _ensure_counts_layer(ref_adata, layer_name=counts_layer)
+    query_adata = _ensure_counts_layer(query_adata, layer_name=counts_layer)
 
     train_start = time.perf_counter()
-    scvi.model.SCVI.setup_anndata(ref_adata, batch_key=batch_key, labels_key="_scanvi_label", layer="counts")
+    scvi.model.SCVI.setup_anndata(ref_adata, batch_key=batch_key, labels_key="_scanvi_label", layer=counts_layer)
     scvi_model = scvi.model.SCVI(ref_adata, n_latent=n_latent)
     scvi_model.train(
         max_epochs=scvi_epochs,
@@ -269,13 +271,13 @@ def run_scanvi(
         "predict_config_used": {
             "target_label_column": label_column,
             "batch_key": batch_key,
-            "counts_layer": "counts",
+            "counts_layer": counts_layer,
             "query_max_epochs": query_epochs,
         },
         "prediction_metadata": {
             "method_family": "published_comparator",
             "comparator_name": "scanvi",
-            "counts_layer_used": "counts",
+            "counts_layer_used": counts_layer,
             "label_column": label_column,
             "batch_key": batch_key,
             "n_latent": n_latent,

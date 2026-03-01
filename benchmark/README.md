@@ -73,6 +73,9 @@ The benchmark layer is intentionally conservative but no longer atlasmtl-only.
 - `singler` and `symphony` use R bridge scripts
 - `azimuth` prefers a native `Azimuth` backend and records the actual backend
   in result metadata
+- comparator wrappers now inherit the benchmark-manifest `counts_layer` unless
+  a method-specific `counts_layer` or `reference_layer` / `query_layer`
+  override is provided
 - tiny synthetic smoke tests may use `seurat_anchor_transfer_fallback` for
   `azimuth`; formal result tables should prefer `azimuth_native`
 

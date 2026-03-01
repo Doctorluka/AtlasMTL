@@ -24,6 +24,24 @@ contracts that matter for users, benchmark scripts, and future roadmap work.
 - `benchmark/`
   - benchmark dataset descriptors, method wrappers, runners, and reports
 
+### Benchmark method layer
+
+The benchmark method layer now has an explicit configuration boundary:
+
+- benchmark dataset manifest
+  - global preprocessing contract such as `var_names_type`, `species`,
+    `input_matrix_type`, and `counts_layer`
+- comparator method config
+  - method-specific overrides such as `target_label_column`,
+    `reference_layer`, `query_layer`, or `counts_layer`
+
+The intended precedence is:
+
+1. method-specific `reference_layer` / `query_layer`
+2. method-specific `counts_layer`
+3. benchmark-manifest `counts_layer`
+4. final fallback: `counts`
+
 The public Python API remains intentionally thin:
 
 - `build_model()`
@@ -155,6 +173,30 @@ The dedicated preprocessing implementation now lives under:
 This keeps namespace normalization and feature selection out of the core
 training and prediction modules.
 
+### Preprocessing contract boundary
+
+The current architecture should be read as a strict two-stage contract:
+
+1. preprocessing defines the biological feature space and matrix semantics
+2. core training and prediction consume that contract without silently
+   redefining it
+
+That means:
+
+- preprocessing owns:
+  - gene namespace canonicalization
+  - counts detection
+  - `counts_layer` validation
+  - HVG panel construction
+  - feature-panel persistence
+- `build_model()` and `predict()` own:
+  - expression extraction from already-aligned matrices
+  - model fitting and inference
+  - confidence, KNN, hierarchy, and output writeback
+
+This separation avoids a major class of hidden conflicts where model code would
+otherwise guess gene namespace or matrix semantics at runtime.
+
 ### Model body
 
 The trainable model is a shared MLP encoder with:
@@ -258,6 +300,55 @@ Closed-loop Unknown assignment currently uses:
 
 - low MTL confidence
 - whether KNN was used
+
+## Benchmark architecture
+
+### Current data-flow
+
+The current benchmark path is:
+
+1. dataset manifest is loaded by `benchmark/pipelines/run_benchmark.py`
+2. optional atlasmtl preprocessing is applied once at the dataset level
+3. preprocessed reference/query `.h5ad` files are written to the run folder
+4. atlasmtl and comparators run against those concrete files
+5. method results are merged into `metrics.json`, `summary.csv`, and
+   `run_manifest.json`
+
+### Comparator matrix semantics
+
+Comparator wrappers are not all equivalent in how they consume expression
+matrices:
+
+- `scanvi`
+  - requires a valid counts layer
+- `singler`, `symphony`, `azimuth`
+  - usually start from a configured raw-count layer and perform
+    method-specific normalization inside the wrapper
+- `celltypist`
+  - primarily consumes the query `X` matrix through the Python API
+- `reference_knn`
+  - consumes `X` through atlasmtl's `extract_matrix(...)`
+
+This is an intentional benchmark-layer distinction, not a core atlasmtl model
+conflict. Formal interpretation should therefore compare methods on shared
+label outputs, while recording matrix semantics in result metadata.
+
+### Current architectural risks and resolved conflicts
+
+Resolved in the current implementation:
+
+- preprocessing and benchmark manifests now share explicit `input_matrix_type`
+  and `counts_layer` metadata
+- `seurat_v3` HVG selection is explicitly tied to `layer="counts"`
+- comparator wrappers now resolve count-layer defaults from the benchmark
+  manifest instead of each wrapper hardcoding `"counts"`
+
+Remaining intentional boundaries:
+
+- atlasmtl core still primarily reads `adata.X` during model training and
+  prediction after preprocessing has already aligned the matrix
+- external comparators do not share one universal matrix representation, so
+  wrapper-level normalization remains method-specific
 - whether KNN vote confidence stayed below `knn_conf_low`
 - optional open-set Unknown mask
 

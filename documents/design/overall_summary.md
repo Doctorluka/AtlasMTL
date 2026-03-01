@@ -124,12 +124,57 @@ The recommended default for future preprocessing utilities is:
 
 - `feature_space="hvg"`
 - `n_top_genes=3000`
+- explicit `input_matrix_type`
+- explicit `counts_layer`
 
 Whole-matrix mode should require an explicit user choice.
 
 That preprocessing layer is now implemented as a dedicated package under:
 
 - `atlasmtl/preprocess/`
+
+The current preprocessing contract is:
+
+- if `adata.X` is count-like, it may be copied into the configured
+  `counts_layer`
+- if `adata.X` is not count-like, a valid raw-count layer must already exist
+- atlasmtl core preprocessing does not generate log-normalized matrices by
+  default
+- `seurat_v3` HVG selection is anchored to the configured counts layer
+
+## Architecture review
+
+### Stable module boundaries
+
+The current architecture is internally consistent around three layers:
+
+- preprocessing layer
+  - owns gene-ID normalization, counts validation, and feature-panel
+    definition
+- atlasmtl core layer
+  - owns model fitting, prediction, KNN rescue, and hierarchy handling
+- benchmark layer
+  - owns comparator-specific input routing and result harmonization
+
+This is the right separation for the current project positioning because the
+main research claim is reliable label transfer rather than one universal latent
+embedding stack.
+
+### Current boundary that must remain explicit
+
+One boundary still needs to be kept explicit in future development:
+
+- atlasmtl core can consume preprocessed matrices consistently
+- comparator wrappers still differ in whether they use:
+  - a raw-count layer
+  - method-internal normalization
+  - the query `X` matrix
+
+That is acceptable as long as:
+
+- benchmark manifests record `input_matrix_type` and `counts_layer`
+- wrappers record their actual input layers in metadata
+- formal interpretation compares shared label outputs first
 
 ## Main algorithmic structure
 

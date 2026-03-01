@@ -18,6 +18,7 @@ from atlasmtl.core.evaluate import (
     evaluate_predictions_by_group,
 )
 from atlasmtl.models.checksums import artifact_checksums
+from benchmark.methods.config import resolve_counts_layer, resolve_reference_query_layers
 
 
 def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
@@ -44,6 +45,7 @@ def run_singler(
     output_dir: Path,
 ) -> Dict[str, Any]:
     method_cfg = dict((manifest.get("method_configs") or {}).get("singler") or {})
+    counts_layer = resolve_counts_layer(manifest, method_cfg)
     label_columns = list(manifest["label_columns"])
     target_label_column = str(method_cfg.get("target_label_column") or label_columns[-1])
     if target_label_column not in label_columns:
@@ -52,8 +54,7 @@ def run_singler(
     manifest_path = Path(str(manifest["dataset_manifest_path"]))
     reference_h5ad = _resolve_path(str(manifest["reference_h5ad"]), manifest_path=manifest_path)
     query_h5ad = _resolve_path(str(manifest["query_h5ad"]), manifest_path=manifest_path)
-    reference_layer = str(method_cfg.get("reference_layer", "counts"))
-    query_layer = str(method_cfg.get("query_layer", "counts"))
+    reference_layer, query_layer = resolve_reference_query_layers(manifest, method_cfg)
     normalize_log1p = bool(method_cfg.get("normalize_log1p", True))
     use_pruned_labels = bool(method_cfg.get("use_pruned_labels", True))
     fine_tune = bool(method_cfg.get("fine_tune", True))
@@ -184,12 +185,14 @@ def run_singler(
             "target_label_column": target_label_column,
             "reference_layer": reference_layer,
             "query_layer": query_layer,
+            "counts_layer": counts_layer,
             "use_pruned_labels": use_pruned_labels,
         },
         "prediction_metadata": {
             "method_family": "published_comparator",
             "comparator_name": "singler",
             "target_label_column": target_label_column,
+            "counts_layer": counts_layer,
             "reference_layer": reference_layer,
             "query_layer": query_layer,
             "normalize_log1p": normalize_log1p,

@@ -67,3 +67,13 @@ dataset manifests:
 
 These fields are propagated into `PreprocessConfig`, benchmark metrics, and run
 manifests so formal runs no longer rely only on implicit defaults.
+
+Comparator wrappers have also been aligned to this benchmark-level contract:
+
+- shared helper-based resolution of `counts_layer`
+- method-level override support through `counts_layer` or
+  `reference_layer` / `query_layer`
+- architecture documentation now describes the boundary between:
+  - preprocessing
+  - atlasmtl core
+  - comparator-specific benchmark routing

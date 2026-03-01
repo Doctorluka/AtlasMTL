@@ -17,6 +17,7 @@ from atlasmtl.core.evaluate import (
     evaluate_predictions_by_group,
 )
 from atlasmtl.models.checksums import artifact_checksums
+from benchmark.methods.config import resolve_counts_layer, resolve_reference_query_layers
 
 
 def _runtime_payload(*, phase: str, elapsed_seconds: float, n_items: int) -> Dict[str, object]:
@@ -43,6 +44,7 @@ def run_azimuth(
     output_dir: Path,
 ) -> Dict[str, Any]:
     method_cfg = dict((manifest.get("method_configs") or {}).get("azimuth") or {})
+    counts_layer = resolve_counts_layer(manifest, method_cfg)
     label_columns = list(manifest["label_columns"])
     target_label_column = str(method_cfg.get("target_label_column") or label_columns[-1])
     if target_label_column not in label_columns:
@@ -52,8 +54,7 @@ def run_azimuth(
     reference_h5ad = _resolve_path(str(manifest["reference_h5ad"]), manifest_path=manifest_path)
     query_h5ad = _resolve_path(str(manifest["query_h5ad"]), manifest_path=manifest_path)
     batch_key = str(method_cfg.get("batch_key") or manifest.get("domain_key") or "")
-    reference_layer = str(method_cfg.get("reference_layer", "counts"))
-    query_layer = str(method_cfg.get("query_layer", "counts"))
+    reference_layer, query_layer = resolve_reference_query_layers(manifest, method_cfg)
     nfeatures = int(method_cfg.get("nfeatures", 2000))
     npcs = int(method_cfg.get("npcs", 30))
     dims = list(method_cfg.get("dims", list(range(1, min(npcs, 30) + 1))))
@@ -205,6 +206,7 @@ def run_azimuth(
         "predict_config_used": {
             "target_label_column": target_label_column,
             "batch_key": batch_key,
+            "counts_layer": counts_layer,
             "reference_layer": reference_layer,
             "query_layer": query_layer,
             "nfeatures": nfeatures,
@@ -225,6 +227,7 @@ def run_azimuth(
             "implementation_backend": metadata.get("implementation_backend", "azimuth_native"),
             "target_label_column": target_label_column,
             "batch_key": batch_key,
+            "counts_layer": counts_layer,
             "reference_layer": reference_layer,
             "query_layer": query_layer,
             "nfeatures": int(metadata.get("nfeatures", nfeatures)),
