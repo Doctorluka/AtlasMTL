@@ -57,6 +57,14 @@ Accordingly:
 - batch correction and biological conservation metrics are not primary protocol
   requirements
 
+## Benchmark ablation discussion
+
+For the current ablation priorities and paper-facing resource reporting
+requirements (including binary-vs-non-binary resource comparisons and CPU/GPU
+variant handling), see:
+
+- `documents/design/benchmark_ablation_discussion.md`
+
 ## Dataset manifest schema
 
 The benchmark runner expects a YAML mapping with these required keys:
