@@ -274,6 +274,14 @@ def _artifact_sizes_mb(paths: Dict[str, Optional[str]]) -> Dict[str, float]:
     return out
 
 
+def _normalize_knn_correction(value: Any) -> str:
+    if isinstance(value, bool):
+        return "all" if value else "off"
+    if value is None:
+        return "low_conf_only"
+    return str(value)
+
+
 def _run_atlasmtl(
     manifest: Dict[str, Any],
     *,
@@ -344,7 +352,7 @@ def _run_atlasmtl(
     result = predict(
         model,
         query_model_input,
-        knn_correction=str(pred_cfg.get("knn_correction", "low_conf_only")),
+        knn_correction=_normalize_knn_correction(pred_cfg.get("knn_correction", "low_conf_only")),
         confidence_high=float(pred_cfg.get("confidence_high", 0.7)),
         confidence_low=float(pred_cfg.get("confidence_low", 0.4)),
         margin_threshold=float(pred_cfg.get("margin_threshold", 0.2)),

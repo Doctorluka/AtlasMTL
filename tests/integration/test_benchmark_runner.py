@@ -317,6 +317,42 @@ def test_benchmark_runner_resolves_repo_root_relative_paths(tmp_path: Path):
     assert metrics["dataset_name"] == "tiny_repo_relative"
 
 
+def test_benchmark_runner_normalizes_yaml_boolean_knn_correction(tmp_path: Path):
+    ref = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=pd.DataFrame({"anno_lv1": ["A", "B"]}, index=["r1", "r2"]))
+    ref.var_names = ["g1", "g2"]
+    query = AnnData(X=np.array([[1, 0]], dtype=np.float32), obs=pd.DataFrame({"anno_lv1": ["A"]}, index=["q1"]))
+    query.var_names = ["g1", "g2"]
+
+    ref_path = tmp_path / "ref_bool_knn.h5ad"
+    query_path = tmp_path / "query_bool_knn.h5ad"
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    manifest_text = f"""
+dataset_name: tiny_bool_knn
+version: 1
+protocol_version: 1
+reference_h5ad: {ref_path}
+query_h5ad: {query_path}
+label_columns: [anno_lv1]
+train:
+  num_epochs: 1
+  batch_size: 1
+  hidden_sizes: [8]
+predict:
+  knn_correction: off
+  batch_size: 1
+"""
+    manifest_path = tmp_path / "dataset_manifest_bool_knn.yaml"
+    manifest_path.write_text(manifest_text, encoding="utf-8")
+
+    out_dir = tmp_path / "out_bool_knn"
+    _run_cli([str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"])
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    assert metrics["results"][0]["predict_config_used"]["knn_correction"] is False
+
+
 def test_benchmark_runner_atlasmtl_can_train_from_counts_layer_and_record_task_weights(tmp_path: Path):
     ref_obs = pd.DataFrame({"anno_lv1": ["A", "A", "B", "B"]}, index=["r1", "r2", "r3", "r4"])
     ref = AnnData(

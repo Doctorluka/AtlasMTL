@@ -10,6 +10,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
+import anndata as ad
 import yaml
 
 
@@ -46,6 +47,31 @@ def _load_manifest(path: Path) -> Dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError("dataset manifest must be a YAML mapping")
     return payload
+
+
+def _resolve_data_path(value: str, *, manifest_path: Path) -> Path:
+    path = Path(value).expanduser()
+    if path.is_absolute():
+        return path.resolve()
+    manifest_relative = (manifest_path.parent / path).resolve()
+    if manifest_relative.exists():
+        return manifest_relative
+    return (REPO_ROOT / path).resolve()
+
+
+def _build_hierarchy_rules(reference_h5ad: Path) -> Dict[str, Any]:
+    adata = ad.read_h5ad(reference_h5ad)
+    rules: Dict[str, Any] = {}
+    for child_col, parent_col in (("anno_lv2", "anno_lv1"), ("anno_lv3", "anno_lv2"), ("anno_lv4", "anno_lv3")):
+        frame = adata.obs.loc[:, [child_col, parent_col]].dropna().copy()
+        frame[child_col] = frame[child_col].astype(str)
+        frame[parent_col] = frame[parent_col].astype(str)
+        dedup = frame.drop_duplicates(subset=[child_col, parent_col], keep="first")
+        rules[child_col] = {
+            "parent_col": parent_col,
+            "child_to_parent": dedup.set_index(child_col)[parent_col].to_dict(),
+        }
+    return rules
 
 
 def _feature_cfg(mode: str) -> Dict[str, Any]:
@@ -93,7 +119,11 @@ def main() -> None:
     runs_dir = output_dir / "runs"
     runs_dir.mkdir(parents=True, exist_ok=True)
 
-    base_manifest = _load_manifest(Path(args.dataset_manifest).resolve())
+    dataset_manifest_path = Path(args.dataset_manifest).resolve()
+    base_manifest = _load_manifest(dataset_manifest_path)
+    hierarchy_rules = _build_hierarchy_rules(
+        _resolve_data_path(str(base_manifest["reference_h5ad"]), manifest_path=dataset_manifest_path)
+    )
 
     gate_dir = output_dir / "cuda_gate"
     _run_cli([str(CUDA_GATE), "--output-dir", str(gate_dir)], cwd=REPO_ROOT)
@@ -114,6 +144,8 @@ def main() -> None:
         manifest.setdefault("train", {})
         manifest["train"]["input_transform"] = combo["input_transform"]
         manifest["train"]["task_weights"] = _task_weights(combo["task_weight_scheme"])
+        manifest.setdefault("predict", {})
+        manifest["predict"]["hierarchy_rules"] = hierarchy_rules
         manifest.setdefault("method_configs", {})
         manifest["method_configs"]["atlasmtl"] = {
             "reference_layer": manifest.get("counts_layer", "counts"),

@@ -35,5 +35,13 @@ Directory layout:
   - reusable base manifests
 - `scripts/`
   - CUDA gate and ablation runner scripts
+- `results_summary/`
+  - repo-tracked summary and discussion for the completed ablation round
 - `notes/`
   - discussion notes and environment-specific caveats
+
+Current completed runtime bundle:
+
+- `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/metrics.json`
+- `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/benchmark_report.md`
+- `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/paper_tables/`
