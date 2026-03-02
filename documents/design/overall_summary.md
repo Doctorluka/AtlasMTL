@@ -274,6 +274,22 @@ while exposing audit signals such as:
 - whether it changed the label
 - whether it helped or harmed
 
+Current project interpretation:
+
+- KNN remains a supported optional module
+- KNN is currently better treated as an ablation / secondary analysis layer
+- the recommended default protocol is still `knn_correction="off"`
+
+This recommendation is based on the current formal `X_scANVI`-space KNN run:
+
+- `knn_off` preserved the best overall accuracy
+- `knn_low_conf_only` improved some class-balance-oriented metrics but reduced
+  overall final accuracy and coverage
+- `knn_all` was more aggressive and increased harm
+
+Therefore, atlasmtl should currently be framed as an MTL-first label-transfer
+framework, not as a KNN-dependent method.
+
 ### 6. Hierarchy enforcement
 
 When label levels form a parent-child system, atlasmtl can enforce hierarchy

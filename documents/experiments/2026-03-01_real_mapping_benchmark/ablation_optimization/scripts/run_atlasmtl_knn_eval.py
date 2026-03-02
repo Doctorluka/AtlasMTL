@@ -102,9 +102,10 @@ def main() -> None:
 
         run_dir = runs_dir / combo["variant_name"]
         result = run_atlasmtl_variant(manifest_path=manifest_path, output_dir=run_dir, device=combo["device"])
-        result.setdefault("variant_name", combo["variant_name"])
+        result["variant_name"] = combo["variant_name"]
         result["ablation_config"] = {
             **dict(result.get("ablation_config") or {}),
+            "variant_name": combo["variant_name"],
             "device": combo["device"],
             "feature_space": feature_cfg["feature_space"],
             "n_top_genes": feature_cfg["n_top_genes"],
@@ -137,4 +138,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

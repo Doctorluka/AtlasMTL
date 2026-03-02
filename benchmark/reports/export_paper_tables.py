@@ -21,6 +21,11 @@ MAIN_METRICS = [
 ]
 
 
+def _effective_variant_name(result: Dict[str, Any]) -> Any:
+    ablation = result.get("ablation_config") or {}
+    return ablation.get("variant_name") or result.get("variant_name")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Export paper-ready benchmark tables from metrics.json.",
@@ -64,9 +69,11 @@ def _main_table(results: List[Dict[str, Any]], target_label_column: str | None) 
         metadata = result.get("prediction_metadata") or {}
         row: Dict[str, Any] = {
             "method": result.get("method"),
-            "variant_name": result.get("variant_name"),
+            "variant_name": _effective_variant_name(result),
             "level": level,
             "backend": metadata.get("implementation_backend") or metadata.get("comparator_name") or result.get("method"),
+            "knn_space_used": metadata.get("knn_space_used"),
+            "knn_space_preferred": metadata.get("knn_space_preferred"),
         }
         for metric in MAIN_METRICS:
             row[metric] = level_metrics.get(metric)
@@ -86,7 +93,7 @@ def _domain_table(results: List[Dict[str, Any]], target_label_column: str | None
             rows.append(
                 {
                     "method": result.get("method"),
-                    "variant_name": result.get("variant_name"),
+                    "variant_name": _effective_variant_name(result),
                     "domain": domain,
                     "level": level,
                     "accuracy": level_metrics.get("accuracy"),
@@ -101,19 +108,52 @@ def _domain_table(results: List[Dict[str, Any]], target_label_column: str | None
 
 
 def _atlasmtl_table(results: List[Dict[str, Any]], target_label_column: str | None) -> pd.DataFrame:
-    atlas = next((item for item in results if item.get("method") == "atlasmtl"), None)
-    if atlas is None:
-        return pd.DataFrame()
-    level, behavior_metrics = _first_level(atlas.get("behavior_metrics", {}), target_label_column)
-    _, hierarchy_metrics = _first_level(atlas.get("hierarchy_metrics", {}), target_label_column)
-    rows = [
-        {"metric": "unknown_rate", "value": behavior_metrics.get("unknown_rate"), "level": level},
-        {"metric": "knn_coverage", "value": behavior_metrics.get("knn_coverage"), "level": level},
-        {"metric": "knn_rescue_rate", "value": behavior_metrics.get("knn_rescue_rate"), "level": level},
-        {"metric": "knn_harm_rate", "value": behavior_metrics.get("knn_harm_rate"), "level": level},
-        {"metric": "full_path_accuracy", "value": hierarchy_metrics.get("full_path_accuracy"), "level": level},
-        {"metric": "path_consistency_rate", "value": hierarchy_metrics.get("path_consistency_rate"), "level": level},
-    ]
+    rows: List[Dict[str, Any]] = []
+    for atlas in results:
+        if atlas.get("method") != "atlasmtl":
+            continue
+        level, behavior_metrics = _first_level(atlas.get("behavior_metrics", {}), target_label_column)
+        hierarchy_metrics = atlas.get("hierarchy_metrics") or {}
+        rows.extend(
+            [
+                {
+                    "variant_name": _effective_variant_name(atlas),
+                    "metric": "unknown_rate",
+                    "value": behavior_metrics.get("unknown_rate"),
+                    "level": level,
+                },
+                {
+                    "variant_name": _effective_variant_name(atlas),
+                    "metric": "knn_coverage",
+                    "value": behavior_metrics.get("knn_coverage"),
+                    "level": level,
+                },
+                {
+                    "variant_name": _effective_variant_name(atlas),
+                    "metric": "knn_rescue_rate",
+                    "value": behavior_metrics.get("knn_rescue_rate"),
+                    "level": level,
+                },
+                {
+                    "variant_name": _effective_variant_name(atlas),
+                    "metric": "knn_harm_rate",
+                    "value": behavior_metrics.get("knn_harm_rate"),
+                    "level": level,
+                },
+                {
+                    "variant_name": _effective_variant_name(atlas),
+                    "metric": "full_path_accuracy",
+                    "value": hierarchy_metrics.get("full_path_accuracy"),
+                    "level": level,
+                },
+                {
+                    "variant_name": _effective_variant_name(atlas),
+                    "metric": "path_consistency_rate",
+                    "value": hierarchy_metrics.get("path_consistency_rate"),
+                    "level": level,
+                },
+            ]
+        )
     return pd.DataFrame(rows)
 
 
@@ -138,7 +178,7 @@ def _protocol_table(results: List[Dict[str, Any]], target_label_column: str | No
         rows.append(
             {
                 "method": result.get("method"),
-                "variant_name": result.get("variant_name"),
+                "variant_name": _effective_variant_name(result),
                 "backend": contract.get("backend"),
                 "target_label_column": resolved_label,
                 "label_scope": contract.get("label_scope"),
@@ -147,6 +187,8 @@ def _protocol_table(results: List[Dict[str, Any]], target_label_column: str | No
                 "counts_layer": contract.get("counts_layer"),
                 "normalization_mode": contract.get("normalization_mode"),
                 "feature_alignment": contract.get("feature_alignment"),
+                "knn_space_used": (result.get("prediction_metadata") or {}).get("knn_space_used"),
+                "knn_space_preferred": (result.get("prediction_metadata") or {}).get("knn_space_preferred"),
             }
         )
     return pd.DataFrame(rows)
@@ -160,7 +202,7 @@ def _runtime_resource_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
         rows.append(
             {
                 "method": result.get("method"),
-                "variant_name": result.get("variant_name"),
+                "variant_name": _effective_variant_name(result),
                 "backend": (result.get("input_contract") or {}).get("backend"),
                 "device_used": predict_usage.get("device_used") or train_usage.get("device_used"),
                 "num_threads_used": predict_usage.get("num_threads_used") or train_usage.get("num_threads_used"),
@@ -193,12 +235,15 @@ def _atlasmtl_ablation_accuracy_table(results: List[Dict[str, Any]]) -> pd.DataF
             continue
         row: Dict[str, Any] = {
             "method": result.get("method"),
-            "variant_name": result.get("variant_name"),
+            "variant_name": _effective_variant_name(result),
             "device": ablation.get("device"),
             "feature_space": ablation.get("feature_space"),
             "n_top_genes": ablation.get("n_top_genes"),
             "input_transform": ablation.get("input_transform"),
             "task_weight_scheme": ablation.get("task_weight_scheme"),
+            "knn_variant": ablation.get("knn_variant"),
+            "knn_correction": ablation.get("knn_correction"),
+            "knn_space_used": (result.get("prediction_metadata") or {}).get("knn_space_used"),
         }
         for level, metrics in (result.get("metrics") or {}).items():
             row[f"{level}_accuracy"] = (metrics or {}).get("accuracy")
@@ -223,12 +268,14 @@ def _atlasmtl_ablation_resource_table(results: List[Dict[str, Any]]) -> pd.DataF
         rows.append(
             {
                 "method": result.get("method"),
-                "variant_name": result.get("variant_name"),
+                "variant_name": _effective_variant_name(result),
                 "device": ablation.get("device"),
                 "feature_space": ablation.get("feature_space"),
                 "n_top_genes": ablation.get("n_top_genes"),
                 "input_transform": ablation.get("input_transform"),
                 "task_weight_scheme": ablation.get("task_weight_scheme"),
+                "knn_variant": ablation.get("knn_variant"),
+                "knn_correction": ablation.get("knn_correction"),
                 "train_elapsed_seconds": train_usage.get("elapsed_seconds"),
                 "predict_elapsed_seconds": predict_usage.get("elapsed_seconds"),
                 "train_process_avg_rss_gb": train_usage.get("process_avg_rss_gb"),
@@ -260,12 +307,15 @@ def _atlasmtl_ablation_tradeoff_table(results: List[Dict[str, Any]]) -> pd.DataF
         predict_usage = result.get("predict_usage") or {}
         rows.append(
             {
-                "variant_name": result.get("variant_name"),
+                "variant_name": _effective_variant_name(result),
                 "device": ablation.get("device"),
                 "feature_space": ablation.get("feature_space"),
                 "n_top_genes": ablation.get("n_top_genes"),
                 "input_transform": ablation.get("input_transform"),
                 "task_weight_scheme": ablation.get("task_weight_scheme"),
+                "knn_variant": ablation.get("knn_variant"),
+                "knn_correction": ablation.get("knn_correction"),
+                "knn_space_used": (result.get("prediction_metadata") or {}).get("knn_space_used"),
                 "target_level_accuracy": (lv4 or {}).get("accuracy"),
                 "target_level_macro_f1": (lv4 or {}).get("macro_f1"),
                 "train_elapsed_seconds": train_usage.get("elapsed_seconds"),

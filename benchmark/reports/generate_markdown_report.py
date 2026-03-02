@@ -19,6 +19,11 @@ MAIN_METRICS = (
 )
 
 
+def _effective_variant_name(result: Dict[str, Any]) -> Any:
+    ablation = result.get("ablation_config") or {}
+    return ablation.get("variant_name") or result.get("variant_name")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate a markdown benchmark summary from metrics.json.",
@@ -83,7 +88,7 @@ def _collect_main_rows(results: List[Dict[str, Any]], target_label_column: str |
         backend = prediction_metadata.get("implementation_backend") or prediction_metadata.get("comparator_name") or result.get("method")
         row = [
             result.get("method"),
-            result.get("variant_name"),
+            _effective_variant_name(result),
             level or "",
         ]
         for metric_name in MAIN_METRICS:
@@ -109,7 +114,7 @@ def _collect_domain_rows(results: List[Dict[str, Any]], target_label_column: str
             rows.append(
                 [
                     result.get("method"),
-                    result.get("variant_name"),
+                    _effective_variant_name(result),
                     domain_name,
                     level or "",
                     level_metrics.get("accuracy"),
@@ -123,19 +128,23 @@ def _collect_domain_rows(results: List[Dict[str, Any]], target_label_column: str
 
 
 def _collect_atlasmtl_rows(results: List[Dict[str, Any]], target_label_column: str | None) -> List[List[Any]]:
-    atlas_result = next((item for item in results if item.get("method") == "atlasmtl"), None)
-    if atlas_result is None:
-        return []
-    level, behavior = _first_level(atlas_result.get("behavior_metrics", {}), target_label_column)
-    _, hierarchy = _first_level(atlas_result.get("hierarchy_metrics", {}), target_label_column)
-    rows = [
-        ["unknown_rate", behavior.get("unknown_rate"), ""],
-        ["knn_coverage", behavior.get("knn_coverage"), ""],
-        ["knn_rescue_rate", behavior.get("knn_rescue_rate"), ""],
-        ["knn_harm_rate", behavior.get("knn_harm_rate"), ""],
-        ["full_path_accuracy", hierarchy.get("full_path_accuracy"), level or ""],
-        ["path_consistency_rate", hierarchy.get("path_consistency_rate"), level or ""],
-    ]
+    rows: List[List[Any]] = []
+    for atlas_result in results:
+        if atlas_result.get("method") != "atlasmtl":
+            continue
+        level, behavior = _first_level(atlas_result.get("behavior_metrics", {}), target_label_column)
+        hierarchy = atlas_result.get("hierarchy_metrics") or {}
+        variant_name = _effective_variant_name(atlas_result)
+        rows.extend(
+            [
+                [variant_name, "unknown_rate", behavior.get("unknown_rate"), level or ""],
+                [variant_name, "knn_coverage", behavior.get("knn_coverage"), level or ""],
+                [variant_name, "knn_rescue_rate", behavior.get("knn_rescue_rate"), level or ""],
+                [variant_name, "knn_harm_rate", behavior.get("knn_harm_rate"), level or ""],
+                [variant_name, "full_path_accuracy", hierarchy.get("full_path_accuracy"), level or ""],
+                [variant_name, "path_consistency_rate", hierarchy.get("path_consistency_rate"), level or ""],
+            ]
+        )
     return rows
 
 
@@ -162,7 +171,7 @@ def _collect_protocol_rows(results: List[Dict[str, Any]], target_label_column: s
         rows.append(
             [
                 result.get("method"),
-                result.get("variant_name"),
+                _effective_variant_name(result),
                 contract.get("backend"),
                 resolved_label,
                 contract.get("label_scope"),
@@ -171,6 +180,7 @@ def _collect_protocol_rows(results: List[Dict[str, Any]], target_label_column: s
                 contract.get("counts_layer"),
                 contract.get("normalization_mode"),
                 contract.get("feature_alignment"),
+                (result.get("prediction_metadata") or {}).get("knn_space_used"),
             ]
         )
     return rows
@@ -184,7 +194,7 @@ def _collect_runtime_rows(results: List[Dict[str, Any]]) -> List[List[Any]]:
         rows.append(
             [
                 result.get("method"),
-                result.get("variant_name"),
+                _effective_variant_name(result),
                 (result.get("input_contract") or {}).get("backend"),
                 predict_usage.get("device_used") or train_usage.get("device_used"),
                 predict_usage.get("num_threads_used") or train_usage.get("num_threads_used"),
@@ -253,6 +263,7 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
                 "Counts layer",
                 "Normalization",
                 "Feature alignment",
+                "KNN space",
             ],
             _collect_protocol_rows(results, target_label_column),
         ),
@@ -302,7 +313,7 @@ def build_report(payload: Dict[str, Any], *, target_label_column: str | None) ->
             [
                 "## atlasmtl-specific Analysis",
                 "",
-                _markdown_table(["Metric", "Value", "Level"], atlas_rows),
+                _markdown_table(["Variant", "Metric", "Value", "Level"], atlas_rows),
                 "",
             ]
         )

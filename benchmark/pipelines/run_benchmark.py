@@ -122,6 +122,11 @@ def _json_safe(value: Any) -> Any:
     return value
 
 
+def _effective_variant_name(result: Dict[str, Any]) -> Any:
+    ablation = result.get("ablation_config") or {}
+    return ablation.get("variant_name") or result.get("variant_name")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset-manifest", required=True)
@@ -507,7 +512,7 @@ def _write_reports(payload: Dict[str, Any], output_dir: Path) -> None:
         for level, metrics in (result.get("metrics") or {}).items():
             row = {
                 "method": result.get("method"),
-                "variant_name": result.get("variant_name"),
+                "variant_name": _effective_variant_name(result),
                 "dataset_name": result.get("dataset_name"),
                 "level": level,
                 "split_name": (result.get("protocol_context") or {}).get("split_name"),
@@ -539,7 +544,7 @@ def _write_reports(payload: Dict[str, Any], output_dir: Path) -> None:
             for level, metrics in (per_level or {}).items():
                 row = {
                     "method": result.get("method"),
-                    "variant_name": result.get("variant_name"),
+                    "variant_name": _effective_variant_name(result),
                     "dataset_name": result.get("dataset_name"),
                     "domain": domain,
                     "level": level,

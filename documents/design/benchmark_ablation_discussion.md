@@ -189,3 +189,28 @@ The completed AtlasMTL ablation supports a pragmatic default-selection rule:
   datasets
 - future benchmark rounds should keep `whole` as the anchor baseline and use a
   local HVG grid to identify the dataset-level operational optimum
+
+## 7) Current conclusion from the KNN correction round
+
+The completed formal CPU KNN run using external `X_scANVI` space supports a
+different conclusion:
+
+- KNN correction should not be enabled by default
+- `low_conf_only` is the only KNN mode worth retaining as a secondary ablation
+- current evidence does not support KNN as a reliable source of better overall
+  final accuracy
+
+Interpretation:
+
+- KNN can improve some class-balance-oriented metrics
+- KNN can improve covered / accepted-sample accuracy
+- but KNN also reduces coverage and introduces a measurable harm rate
+- in the current run, these tradeoffs do not justify making KNN part of the
+  default AtlasMTL protocol
+
+Operational recommendation:
+
+- keep KNN implemented and benchmarked
+- keep `knn_correction="off"` as the primary recommended setting
+- reserve `knn_correction="low_conf_only"` for controlled method-specific
+  follow-up analysis

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from benchmark.reports.export_paper_tables import (
+    _atlasmtl_table,
     _atlasmtl_ablation_accuracy_table,
     _atlasmtl_ablation_resource_table,
     _atlasmtl_ablation_tradeoff_table,
+    _main_table,
     _protocol_table,
     _runtime_resource_table,
 )
@@ -111,3 +113,85 @@ def test_atlasmtl_ablation_tables_export_variant_metrics() -> None:
     assert list(accuracy["anno_lv4_accuracy"]) == [0.7]
     assert list(resources["train_process_peak_rss_gb"]) == [1.5]
     assert list(tradeoff["target_level_accuracy"]) == [0.7]
+
+
+def test_tables_prefer_ablation_variant_name_and_keep_knn_fields() -> None:
+    results = [
+        {
+            "method": "atlasmtl",
+            "variant_name": "atlasmtl_cpu_hvg6000_binary_phmap",
+            "ablation_config": {
+                "variant_name": "atlasmtl_cpu_hvg6000_binary_knn_lowconf",
+                "knn_variant": "knn_lowconf",
+                "knn_correction": "low_conf_only",
+            },
+            "metrics": {
+                "anno_lv4": {
+                    "accuracy": 0.77,
+                    "macro_f1": 0.71,
+                    "balanced_accuracy": 0.66,
+                    "coverage": 0.88,
+                    "reject_rate": 0.12,
+                    "ece": 0.05,
+                    "brier": 0.10,
+                    "aurc": 0.04,
+                }
+            },
+            "behavior_metrics": {
+                "anno_lv4": {
+                    "unknown_rate": 0.12,
+                    "knn_coverage": 0.27,
+                    "knn_rescue_rate": 0.03,
+                    "knn_harm_rate": 0.06,
+                }
+            },
+            "prediction_metadata": {
+                "knn_space_used": "scanvi",
+                "knn_space_preferred": "scanvi",
+            },
+            "label_columns": ["anno_lv1", "anno_lv4"],
+            "input_contract": {
+                "backend": "atlasmtl",
+                "label_scope": "multi_level",
+                "reference_matrix_source": "layers/counts",
+                "query_matrix_source": "layers/counts",
+                "counts_layer": "counts",
+                "normalization_mode": "atlasmtl_extract_matrix:binary",
+                "feature_alignment": "reference_feature_panel_exact_order",
+            },
+        }
+    ]
+
+    main_table = _main_table(results, "anno_lv4")
+    protocol_table = _protocol_table(results, "anno_lv4")
+
+    assert list(main_table["variant_name"]) == ["atlasmtl_cpu_hvg6000_binary_knn_lowconf"]
+    assert list(main_table["knn_space_used"]) == ["scanvi"]
+    assert list(protocol_table["variant_name"]) == ["atlasmtl_cpu_hvg6000_binary_knn_lowconf"]
+    assert list(protocol_table["knn_space_preferred"]) == ["scanvi"]
+
+
+def test_atlasmtl_table_keeps_all_variants() -> None:
+    results = [
+        {
+            "method": "atlasmtl",
+            "variant_name": "runner_name_1",
+            "ablation_config": {"variant_name": "atlasmtl_cpu_hvg6000_binary_knn_off"},
+            "behavior_metrics": {"anno_lv4": {"unknown_rate": 0.07, "knn_coverage": 0.0, "knn_rescue_rate": 0.0, "knn_harm_rate": 0.0}},
+            "hierarchy_metrics": {"full_path_accuracy": 0.6, "path_consistency_rate": 0.95},
+        },
+        {
+            "method": "atlasmtl",
+            "variant_name": "runner_name_2",
+            "ablation_config": {"variant_name": "atlasmtl_cpu_hvg6000_binary_knn_lowconf"},
+            "behavior_metrics": {"anno_lv4": {"unknown_rate": 0.12, "knn_coverage": 0.27, "knn_rescue_rate": 0.03, "knn_harm_rate": 0.06}},
+            "hierarchy_metrics": {"full_path_accuracy": 0.61, "path_consistency_rate": 0.96},
+        },
+    ]
+
+    table = _atlasmtl_table(results, "anno_lv4")
+
+    assert set(table["variant_name"]) == {
+        "atlasmtl_cpu_hvg6000_binary_knn_off",
+        "atlasmtl_cpu_hvg6000_binary_knn_lowconf",
+    }
