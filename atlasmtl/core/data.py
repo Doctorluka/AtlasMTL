@@ -20,18 +20,26 @@ def extract_matrix(
     input_transform: str = "binary",
 ) -> np.ndarray:
     X = adata.X
-    if not isinstance(X, np.ndarray):
-        X = X.toarray()
-    X = np.asarray(X, dtype=np.float32)
     if train_genes is None:
+        if not isinstance(X, np.ndarray):
+            X = X.toarray()
+        X = np.asarray(X, dtype=np.float32)
         return apply_input_transform(X, input_transform)
 
-    gene_index = {g: i for i, g in enumerate(adata.var_names)}
+    var_names = adata.var_names.astype(str)
+    idx = var_names.get_indexer([str(g) for g in train_genes])
+    present_mask = idx >= 0
     out = np.zeros((adata.n_obs, len(train_genes)), dtype=np.float32)
-    for j, gene in enumerate(train_genes):
-        idx = gene_index.get(gene)
-        if idx is not None:
-            out[:, j] = X[:, idx]
+    if present_mask.any():
+        src_cols = idx[present_mask]
+        if isinstance(X, np.ndarray):
+            tmp = X[:, src_cols]
+            if tmp.dtype != np.float32:
+                tmp = tmp.astype(np.float32)
+            out[:, present_mask] = tmp
+        else:
+            # Avoid densifying the full matrix; densify only the selected columns.
+            out[:, present_mask] = np.asarray(X[:, src_cols].toarray(), dtype=np.float32)
     return apply_input_transform(out, input_transform)
 
 

@@ -30,9 +30,12 @@ def run_model_in_batches(
     batch_size: int,
     device: torch.device,
     show_progress: Optional[bool] = None,
-) -> tuple[List[torch.Tensor], Dict[str, torch.Tensor], int]:
+    *,
+    return_latent: bool = False,
+) -> tuple[List[torch.Tensor], Dict[str, torch.Tensor], Optional[torch.Tensor], int]:
     logits_batches: Optional[List[List[torch.Tensor]]] = None
     coord_batches: Dict[str, List[torch.Tensor]] = {}
+    latent_batches: List[torch.Tensor] = []
     num_batches = 0
 
     with torch.no_grad():
@@ -45,26 +48,41 @@ def run_model_in_batches(
         )
         for batch in batch_iterator:
             num_batches += 1
-            batch_logits, batch_coords, _ = model.model(batch.to(device))
+            batch_logits, batch_coords, batch_latent = model.model(batch.to(device))
             if logits_batches is None:
                 logits_batches = [[] for _ in range(len(batch_logits))]
             for idx, logit in enumerate(batch_logits):
                 logits_batches[idx].append(logit.detach().cpu())
             for name, coord in batch_coords.items():
                 coord_batches.setdefault(name, []).append(coord.detach().cpu())
+            if return_latent:
+                latent_batches.append(batch_latent.detach().cpu())
 
     if logits_batches is None:
         raise ValueError("No cells available for prediction")
 
     logits = [torch.cat(parts, dim=0) for parts in logits_batches]
     coords_scaled = {name: torch.cat(parts, dim=0) for name, parts in coord_batches.items()}
-    return logits, coords_scaled, num_batches
+    latent = torch.cat(latent_batches, dim=0) if return_latent else None
+    return logits, coords_scaled, latent, num_batches
 
 
 def resolve_knn_space(
     pred_coords: Dict[str, np.ndarray],
     reference_coords: Dict[str, np.ndarray],
+    *,
+    preferred: Optional[str] = None,
 ) -> tuple[str, Optional[np.ndarray], Optional[np.ndarray]]:
+    if preferred:
+        pred_key = f"X_pred_{preferred}"
+        ref_key = f"X_ref_{preferred}"
+        if pred_key in pred_coords and ref_key in reference_coords:
+            return str(preferred), pred_coords[pred_key], reference_coords[ref_key]
+        raise ValueError(
+            f"Preferred KNN space '{preferred}' not found; need {pred_key} and {ref_key}."
+        )
+    if "X_pred_latent_internal" in pred_coords and "X_ref_latent_internal" in reference_coords:
+        return "latent_internal", pred_coords["X_pred_latent_internal"], reference_coords["X_ref_latent_internal"]
     if "X_pred_latent" in pred_coords and "X_ref_latent" in reference_coords:
         return "latent", pred_coords["X_pred_latent"], reference_coords["X_ref_latent"]
     if "X_pred_umap" in pred_coords and "X_ref_umap" in reference_coords:

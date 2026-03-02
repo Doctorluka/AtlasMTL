@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from anndata import AnnData
+from scipy import sparse
 
 from atlasmtl.preprocess import FeaturePanel, PreprocessConfig
 from atlasmtl.preprocess.features import align_query_to_feature_panel, select_reference_features
@@ -39,4 +40,29 @@ def test_align_query_to_feature_panel_zero_fills_missing():
     assert list(aligned.var_names) == ["ENSG1", "ENSG2"]
     assert np.allclose(np.asarray(aligned.X), np.array([[0.0, 5.0]], dtype=np.float32))
     assert report.matched_feature_genes == 1
+    assert report.missing_feature_genes == 1
+
+
+def test_align_query_to_feature_panel_sparse_x_and_layers():
+    X = sparse.csr_matrix(np.array([[5.0, 7.0]], dtype=np.float32))
+    adata = AnnData(X=X, obs=pd.DataFrame(index=["q1"]))
+    adata.var_names = ["ENSG2", "ENSG3"]
+    adata.layers["counts"] = sparse.csr_matrix(np.array([[50.0, 70.0]], dtype=np.float32))
+    panel = FeaturePanel(
+        gene_ids=["ENSG1", "ENSG2", "ENSG3"],
+        gene_symbols=["GATA1", "CD3D", "MS4A1"],
+        feature_space="hvg",
+        n_features=3,
+        species="human",
+    )
+    cfg = PreprocessConfig(var_names_type="ensembl", species="human")
+
+    aligned, report = align_query_to_feature_panel(adata, panel, cfg)
+
+    assert sparse.issparse(aligned.X)
+    assert np.allclose(aligned.X.toarray(), np.array([[0.0, 5.0, 7.0]], dtype=np.float32))
+    assert "counts" in aligned.layers
+    assert sparse.issparse(aligned.layers["counts"])
+    assert np.allclose(aligned.layers["counts"].toarray(), np.array([[0.0, 50.0, 70.0]], dtype=np.float32))
+    assert report.matched_feature_genes == 2
     assert report.missing_feature_genes == 1

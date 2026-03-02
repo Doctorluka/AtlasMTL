@@ -4,9 +4,29 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score
 from sklearn.manifold import trustworthiness
 from ..mapping import hierarchy_path_consistency_rate
+
+
+def _balanced_accuracy_over_true_labels(true: np.ndarray, pred: np.ndarray) -> float:
+    """Balanced accuracy over labels present in `true`.
+
+    This avoids sklearn warnings when `pred` contains labels not present in
+    `true` (e.g. abstention via `Unknown`).
+    """
+    if true.size == 0:
+        return 0.0
+    labels = np.unique(true)
+    recalls: List[float] = []
+    for label in labels:
+        mask = true == label
+        denom = int(mask.sum())
+        if denom == 0:
+            continue
+        tp = int(((pred == label) & mask).sum())
+        recalls.append(tp / float(denom))
+    return float(np.mean(recalls)) if recalls else 0.0
 
 
 def _ece_score(confidence: np.ndarray, correct: np.ndarray, *, n_bins: int = 15) -> float:
@@ -78,11 +98,12 @@ def evaluate_predictions(
         pred = pred_df[pred_col].astype(str)
         true = true_df[col].astype(str)
         covered_mask = pred != "Unknown"
+        labels = np.unique(true.to_numpy())
 
         metrics = {
             "accuracy": float(accuracy_score(true, pred)),
-            "macro_f1": float(f1_score(true, pred, average="macro")),
-            "balanced_accuracy": float(balanced_accuracy_score(true, pred)),
+            "macro_f1": float(f1_score(true, pred, average="macro", labels=labels, zero_division=0)),
+            "balanced_accuracy": _balanced_accuracy_over_true_labels(true.to_numpy(), pred.to_numpy()),
             "coverage": float(covered_mask.mean()),
             "reject_rate": float(1.0 - covered_mask.mean()),
             "n_total": float(len(true)),

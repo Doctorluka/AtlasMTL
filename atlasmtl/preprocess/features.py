@@ -11,6 +11,29 @@ from scipy import sparse
 from .types import FeaturePanel, PreprocessConfig, PreprocessReport
 
 
+def _reindex_sparse_to_panel(
+    X: sparse.spmatrix,
+    *,
+    matched: np.ndarray,
+    matched_mask: np.ndarray,
+    n_obs: int,
+    n_features: int,
+) -> sparse.csr_matrix:
+    """Build a CSR matrix aligned to the feature panel without costly CSR assignment.
+
+    We avoid patterns like `out[:, mask] = X[:, cols]` which trigger
+    SparseEfficiencyWarning and can be very slow.
+    """
+    if not matched_mask.any():
+        return sparse.csr_matrix((n_obs, n_features), dtype=X.dtype)
+    src_cols = matched[matched_mask]
+    dst_cols = np.flatnonzero(matched_mask)
+    sub = X[:, src_cols].tocoo()
+    remapped_cols = dst_cols[sub.col]
+    out = sparse.coo_matrix((sub.data, (sub.row, remapped_cols)), shape=(n_obs, n_features), dtype=X.dtype)
+    return out.tocsr()
+
+
 def select_reference_features(
     adata: AnnData,
     config: PreprocessConfig,
@@ -115,9 +138,13 @@ def align_query_to_feature_panel(
     n_obs = adata.n_obs
     n_features = len(feature_panel.gene_ids)
     if sparse.issparse(adata.X):
-        x_new = sparse.csr_matrix((n_obs, n_features), dtype=adata.X.dtype)
-        if matched_mask.any():
-            x_new[:, matched_mask] = adata.X[:, matched[matched_mask]]
+        x_new = _reindex_sparse_to_panel(
+            adata.X,
+            matched=matched,
+            matched_mask=matched_mask,
+            n_obs=n_obs,
+            n_features=n_features,
+        )
     else:
         x_new = np.zeros((n_obs, n_features), dtype=np.asarray(adata.X).dtype)
         if matched_mask.any():
@@ -127,9 +154,13 @@ def align_query_to_feature_panel(
     for name in adata.layers.keys():
         layer = adata.layers[name]
         if sparse.issparse(layer):
-            layer_new = sparse.csr_matrix((n_obs, n_features), dtype=layer.dtype)
-            if matched_mask.any():
-                layer_new[:, matched_mask] = layer[:, matched[matched_mask]]
+            layer_new = _reindex_sparse_to_panel(
+                layer,
+                matched=matched,
+                matched_mask=matched_mask,
+                n_obs=n_obs,
+                n_features=n_features,
+            )
         else:
             layer_new = np.zeros((n_obs, n_features), dtype=np.asarray(layer).dtype)
             if matched_mask.any():

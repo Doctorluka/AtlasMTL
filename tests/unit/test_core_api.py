@@ -63,6 +63,34 @@ class DummyTrainedModel:
         return self.reference_data.labels
 
 
+class DummyModelModuleInternalLatent:
+    def to(self, device):
+        return self
+
+    def eval(self):
+        return self
+
+    def __call__(self, x):
+        rows = x.shape[0]
+        logits_template = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
+        logits = [x.new_tensor(logits_template[:rows])]
+        coords = {}
+        latent = x[:, :2].contiguous()
+        return logits, coords, latent
+
+
+class DummyTrainedModelInternalLatent(DummyTrainedModel):
+    def __init__(self):
+        super().__init__()
+        self.model = DummyModelModuleInternalLatent()
+        self.coord_targets = {}
+        self.coord_stats = {}
+        self.reference_data = ReferenceData(
+            coords={"X_ref_latent_internal": np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]], dtype=np.float32)},
+            labels={"celltype": np.array(["A", "B", "B"], dtype=object)},
+        )
+
+
 def test_extract_matrix_binary_transform():
     adata = AnnData(X=np.array([[0.0, 2.0], [3.0, 0.0]], dtype=np.float32))
     adata.var_names = ["g1", "g2"]
@@ -100,6 +128,15 @@ def test_predict_closed_loop_unknown_uses_knn_confidence():
     assert pred["used_knn_celltype"].all()
     assert pred.loc["c1", "pred_celltype"] == "Unknown"
     assert pred.loc["c2", "pred_celltype"] == "B"
+
+
+def test_predict_knn_internal_latent_fallback_runs():
+    model = DummyTrainedModelInternalLatent()
+    adata = AnnData(X=np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.float32), obs=pd.DataFrame(index=["c1", "c2"]))
+    adata.var_names = ["g1", "g2"]
+    result = predict(model, adata, knn_correction="all", confidence_low=-1.0, knn_k=1, device="cpu")
+    assert result.metadata["knn_space_used"] == "latent_internal"
+    assert result.predictions["used_knn_celltype"].all()
 
 
 def test_to_adata_records_metadata():

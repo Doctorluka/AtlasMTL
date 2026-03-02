@@ -20,6 +20,32 @@ from .types import TrainedModel
 from ..utils import RuntimeMonitor, progress_iter, resolve_show_summary
 
 
+def _encode_internal_latent(
+    model: AtlasMTLModel,
+    X: torch.Tensor,
+    *,
+    batch_size: int,
+    device: torch.device,
+    show_progress: Optional[bool] = None,
+) -> np.ndarray:
+    model.eval()
+    latents: List[np.ndarray] = []
+    loader = DataLoader(X, batch_size=batch_size, shuffle=False)
+    batch_iterator = progress_iter(
+        loader,
+        total=len(loader),
+        desc="atlasmtl encode latent",
+        show_progress=show_progress,
+    )
+    with torch.no_grad():
+        for batch in batch_iterator:
+            _, _, z = model(batch.to(device))
+            latents.append(z.detach().cpu().numpy())
+    if not latents:
+        raise ValueError("No cells available for latent encoding")
+    return np.asarray(np.concatenate(latents, axis=0), dtype=np.float32)
+
+
 def _domain_mean_penalty(z: torch.Tensor, domains: torch.Tensor) -> torch.Tensor:
     """Lightweight domain alignment penalty based on mean embedding matching."""
     unique = torch.unique(domains)
@@ -109,6 +135,8 @@ def build_model(
     task_weights: Optional[List[float]] = None,
     coord_loss_weights: Optional[Dict[str, float]] = None,
     latent_source: str = "internal_preferred",
+    knn_reference_obsm_key: Optional[str] = None,
+    knn_space: Optional[str] = None,
     hidden_sizes: Optional[List[int]] = None,
     dropout_rate: float = 0.3,
     batch_size: int = 256,
@@ -161,6 +189,15 @@ def build_model(
     latent_source
         Metadata flag describing how latent coordinates should be interpreted
         downstream. Currently stored on the model for later prediction metadata.
+    knn_reference_obsm_key
+        Optional reference-space override stored for KNN correction only (no
+        regression head is trained). Example: `"X_scANVI"`. When provided,
+        atlasmtl stores the array in `reference_data.coords` for later lookup.
+    knn_space
+        Optional explicit KNN space name used for storage and later lookup,
+        stored as `reference_data.coords["X_ref_{knn_space}"]`. If not provided,
+        it is derived from `knn_reference_obsm_key` by stripping the `"X_"`
+        prefix and lowercasing.
     hidden_sizes
         Hidden layer widths for the shared encoder. Defaults to `[256, 128]`
         when not provided.
@@ -229,6 +266,8 @@ def build_model(
     for name, key in coord_targets.items():
         if key not in adata.obsm:
             raise ValueError(f"Missing coordinate target in adata.obsm: {key} for {name}")
+    if knn_reference_obsm_key is not None and knn_reference_obsm_key not in adata.obsm:
+        raise ValueError(f"Missing knn_reference_obsm_key in adata.obsm: {knn_reference_obsm_key}")
     if domain_key is not None and domain_key not in adata.obs.columns:
         raise ValueError(f"Missing domain_key column in adata.obs: {domain_key}")
     if domain_loss_method != "mean":
@@ -478,9 +517,20 @@ def build_model(
             "random_state": int(random_state),
         }
 
+    ref_internal_latent = _encode_internal_latent(
+        model,
+        x_t,
+        batch_size=batch_size,
+        device=resolved_device,
+        show_progress=show_progress,
+    )
     ref_coords = {
         f"X_ref_{k}": np.asarray(adata.obsm[v], dtype=np.float32) for k, v in coord_targets.items()
     }
+    if knn_reference_obsm_key is not None:
+        space_name = str(knn_space or knn_reference_obsm_key).removeprefix("X_").replace("-", "_").replace(" ", "_").lower()
+        ref_coords[f"X_ref_{space_name}"] = np.asarray(adata.obsm[knn_reference_obsm_key], dtype=np.float32)
+    ref_coords["X_ref_latent_internal"] = ref_internal_latent
     ref_labels = {col: adata.obs[col].astype(str).values.copy() for col in label_columns}
     resource_summary = _build_resource_summary(
         adata,
@@ -520,6 +570,8 @@ def build_model(
         "reference_storage": reference_storage,
         "coord_enabled": bool(coord_targets),
         "resolved_coord_targets": coord_targets,
+        "knn_reference_obsm_key": knn_reference_obsm_key,
+        "knn_space": knn_space,
         "num_threads_requested": num_threads,
         "num_threads_used": num_threads_used,
         "device_requested": device,

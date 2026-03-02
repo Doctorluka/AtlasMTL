@@ -25,6 +25,8 @@ def predict(
     model: TrainedModel,
     adata: AnnData,
     knn_correction: str = "low_conf_only",
+    knn_query_obsm_key: Optional[str] = None,
+    knn_space: Optional[str] = None,
     confidence_high: float = 0.7,
     confidence_low: float = 0.4,
     margin_threshold: float = 0.2,
@@ -84,6 +86,14 @@ def predict(
     knn_index_mode
         Neighbor index implementation. `"exact"` uses scikit-learn exact KNN.
         `"pynndescent"` enables approximate nearest neighbors when installed.
+    knn_query_obsm_key
+        Optional query-space override used for KNN correction, taken from
+        `adata.obsm[knn_query_obsm_key]` (for example `"X_scANVI"`).
+        When provided, `knn_space` should match the corresponding reference-space
+        stored in the trained model (via `build_model(knn_reference_obsm_key=...)`).
+    knn_space
+        Optional explicit KNN space name (e.g. `"scanvi"`). When provided, atlasmtl
+        uses `X_pred_{knn_space}` + `X_ref_{knn_space}` strictly and errors if missing.
     input_transform
         Optional override for the model's stored input transform. Supported
         values are `"binary"` and `"float"`.
@@ -157,12 +167,13 @@ def predict(
     model.model.eval()
 
     runtime_monitor = RuntimeMonitor(phase="predict", device=resolved_device)
-    logits, coords_scaled, num_batches = run_model_in_batches(
+    logits, coords_scaled, latent, num_batches = run_model_in_batches(
         model,
         X,
         batch_size,
         resolved_device,
         show_progress=show_progress,
+        return_latent=True,
     )
     prediction_runtime = runtime_monitor.finish(num_items=adata.n_obs, num_batches=num_batches)
     pred_df = pd.DataFrame(index=adata.obs_names)
@@ -184,8 +195,24 @@ def predict(
     pred_coords: Dict[str, np.ndarray] = {}
     for name, coord in coords_scaled.items():
         pred_coords[f"X_pred_{name}"] = unscale_coords(coord.numpy(), model.coord_stats[name])
+    if latent is not None:
+        pred_coords["X_pred_latent_internal"] = np.asarray(latent.numpy(), dtype=np.float32)
 
-    knn_space_used, query_space, ref_space = resolve_knn_space(pred_coords, model.reference_coords)
+    preferred_knn_space = None
+    if knn_query_obsm_key is not None:
+        if knn_query_obsm_key not in adata.obsm:
+            raise ValueError(f"knn_query_obsm_key not found in adata.obsm: {knn_query_obsm_key}")
+        space_name = str(knn_space or knn_query_obsm_key).removeprefix("X_").replace("-", "_").replace(" ", "_").lower()
+        pred_coords[f"X_pred_{space_name}"] = np.asarray(adata.obsm[knn_query_obsm_key], dtype=np.float32)
+        preferred_knn_space = space_name
+    if knn_space is not None and preferred_knn_space is None:
+        preferred_knn_space = str(knn_space).replace("-", "_").replace(" ", "_").lower()
+
+    knn_space_used, query_space, ref_space = resolve_knn_space(
+        pred_coords,
+        model.reference_coords,
+        preferred=preferred_knn_space,
+    )
 
     openset_scores = None
     openset_unknown = None
@@ -232,6 +259,10 @@ def predict(
     metadata["knn_vote_mode"] = knn_vote_mode
     metadata["knn_reference_mode"] = knn_reference_mode
     metadata["knn_index_mode"] = knn_index_mode
+    if knn_query_obsm_key is not None:
+        metadata["knn_query_obsm_key"] = str(knn_query_obsm_key)
+    if preferred_knn_space is not None:
+        metadata["knn_space_preferred"] = str(preferred_knn_space)
     if openset_method is not None:
         metadata["openset_method"] = openset_method
         metadata["openset_threshold"] = float(openset_threshold) if openset_threshold is not None else None
