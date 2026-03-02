@@ -283,6 +283,11 @@ Prediction runs in this order:
    - `off`
    - `low_conf_only`
    - `all`
+   - KNN uses **query coordinates**, but **does not use** any precomputed query
+     neighbor graph (e.g. `adata.obsp["connectivities"]`). Neighbors are always
+     computed on-the-fly as query→reference nearest neighbors in the selected
+     space (e.g. `X_pred_latent_internal` vs `X_ref_latent_internal`, or an
+     explicit `obsm` override such as `X_scANVI`).
 9. optionally apply open-set Unknown forcing
 10. optionally enforce parent-child hierarchy consistency
 11. return a `PredictionResult`

@@ -1,0 +1,44 @@
+dataset_name: real_mapping_knn_geometry_eval_coorddiag
+version: 1
+protocol_version: 1
+reference_h5ad: data/test_adatas/knn/reference_10k.h5ad
+query_h5ad: data/test_adatas/knn/query_3k.h5ad
+label_columns:
+  - anno_lv1
+  - anno_lv2
+  - anno_lv3
+  - anno_lv4
+var_names_type: symbol
+species: human
+input_matrix_type: lognorm
+counts_layer: counts
+feature_space: hvg
+hvg_config:
+  method: seurat_v3
+  n_top_genes: 6000
+duplicate_policy: sum
+unmapped_policy: drop
+coord_targets:
+  scanvi: X_scANVI
+query_coord_targets:
+  scanvi: X_scANVI
+train:
+  hidden_sizes: [256, 128]
+  dropout_rate: 0.3
+  batch_size: 256
+  num_epochs: 8
+  learning_rate: 0.001
+  input_transform: binary
+  random_state: 42
+  reference_storage: external
+predict:
+  knn_correction: "off"
+  knn_space: scanvi
+  knn_k: 15
+  knn_conf_low: 0.6
+  enforce_hierarchy: true
+  batch_size: 256
+method_configs:
+  atlasmtl:
+    reference_layer: counts
+    query_layer: counts
