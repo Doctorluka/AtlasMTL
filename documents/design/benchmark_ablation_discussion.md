@@ -57,12 +57,37 @@ Current locked grid for the next round:
 - Whole matrix:
   `whole`
 
+Selection principle:
+
+- The objective is not the single highest accuracy point.
+- The formal goal is the best accuracy-resource balance under the current
+  research positioning.
+- In practice, this means:
+  - keep `anno_lv4` accuracy and macro-F1 as primary quality endpoints
+  - keep training time, prediction time, peak RSS, and peak GPU memory as
+    required resource endpoints
+  - prefer the lowest-resource candidate among runs that remain close to the
+    best quality result
+- Therefore, `whole` must remain the strong baseline, while HVG settings are
+  tuned as operational tradeoff candidates rather than being treated as a
+  guaranteed universal improvement
+
 Constraints:
 
 - HVG selection must be reference-derived after canonicalization.
 - HVG selection must use `layer="counts"` under `hvg_method="seurat_v3"`.
 - HVG > ~6000 may be diminishing returns; this should be demonstrated (or
   rejected) empirically via accuracy–resource curves.
+
+Recommended follow-up HVG search protocol:
+
+- hold `input_transform`, `task_weights`, seeds, and train config fixed
+- compare `whole`, `hvg3000`, `hvg4000`, `hvg5000`, `hvg6000`, `hvg7000`,
+  `hvg8000`
+- identify the best observed quality run
+- define a near-optimal band around that quality target
+- select the lowest-resource run inside that band as the dataset-level
+  recommended HVG setting
 
 ### C) Input transform: binary vs non-binary
 
@@ -153,3 +178,14 @@ Reporting rule:
   - `device`
 - Generate paper tables from a single `metrics.json` bundle per ablation run,
   and keep runtime artifacts private under `~/tmp/`.
+
+## 6) Current conclusion from the completed ablation round
+
+The completed AtlasMTL ablation supports a pragmatic default-selection rule:
+
+- `hvg6000 + binary + phmap` is the current best default candidate because it
+  improves the accuracy-resource balance
+- this does not mean `hvg6000` is now a fixed universal default for all future
+  datasets
+- future benchmark rounds should keep `whole` as the anchor baseline and use a
+  local HVG grid to identify the dataset-level operational optimum

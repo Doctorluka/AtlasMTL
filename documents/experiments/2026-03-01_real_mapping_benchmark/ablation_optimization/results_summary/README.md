@@ -13,3 +13,20 @@ Primary summary files:
 
 - `atlasmtl_ablation_summary.md`
 - `atlasmtl_ablation_discussion.md`
+- `interim_hvg_weight_comparison.md`
+
+Planned follow-up summaries:
+
+- `hvg_tradeoff_interim.md`
+- `hvg_tradeoff_recommendation.md`
+- `weight_scan_interim.md`
+- `weight_scan_recommendation.md`
+
+The interim comparison note is for internal decision-making only. It summarizes
+the current `whole` / `hvg3000` / `hvg6000` and `uniform` / `phmap` contrast,
+but it is not the final paper-facing benchmark conclusion.
+
+The new HVG and weight-search summaries are also internal benchmark materials.
+They record completed optimization runs and current operational
+recommendations, but they still require cross-dataset confirmation before any
+paper-facing conclusion is frozen.

@@ -121,3 +121,14 @@ is:
 
 This should be treated as the next benchmark default candidate, not yet as an
 unchangeable project-wide invariant.
+
+The key decision rule is also now explicit:
+
+- the benchmark target is not the numerically highest accuracy alone
+- the preferred choice is the best accuracy-resource balance
+- if multiple settings are close in quality, the lower-resource setting should
+  be preferred as the operational recommendation
+
+Under that rule, `hvg6000 + binary + phmap` is currently favored because it
+beats the current `whole` baseline at the top end while materially reducing
+memory and training cost.

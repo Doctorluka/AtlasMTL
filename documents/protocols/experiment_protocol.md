@@ -73,6 +73,24 @@ Current locked ablation rules for AtlasMTL:
 - use `whole`, `hvg3000`, and `hvg6000` as the current feature-space grid
 - require a benchmark-entry CUDA gate before admitting GPU variants
 
+For follow-up AtlasMTL tuning, the selection target is not the single highest
+accuracy point. The preferred outcome is an operational tradeoff between label
+quality and resource cost:
+
+- keep `anno_lv4` accuracy and macro-F1 as the primary quality targets
+- treat training time, prediction time, peak RSS, and peak GPU memory as
+  required co-primary resource constraints
+- choose the lowest-resource configuration among candidates that remain close
+  to the best observed quality, instead of hard-coding the numerically best
+  accuracy run as the universal default
+
+Current interpretation from the completed ablation round:
+
+- `hvg6000 + binary + phmap` is the strongest current default candidate
+- `whole` remains the stability baseline and must stay in future grids
+- future HVG selection should be a local search around the current optimum,
+  not an unrestricted sweep
+
 ## Dataset manifest schema
 
 The benchmark runner expects a YAML mapping with these required keys:

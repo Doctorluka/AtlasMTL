@@ -13,6 +13,10 @@ Scope:
   - `feature_space`: `whole`, `hvg3000`, `hvg6000`
   - `input_transform`: `binary`, `float`
   - `device`: `cpu`, plus `cuda` only after a gate check passes
+- follow-up search tracks:
+  - `hvg_tradeoff`
+  - `weight_scan`
+- task-specific line plots for internal decision support only
 
 Storage split:
 
@@ -31,10 +35,13 @@ Directory layout:
 
 - `plan/`
   - locked execution plan for this ablation round
+  - HVG tradeoff follow-up plan for the next benchmark iteration
 - `manifests/`
-  - reusable base manifests
+  - reusable base manifests for ablation, HVG search, and weight search
 - `scripts/`
-  - CUDA gate and ablation runner scripts
+  - CUDA gate, ablation runner, HVG runner, weight runner, and plotting scripts
+- `figures/`
+  - small repo-tracked figures for the current task only
 - `results_summary/`
   - repo-tracked summary and discussion for the completed ablation round
 - `notes/`
@@ -45,3 +52,13 @@ Current completed runtime bundle:
 - `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/metrics.json`
 - `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/benchmark_report.md`
 - `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/paper_tables/`
+
+Planned follow-up runtime bundles:
+
+- `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/hvg_tradeoff/`
+- `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/weight_scan/`
+
+Completed follow-up analysis outputs:
+
+- `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/hvg_tradeoff/analysis/`
+- `~/tmp/atlasmtl_real_mapping_benchmark_20260301/ablation_optimization/weight_scan/analysis/`
