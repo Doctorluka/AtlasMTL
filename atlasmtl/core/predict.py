@@ -24,7 +24,7 @@ from ..utils import RuntimeMonitor, resolve_show_summary
 def predict(
     model: TrainedModel,
     adata: AnnData,
-    knn_correction: str = "low_conf_only",
+    knn_correction: str = "off",
     knn_query_obsm_key: Optional[str] = None,
     knn_space: Optional[str] = None,
     confidence_high: float = 0.7,
@@ -58,7 +58,7 @@ def predict(
         Query dataset. Genes are aligned to the model's training genes before
         inference.
     knn_correction
-        KNN usage mode. `"off"` disables KNN entirely, `"low_conf_only"`
+        KNN usage mode. `"off"` disables KNN entirely (default), `"low_conf_only"`
         applies KNN only to low-confidence predictions, and `"all"` applies KNN
         to every cell.
     confidence_high

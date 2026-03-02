@@ -105,7 +105,7 @@ Important optional controls:
 - `show_summary`
 
 Defaults that should remain stable unless a versioned change is announced:
-- `knn_correction="low_conf_only"`
+- `knn_correction="off"` (default)
 - `confidence_high=0.7`
 - `confidence_low=0.4`
 - `margin_threshold=0.2`

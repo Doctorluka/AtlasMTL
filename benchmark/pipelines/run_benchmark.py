@@ -287,7 +287,7 @@ def _normalize_knn_correction(value: Any) -> str:
     if isinstance(value, bool):
         return "all" if value else "off"
     if value is None:
-        return "low_conf_only"
+        return "off"
     return str(value)
 
 
@@ -363,7 +363,7 @@ def _run_atlasmtl(
     result = predict(
         model,
         query_model_input,
-        knn_correction=_normalize_knn_correction(pred_cfg.get("knn_correction", "low_conf_only")),
+        knn_correction=_normalize_knn_correction(pred_cfg.get("knn_correction")),
         knn_query_obsm_key=pred_cfg.get("knn_query_obsm_key"),
         knn_space=pred_cfg.get("knn_space"),
         confidence_high=float(pred_cfg.get("confidence_high", 0.7)),

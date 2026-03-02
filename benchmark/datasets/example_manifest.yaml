@@ -16,5 +16,5 @@ train:
   batch_size: 64
   hidden_sizes: [8]
 predict:
-  knn_correction: low_conf_only
+  knn_correction: off
   batch_size: 128
