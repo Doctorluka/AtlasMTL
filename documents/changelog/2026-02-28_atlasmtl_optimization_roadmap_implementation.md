@@ -73,21 +73,21 @@
 - `scanvi`
 - `singler`
 - `symphony`
-- `azimuth`
+- `azimuth`（historical name; now superseded by `seurat_anchor_transfer`）
 
 其中：
 
 - Python comparator 环境：`/home/data/fhz/.local/share/mamba/envs/atlasmtl-env`
 - 推荐 `NUMBA_CACHE_DIR=/tmp/numba_cache`
-- 原生 `Azimuth` / `Seurat v5` R library：`/home/data/fhz/seurat_v5`
+- `Seurat v5` R library：`/home/data/fhz/seurat_v5`
 - repo-local comparator R library：`/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
 
 实现状态说明：
 
 - `celltypist`、`scanvi` 直接使用 Python 环境
 - `singler`、`symphony` 使用 R bridge
-- `azimuth` 优先走 native `Azimuth` backend
-- 对极小 toy smoke dataset，`azimuth` 允许带标签的 fallback backend，以避免原生 Azimuth 在极小数据上的数值不稳定影响集成测试；正式 benchmark 主表应优先使用 native backend
+- 历史上 `azimuth` comparator 曾优先尝试 native Azimuth backend
+- 当前正式 comparator 已重构为 `seurat_anchor_transfer`；此处原生 Azimuth 说明仅保留历史上下文
 
 当前 comparator benchmark 的公平比较边界也已明确：
 

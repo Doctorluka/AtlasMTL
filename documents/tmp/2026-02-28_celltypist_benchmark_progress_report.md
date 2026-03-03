@@ -2,9 +2,13 @@
 
 Date: `2026-02-28`
 
+> Historical note: this temporary report predates the formal `azimuth -> seurat_anchor_transfer`
+> refactor on `2026-03-03`. References below to native Azimuth describe the earlier implementation state,
+> not the current formal comparator contract.
+
 ## Scope
 
-This temporary report summarizes the current benchmark closure work for published comparators, with focus on the first six runnable comparator integrations: `CellTypist`, `scANVI`, `SingleR`, `Symphony`, and native `Azimuth`.
+This temporary report summarizes the current benchmark closure work for published comparators, with focus on the first six runnable comparator integrations: `CellTypist`, `scANVI`, `SingleR`, `Symphony`, and the then-current native `Azimuth` path.
 
 ## What Was Added
 
@@ -278,8 +282,8 @@ Known package-level compatibility note:
 | `scanvi` | implemented | learned probabilistic comparator |
 | `singler` | implemented | classical published comparator |
 | `symphony` | implemented | reference-mapping comparator |
-| `azimuth` | implemented | native Azimuth comparator with tiny-dataset fallback |
+| `azimuth` | historical | later superseded by `seurat_anchor_transfer` |
 
 ## Recommended Next Step
 
-The next benchmark step should be comparator-matrix execution and formal multi-dataset benchmark runs, because `CellTypist`, `scANVI`, `SingleR`, `Symphony`, and native `Azimuth` are now runnable inside the benchmark runner.
+The next benchmark step at that time was comparator-matrix execution and formal multi-dataset benchmark runs. The current comparator contract should instead refer to `seurat_anchor_transfer`.

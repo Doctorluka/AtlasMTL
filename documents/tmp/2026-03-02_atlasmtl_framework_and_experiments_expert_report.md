@@ -138,12 +138,16 @@ Preferred artifact layout (external reference storage):
 Artifacts are intended to be auditable and benchmark-friendly (checksums, sizes, configs).
 See: `documents/design/model_artifacts.md`.
 
+> Historical note: this report was written before the comparator refactor on `2026-03-03`.
+> Mentions of `azimuth` and `seurat_anchor_transfer_fallback` should now be interpreted as the predecessor
+> of the formal `seurat_anchor_transfer` comparator.
+
 ## 5. Benchmark framework: comparator closure and protocol choices
 
 Comparator integration work (as of 2026-02-28) established a unified benchmark runner and
 method wrappers for:
 
-- `celltypist`, `scanvi`, `singler`, `symphony`, `azimuth` (+ fallback labeling)
+- `celltypist`, `scanvi`, `singler`, `symphony`, `azimuth` (+ fallback labeling at that time)
 - plus local baselines: `atlasmtl`, `reference_knn`
 
 Comparator scope decision: external methods are treated as single-level or per-level baselines
@@ -183,7 +187,7 @@ Headline metrics (accuracy / macro-F1 / balanced accuracy):
 | --- | ---: | ---: | ---: | --- |
 | celltypist | 0.7900 | 0.7093 | 0.7104 | strongest on this sampled bundle |
 | atlasmtl | 0.7467 | 0.6381 | 0.6068 | strongest learned-in-runner non-external baseline |
-| azimuth | 0.7343 | 0.5888 | 0.5854 | backend = `seurat_anchor_transfer_fallback` |
+| azimuth | 0.7343 | 0.5888 | 0.5854 | historical predecessor of current `seurat_anchor_transfer` |
 | singler | 0.6850 | 0.5990 | 0.6360 | competitive classical baseline |
 | symphony | 0.6160 | 0.4838 | 0.4875 | completed |
 | scanvi | 0.5773 | 0.3161 | 0.3409 | completed |
@@ -316,7 +320,7 @@ Source:
 - predicted coordinate head + KNN: catastrophic in tested setting (`knn_all`) and high harm even for `lowconf`
 - sampled datasets without `obsm`: not sufficient for coordinate regression evaluation in the original benchmark run
 - comparator resource reporting: many wrappers still have incomplete peak RSS fields (`null`), limiting paper-grade resource tables
-- Azimuth: sampled benchmark completed via fallback (`seurat_anchor_transfer_fallback`); strict native Azimuth still pending for formal claims
+- historical Azimuth predecessor completed via fallback (`seurat_anchor_transfer_fallback`); current formal comparator is `seurat_anchor_transfer`
 
 ## 8. Main optimization direction: improve the MTL classifier itself (next cycle)
 
@@ -380,8 +384,7 @@ Key points:
    - HVG recommendations
    - task weighting (lv4-strong)
    - any new loss/sampler/hierarchy-training change
-2) **Strict native Azimuth** run (avoid fallback) if needed for formal comparator claims
+2) **Comparator backend clarification** if needed for formal comparator claims (`seurat_anchor_transfer` backend should be reported explicitly)
 3) **Comparator resource accounting completeness** (peak/avg RSS, CPU usage) to produce paper-grade resource tables
 4) **Coordinate regression evaluation** on datasets that actually contain suitable `obsm` targets (for non-KNN claims)
 5) **KNN evaluation across datasets** if KNN is to be discussed beyond an ablation (currently evidence is insufficient)
-

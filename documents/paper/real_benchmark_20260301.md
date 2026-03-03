@@ -85,7 +85,7 @@ Interpretation:
 Seurat comparator backend note:
 
 - this run used:
-  a Seurat anchor-transfer fallback path that has since been formalized under
+  a Seurat anchor-transfer predecessor path that has since been formalized under
   the `seurat_anchor_transfer` method name
 - therefore the result should be labeled explicitly in any manuscript table
 

@@ -12,21 +12,21 @@
 - `scanvi`
 - `singler`
 - `symphony`
-- `azimuth`
+- `azimuth`（historical name; now superseded by `seurat_anchor_transfer`）
 
 与前一版记录相比，这里的关键变化不是 atlasmtl 主模型接口，而是 comparator benchmark 已从“预留扩展位”变为“已有一批可运行 published baselines”。
 
-## 2) 原生 Azimuth 路径补充
+## 2) 历史原生 Azimuth 路径说明（已 superseded）
 
-`azimuth` comparator 当前实现为：
+本记录形成时，`azimuth` comparator 的实现为：
 
-- 正式路径：native `Azimuth` + `Seurat v5`
+- 当时的正式路径：native `Azimuth` + `Seurat v5`
 - 元数据中记录 `implementation_backend`
 - 极小 toy smoke dataset 下允许使用显式标记的 fallback backend
 
 这样做的原因是：
 
-- 原生 `Azimuth` 在正式 benchmark 场景下应作为主实现
+- 该判断已被后续重构替代；当前正式 comparator 为 `seurat_anchor_transfer`
 - 但极小 synthetic 测试常出现数值不稳定、neighbor graph 或 anchor 搜索异常
 - 为了保证集成测试稳定性，允许 fallback，但不应把 fallback 结果与正式 native benchmark 混为一谈
 
@@ -36,7 +36,7 @@
 
 - Python env：`/home/data/fhz/.local/share/mamba/envs/atlasmtl-env`
 - 推荐 `NUMBA_CACHE_DIR=/tmp/numba_cache`
-- native `Azimuth` / `Seurat v5` R library：`/home/data/fhz/seurat_v5`
+- `Seurat v5` R library：`/home/data/fhz/seurat_v5`
 - repo-local comparator R library：`/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
 
 这些路径现已写入：
