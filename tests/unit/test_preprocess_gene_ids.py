@@ -42,6 +42,8 @@ def test_canonicalize_symbols_sums_duplicates_and_drops_unmapped(tmp_path):
     assert np.allclose(np.asarray(out.X), np.array([[3.0, 3.0]], dtype=np.float32))
     assert report.n_duplicate_genes == 1
     assert report.n_unmapped_genes == 1
+    assert report.gene_id_case == "D_symbol_mapping_table"
+    assert report.n_duplicate_groups == 1
 
 
 def test_canonicalize_ensembl_strips_versions(tmp_path):
@@ -58,3 +60,58 @@ def test_canonicalize_ensembl_strips_versions(tmp_path):
     assert list(out.var_names) == ["ENSG1", "ENSG2"]
     assert report.ensembl_versions_stripped == 2
     assert list(out.var["gene_symbol"]) == ["GATA1", "CD3D"]
+    assert report.gene_id_case == "B_ensembl_versioned"
+
+
+def test_canonicalize_symbols_with_existing_ensembl_column(tmp_path):
+    adata = AnnData(X=np.array([[1.0, 2.0]], dtype=np.float32), obs=pd.DataFrame(index=["c1"]))
+    adata.var_names = ["GATA1", "CD3D"]
+    adata.var["ENSEMBL"] = ["ENSG1.7", "ENSG2.2"]
+    cfg = PreprocessConfig(
+        var_names_type="symbol",
+        species="human",
+        gene_id_table=str(_mapping_table(tmp_path)),
+    )
+
+    out, report = canonicalize_gene_ids(adata, cfg)
+
+    assert list(out.var_names) == ["ENSG1", "ENSG2"]
+    assert report.gene_id_case == "C_symbol_with_ensembl_column"
+    assert report.canonical_source_column == "ENSEMBL"
+
+
+def test_canonicalize_infer_detects_mixed_with_existing_ensembl_column(tmp_path):
+    adata = AnnData(X=np.array([[1.0, 2.0]], dtype=np.float32), obs=pd.DataFrame(index=["c1"]))
+    adata.var_names = ["GATA1", "ENSG2"]
+    adata.var["gene_ids"] = ["ENSG1", "ENSG2"]
+    cfg = PreprocessConfig(
+        var_names_type="infer",
+        species="human",
+        gene_id_table=str(_mapping_table(tmp_path)),
+    )
+
+    out, report = canonicalize_gene_ids(adata, cfg)
+
+    assert list(out.var_names) == ["ENSG1", "ENSG2"]
+    assert report.gene_id_case == "mixed_existing_column"
+    assert report.canonical_source_column == "gene_ids"
+
+
+def test_canonicalize_symbols_with_existing_ensembl_column_ignores_missing_placeholders(tmp_path):
+    adata = AnnData(X=np.array([[1.0, 2.0, 3.0]], dtype=np.float32), obs=pd.DataFrame(index=["c1"]))
+    adata.var_names = ["GATA1", "CD3D", "MS4A1"]
+    adata.var["ENSEMBL"] = ["ENSG1.7", "nan", "ENSG3.5"]
+    cfg = PreprocessConfig(
+        var_names_type="symbol",
+        species="human",
+        gene_id_table=str(_mapping_table(tmp_path)),
+        ensembl_source_column="ENSEMBL",
+        unmapped_policy="drop",
+    )
+
+    out, report = canonicalize_gene_ids(adata, cfg)
+
+    assert list(out.var_names) == ["ENSG1", "ENSG3"]
+    assert report.gene_id_case == "C_symbol_with_ensembl_column"
+    assert report.canonical_source_column == "ENSEMBL"
+    assert report.n_unmapped_genes == 1

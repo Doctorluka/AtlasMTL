@@ -1,0 +1,14 @@
+dataset_name: PHMap_Lung_Full_v43_light
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: group_split_v1_train5k_test1k
+split_description: first-wave prepared smoke benchmark run
+reference_subset: train_5k_prepared
+query_subset: heldout_test_1k_prepared
+reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-03/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v1_train5k_test1k/reference_train.h5ad
+query_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-03/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v1_train5k_test1k/heldout_test.h5ad
+label_columns:
+  - anno_lv4
+domain_key: sample
+counts_layer: counts

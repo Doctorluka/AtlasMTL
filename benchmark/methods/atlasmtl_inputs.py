@@ -11,7 +11,10 @@ PHMAP_TASK_WEIGHTS = [0.3, 0.8, 1.5, 2.0]
 
 def resolve_atlasmtl_layer_config(manifest: Dict[str, Any]) -> Dict[str, Optional[str]]:
     method_cfg = dict((manifest.get("method_configs") or {}).get("atlasmtl") or {})
-    reference_layer, query_layer = resolve_reference_query_layers(manifest, method_cfg)
+    if not any(key in method_cfg for key in ("reference_layer", "query_layer", "counts_layer")) and "counts_layer" not in manifest:
+        reference_layer, query_layer = None, None
+    else:
+        reference_layer, query_layer = resolve_reference_query_layers(manifest, method_cfg)
     return {
         "reference_layer": reference_layer,
         "query_layer": query_layer,

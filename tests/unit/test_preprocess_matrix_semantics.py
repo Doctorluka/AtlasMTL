@@ -7,7 +7,12 @@ from anndata import AnnData
 from scipy import sparse
 
 from atlasmtl import PreprocessConfig, preprocess_reference
-from atlasmtl.preprocess.matrix_semantics import detect_input_matrix_type, is_count_like_matrix
+from atlasmtl.preprocess.matrix_semantics import (
+    classify_count_semantics,
+    detect_input_matrix_type,
+    is_count_like_matrix,
+    summarize_matrix_semantics,
+)
 
 
 def _config(**kwargs) -> PreprocessConfig:
@@ -26,6 +31,18 @@ def test_is_count_like_matrix_accepts_sparse_counts():
 def test_detect_input_matrix_type_marks_non_integer_as_lognorm():
     adata = AnnData(X=np.array([[0.1, 1.5], [2.2, 0.0]], dtype=np.float32), obs=pd.DataFrame(index=["a", "b"]))
     assert detect_input_matrix_type(adata) == "lognorm"
+
+
+def test_summarize_matrix_semantics_reports_integer_like_fraction():
+    summary = summarize_matrix_semantics(np.array([[1.0, 0.0], [2.0, 3.0]], dtype=np.float32))
+    assert summary.integer_like_fraction == 1.0
+    assert summary.min_nonzero == 1.0
+    assert summary.max_nonzero == 3.0
+
+
+def test_classify_count_semantics_supports_suspected_state():
+    summary = summarize_matrix_semantics(np.array([[1.0, 0.5], [2.0, 0.0]], dtype=np.float32))
+    assert classify_count_semantics(summary) == "counts_suspected"
 
 
 def test_preprocess_reference_requires_counts_layer_when_x_is_not_counts():
@@ -55,3 +72,6 @@ def test_preprocess_reference_copies_count_x_to_counts_layer():
     np.testing.assert_array_equal(np.asarray(ref_pp.layers["counts"]), np.asarray(ref_pp.X))
     assert report.counts_layer_used == "counts"
     assert report.counts_check_passed is True
+    assert report.counts_decision == "counts_confirmed"
+    assert report.counts_layer_materialized is True
+    assert report.counts_source_original == "X"

@@ -6,16 +6,24 @@ from typing import Dict, List, Literal, Optional
 
 @dataclass
 class PreprocessConfig:
-    var_names_type: Literal["symbol", "ensembl"]
+    var_names_type: Literal["symbol", "ensembl", "ensembl_versioned", "mixed", "infer"]
     species: Literal["human", "mouse", "rat"]
     gene_id_table: Optional[str] = None
+    canonical_target: Literal["ensembl"] = "ensembl"
+    ensembl_source_column: Optional[str] = None
+    symbol_source_column: Optional[str] = None
+    prefer_existing_ensembl_column: bool = True
+    mapping_table_kind: str = "biomart_human_mouse_rat"
     strip_ensembl_version: bool = True
+    report_unmapped_top_n: int = 20
     input_matrix_type: Literal["infer", "counts", "lognorm"] = "infer"
     counts_layer: str = "counts"
     counts_required: bool = True
     counts_check_n_obs: int = 100
     counts_check_n_vals: int = 20000
     counts_check_integer_tol: float = 1e-6
+    counts_check_tiny_positive_tol: float = 1e-8
+    counts_confirm_fraction: float = 0.999
     feature_space: Literal["hvg", "whole"] = "hvg"
     n_top_genes: int = 3000
     hvg_method: Literal["seurat_v3"] = "seurat_v3"
@@ -88,10 +96,20 @@ class PreprocessReport:
     counts_available: bool = False
     counts_layer_used: Optional[str] = None
     counts_check_passed: bool = False
+    counts_decision: Optional[str] = None
+    counts_detection_summary: Optional[Dict[str, object]] = None
+    counts_source_original: Optional[str] = None
+    counts_layer_materialized: bool = False
     hvg_layer_used: Optional[str] = None
     matched_feature_genes: Optional[int] = None
     missing_feature_genes: Optional[int] = None
     ensembl_versions_stripped: int = 0
+    gene_id_case: Optional[str] = None
+    canonical_source_column: Optional[str] = None
+    n_genes_dropped_by_unmapped_policy: int = 0
+    n_duplicate_groups: int = 0
+    duplicate_resolution_applied: Optional[str] = None
+    preprocess_warnings: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, object]:
         return asdict(self)

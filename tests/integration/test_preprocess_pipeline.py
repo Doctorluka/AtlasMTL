@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from anndata import AnnData
 
-from atlasmtl import PreprocessConfig, build_model, predict, preprocess_query, preprocess_reference
+from atlasmtl import PreprocessConfig, build_model, ensure_counts_layer, predict, preprocess_query, preprocess_reference
 from atlasmtl.models import default_feature_panel_path, default_manifest_path, load_manifest
 
 
@@ -53,6 +53,7 @@ def test_preprocess_reference_and_query_roundtrip(tmp_path):
     assert "atlasmtl_preprocess" in ref_pp.uns
     assert "counts" in ref_pp.layers
     assert ref_pp.uns["atlasmtl_preprocess"]["report"]["counts_layer_used"] == "counts"
+    assert ref_pp.uns["atlasmtl_preprocess"]["report"]["counts_decision"] == "counts_confirmed"
     assert ref_pp.uns["atlasmtl_preprocess"]["feature_panel"]["counts_layer"] == "counts"
     assert ref_pp.uns["atlasmtl_preprocess"]["feature_panel"]["hvg_layer_used"] is None
 
@@ -78,6 +79,7 @@ def test_preprocess_reference_and_query_roundtrip(tmp_path):
     query_pp, query_report = preprocess_query(query, feature_panel, cfg)
     assert query_report.missing_feature_genes == 2
     assert "counts" in query_pp.layers
+    assert query_report.counts_decision == "counts_confirmed"
 
     result = predict(model, query_pp, knn_correction="off", batch_size=1, device="cpu")
     assert "preprocess" in result.metadata
@@ -123,3 +125,32 @@ def test_preprocess_reference_hvg_uses_counts_layer(tmp_path, monkeypatch):
     assert feature_panel.counts_layer == "counts"
     assert ref_report.hvg_layer_used == "counts"
     assert ref_pp.uns["atlasmtl_preprocess"]["report"]["hvg_layer_used"] == "counts"
+    assert ref_report.counts_detection_summary is not None
+
+
+def test_ensure_counts_layer_promotes_count_like_x(tmp_path):
+    ref = AnnData(
+        X=np.array(
+            [
+                [3.0, 0.0, 1.0],
+                [0.0, 2.0, 0.0],
+                [4.0, 1.0, 0.0],
+            ],
+            dtype=np.float32,
+        ),
+        obs=pd.DataFrame(index=["r1", "r2", "r3"]),
+    )
+    ref.var_names = ["GATA1", "CD3D", "LYZ"]
+    cfg = PreprocessConfig(
+        var_names_type="symbol",
+        species="human",
+        gene_id_table=str(_mapping_table(tmp_path)),
+        feature_space="whole",
+    )
+
+    with_counts, counts_meta = ensure_counts_layer(ref, cfg)
+
+    assert "counts" in with_counts.layers
+    assert counts_meta["counts_source_original"] == "X"
+    assert counts_meta["counts_layer_materialized"] is True
+    assert counts_meta["counts_decision"] == "counts_confirmed"

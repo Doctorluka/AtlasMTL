@@ -31,3 +31,11 @@ Next implementation step:
 
 - add a no-coordinate training mode for phmap-style benchmark datasets, or
 - derive and persist reference/query embeddings before atlasmtl training
+
+## Larger local datasets (recommended for paper-grade runs)
+
+The sampled test adatas are intentionally small and can under-represent rare
+cell states. For larger “atlas scale” evaluation (including `obsm/obsp`
+geometry), see the local dataset registry:
+
+- `data_registry/datasets.md`

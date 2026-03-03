@@ -1,0 +1,64 @@
+dataset_name: DATASET_ID
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: group_split_v1_train10k_test5k
+split_description: >
+  reference_heldout benchmark using group-aware splitting with accepted truth
+  labels; fill in the exact split field, target label, and subset sizes.
+reference_subset: train_10k
+query_subset: heldout_test_5k
+reference_h5ad: /absolute/path/to/reference_train_subset.h5ad
+query_h5ad: /absolute/path/to/reference_heldout_test_subset.h5ad
+label_columns:
+  - TARGET_LABEL
+domain_key: SAMPLE_OR_DOMAIN_COLUMN
+var_names_type: symbol_or_ensembl
+species: human
+input_matrix_type: counts_or_lognorm_or_infer
+counts_layer: counts
+feature_space: hvg
+hvg_config:
+  method: seurat_v3
+  n_top_genes: 3000
+preprocess:
+  enabled: true
+  config:
+    var_names_type: symbol_or_ensembl
+    species: human
+    input_matrix_type: counts_or_lognorm_or_infer
+    counts_layer: counts
+    feature_space: hvg
+    hvg_method: seurat_v3
+    n_top_genes: 3000
+method_configs:
+  celltypist:
+    target_label_column: TARGET_LABEL
+  scanvi:
+    target_label_column: TARGET_LABEL
+    batch_key: SAMPLE_OR_DOMAIN_COLUMN
+  singler:
+    target_label_column: TARGET_LABEL
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+  symphony:
+    target_label_column: TARGET_LABEL
+    batch_key: SAMPLE_OR_DOMAIN_COLUMN
+    reference_layer: counts
+    query_layer: counts
+  azimuth:
+    target_label_column: TARGET_LABEL
+    batch_key: SAMPLE_OR_DOMAIN_COLUMN
+    reference_layer: counts
+    query_layer: counts
+  reference_knn:
+    input_transform: binary
+train:
+  input_transform: binary
+  val_fraction: 0.1
+  random_state: 2026
+  reference_storage: external
+predict:
+  knn_correction: "off"
+  input_transform: binary

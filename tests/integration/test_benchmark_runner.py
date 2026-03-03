@@ -220,6 +220,7 @@ def test_benchmark_runner_supports_preprocessing_manifest_fields(tmp_path: Path)
     assert metrics["preprocess"]["config"]["input_matrix_type"] == "infer"
     assert metrics["preprocess"]["config"]["counts_layer"] == "counts"
     assert metrics["preprocess"]["reference_report"]["counts_layer_used"] == "counts"
+    assert metrics["preprocess"]["reference_report"]["counts_decision"] == "counts_confirmed"
     result = metrics["results"][0]
     assert result["preprocess"]["config"]["var_names_type"] == "symbol"
     assert result["preprocess"]["feature_panel"]["gene_ids"] == ["ENSG1", "ENSG2"]

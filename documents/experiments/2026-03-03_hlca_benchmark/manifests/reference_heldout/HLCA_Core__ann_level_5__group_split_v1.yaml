@@ -1,0 +1,74 @@
+dataset_name: HLCA_Core
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: group_split_v1_train10k_test5k
+split_description: >
+  Draft reference_heldout manifest for HLCA fine-label benchmark. Use a
+  group-aware split on obs["donor_id"], then materialize train/validation/test
+  subsets before execution. This draft targets ann_level_5 and requires split
+  review before running.
+reference_subset: train_10k_draft
+query_subset: heldout_test_5k_draft
+reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-03/reference_heldout/HLCA_Core/prepared/group_split_v1_train10k_test5k/reference_train.h5ad
+query_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-03/reference_heldout/HLCA_Core/prepared/group_split_v1_train10k_test5k/heldout_test.h5ad
+label_columns:
+  - ann_level_5
+domain_key: donor_id
+var_names_type: ensembl
+species: human
+input_matrix_type: lognorm
+counts_layer: counts
+feature_space: hvg
+hvg_config:
+  method: seurat_v3
+  n_top_genes: 3000
+preprocess:
+  enabled: true
+  config:
+    var_names_type: ensembl
+    species: human
+    input_matrix_type: lognorm
+    counts_layer: counts
+    feature_space: hvg
+    hvg_method: seurat_v3
+    n_top_genes: 3000
+method_configs:
+  celltypist:
+    target_label_column: ann_level_5
+  scanvi:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+  singler:
+    target_label_column: ann_level_5
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+  azimuth:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+  reference_knn:
+    input_transform: binary
+train:
+  hidden_sizes: [256, 128]
+  dropout_rate: 0.2
+  batch_size: 256
+  num_epochs: 8
+  learning_rate: 0.001
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 3
+  random_state: 2026
+  reference_storage: external
+predict:
+  knn_correction: "off"
+  batch_size: 256
+  input_transform: binary

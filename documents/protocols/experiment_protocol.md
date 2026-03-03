@@ -135,6 +135,85 @@ Supported optional keys:
 - `hvg_config`
   - optional HVG selection metadata such as method and target gene count
 
+## Scenario classes and manifest naming
+
+Until the runner grows a dedicated scenario-type field, formal runs should be
+classified in documentation and file naming as one of these two classes:
+
+- `reference_heldout`
+  - formal quantitative benchmark using accepted truth labels from a reference
+    dataset split into train/validation/test pools
+- `external_query_validation`
+  - deployment-style transfer into a query dataset that is not treated as
+    formal benchmark truth by default
+
+Recommended manifest file naming:
+
+- `documents/experiments/<dossier>/manifests/<scenario_class>/<dataset_id>__<target_label>__<split_name>.yaml`
+
+Examples:
+
+- `documents/experiments/2026-03-01_real_mapping_benchmark/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__group_split_v1.yaml`
+- `documents/experiments/2026-03-01_real_mapping_benchmark/manifests/external_query_validation/HLCA_Core__ann_level_5__gse302339_marker_review_v1.yaml`
+
+Recommended `split_name` patterns:
+
+- `group_split_v1`
+- `group_split_v1_train10k_test5k`
+- `marker_review_v1`
+- `labelset_shift_v1`
+
+Use `split_description` to spell out:
+
+- scenario class
+- split field
+- train/validation/test construction rule
+- target label level
+- whether the run is quantitative benchmark or visualization-first validation
+
+## Reference-specific experiment organization
+
+For the next benchmark wave, organize work **per reference dataset**, not as a
+single monolithic experiment bundle.
+
+Recommended rule:
+
+- one reference dataset = one experiment dossier
+- each dossier keeps its own:
+  - manifests
+  - scripts
+  - notes
+  - results summaries
+  - output-root convention
+
+This keeps dataset-specific differences explicit:
+
+- sample-group column names differ
+- label depth differs
+- count contracts differ
+- feasible scaling ceilings differ
+
+Fairness rule:
+
+- comparisons must still be fair **within** each scenario
+- dataset-specific tuning is allowed only when:
+  - it is required by the dataset contract or scale
+  - it is applied consistently across compared methods where relevant
+  - it is recorded in the protocol table and scenario note
+
+Examples of acceptable dataset-specific adjustments:
+
+- choosing `sample` vs `donor_id` vs `orig.ident` as the split/group field
+- reducing the maximum training-size ceiling for a smaller reference atlas
+- selecting the valid target label level for that dataset
+- declaring `adata.X` counts vs `layers["counts"]` explicitly
+
+Examples that require stronger justification:
+
+- changing the optimization budget for only one comparator
+- changing the evaluation target level mid-comparison
+- changing the truth pool or split rule for one method but not others
+
 ### Recommended optional protocol extensions
 
 These keys are not enforced yet by the current runner but should be added to
@@ -149,6 +228,65 @@ dataset manifests for stronger traceability:
 
 Those fields should be treated as advisory until the runner validates them
 directly.
+
+## Output directory and run naming convention
+
+Keep large runtime outputs under the user's private `~/tmp/` workspace.
+
+Recommended output directory pattern:
+
+- `~/tmp/atlasmtl_benchmarks/<date>/<scenario_class>/<dataset_id>/<split_name>/<method_set>/`
+
+Recommended repo-side dossier pattern:
+
+- `documents/experiments/<date>_<reference_id>_benchmark/`
+
+Within that dossier, keep:
+
+- `manifests/reference_heldout/`
+- `manifests/external_query_validation/`
+- `plan/`
+- `notes/`
+- `scripts/`
+- `results_summary/`
+
+Review each pilot manifest before execution with:
+
+- `documents/protocols/pilot_benchmark_review_checklist.md`
+
+Recommended `run_id` composition for notes, tables, and summaries:
+
+- `<date>__<dataset_id>__<scenario_class>__<target_label>__<split_name>__seed<seed>`
+
+Minimum files that should be present in each output directory:
+
+- `metrics.json`
+- `summary.csv`
+- `run_manifest.json`
+- `benchmark_report.md` when report export is enabled
+- `paper_tables/` when table export is enabled
+
+When a scenario is part of a scaling study, append size metadata to
+`split_name` instead of inventing an incompatible ad hoc directory layout.
+Example:
+
+- `group_split_v1_train10k_test5k`
+
+## Local large dataset registry (non-versioned data)
+
+Large datasets used for paper-grade evaluation are typically stored outside the
+repo (e.g. under `/home/data/...`). To reduce future “path drift” and contract
+mismatches, record:
+
+- dataset path
+- observed gene namespace (`symbol` vs `ensembl`)
+- raw-count location (`layers["counts"]` vs `raw.X`)
+- available label columns (single-level vs multi-level)
+- available `obsm/obsp` geometry assets (when KNN/coordinates are evaluated)
+
+The current local dataset inventory is tracked in:
+
+- `data_registry/datasets.md`
 
 ## Gene namespace and feature-space policy
 

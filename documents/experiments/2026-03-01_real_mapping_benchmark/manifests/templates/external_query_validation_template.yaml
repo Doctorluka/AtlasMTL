@@ -1,0 +1,64 @@
+dataset_name: DATASET_ID
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: marker_review_v1
+split_description: >
+  external_query_validation run; do not interpret outputs as formal accuracy
+  benchmark unless query truth labels have been explicitly approved.
+reference_subset: reference_train_full_or_subset
+query_subset: external_query_full_or_subset
+reference_h5ad: /absolute/path/to/reference_subset.h5ad
+query_h5ad: /absolute/path/to/query_dataset.h5ad
+label_columns:
+  - TARGET_LABEL
+domain_key: QUERY_DOMAIN_COLUMN_OR_NULL
+var_names_type: symbol_or_ensembl
+species: human
+input_matrix_type: counts_or_lognorm_or_infer
+counts_layer: counts
+feature_space: hvg
+hvg_config:
+  method: seurat_v3
+  n_top_genes: 3000
+preprocess:
+  enabled: true
+  config:
+    var_names_type: symbol_or_ensembl
+    species: human
+    input_matrix_type: counts_or_lognorm_or_infer
+    counts_layer: counts
+    feature_space: hvg
+    hvg_method: seurat_v3
+    n_top_genes: 3000
+method_configs:
+  celltypist:
+    target_label_column: TARGET_LABEL
+  scanvi:
+    target_label_column: TARGET_LABEL
+    batch_key: REFERENCE_OR_QUERY_BATCH_KEY
+  singler:
+    target_label_column: TARGET_LABEL
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+  symphony:
+    target_label_column: TARGET_LABEL
+    batch_key: REFERENCE_OR_QUERY_BATCH_KEY
+    reference_layer: counts
+    query_layer: counts
+  azimuth:
+    target_label_column: TARGET_LABEL
+    batch_key: REFERENCE_OR_QUERY_BATCH_KEY
+    reference_layer: counts
+    query_layer: counts
+  reference_knn:
+    input_transform: binary
+train:
+  input_transform: binary
+  val_fraction: 0.1
+  random_state: 2026
+  reference_storage: external
+predict:
+  knn_correction: "off"
+  input_transform: binary

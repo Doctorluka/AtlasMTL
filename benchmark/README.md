@@ -122,6 +122,10 @@ Paper-oriented exports now include:
 
 - dataset manifest schema is documented in
   `documents/protocols/experiment_protocol.md`
+- scenario inventory for the current paper-grade rollout is tracked in
+  `data_registry/benchmark_scenario_registry_2026-03-03.md`
+- manifest templates for the current rollout live in
+  `documents/experiments/2026-03-01_real_mapping_benchmark/manifests/templates/`
 - preprocessing-aware manifests should now explicitly declare
   `input_matrix_type` and `counts_layer` when they differ from the defaults
 - domain-shift split definitions are not yet standardized

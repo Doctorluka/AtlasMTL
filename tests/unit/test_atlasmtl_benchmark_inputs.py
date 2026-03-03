@@ -31,6 +31,13 @@ def test_resolve_atlasmtl_layer_config_uses_method_overrides() -> None:
     assert resolved["counts_layer"] == "counts"
 
 
+def test_resolve_atlasmtl_layer_config_defaults_to_x_when_no_layer_requested() -> None:
+    resolved = resolve_atlasmtl_layer_config({"method_configs": {}})
+    assert resolved["reference_layer"] is None
+    assert resolved["query_layer"] is None
+    assert resolved["counts_layer"] == "counts"
+
+
 def test_adata_with_matrix_from_layer_replaces_x() -> None:
     adata = AnnData(X=np.array([[0.1, 0.2]], dtype=np.float32), obs=pd.DataFrame(index=["c1"]))
     adata.var_names = ["g1", "g2"]

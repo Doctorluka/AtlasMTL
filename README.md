@@ -220,6 +220,13 @@ Writeback behavior:
 Predicted coordinates are never written by default. Set `include_coords=True`
 to write `obsm["X_pred_*"]`.
 
+## Data registry (local datasets)
+
+This repo does not commit large `.h5ad` files. Local large datasets and their
+current readiness status are tracked in:
+
+- `data_registry/datasets.md`
+
 ## Artifact layout
 
 `build_model()` defaults to `reference_storage="external"`.

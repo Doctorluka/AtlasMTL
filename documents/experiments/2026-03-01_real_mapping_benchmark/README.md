@@ -28,6 +28,8 @@ Directory layout:
   - reproducible preparation and run scripts
 - `manifests/`
   - dataset manifests and hierarchy config used by the run
+  - `templates/` holds the current rollout templates for `reference_heldout`
+    and `external_query_validation`
 - `results_summary/`
   - compact human-readable summaries and evaluation notes
 - `notes/`
