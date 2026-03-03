@@ -40,7 +40,7 @@ workspace under `~/tmp/` and are referenced from repo docs:
 ### 1.1 Single-level comparator benchmark
 
 Completed methods: `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`,
-`singler`, `symphony`, and `azimuth` (with explicit fallback labeling).
+`singler`, `symphony`, and the Seurat anchor-transfer comparator.
 
 Summary and interpretation live in:
 
@@ -230,4 +230,3 @@ Proposed priorities, ordered by expected ROI and interpretability:
    - `anno_lv4` improvements persist across different label distributions
 4. Start the next model-optimization cycle focusing on imbalance + hierarchy
    training constraints + calibration.
-

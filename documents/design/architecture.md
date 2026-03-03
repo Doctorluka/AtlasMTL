@@ -328,7 +328,7 @@ matrices:
 
 - `scanvi`
   - requires a valid counts layer
-- `singler`, `symphony`, `azimuth`
+- `singler`, `symphony`, `seurat_anchor_transfer`
   - usually start from a configured raw-count layer and perform
     method-specific normalization inside the wrapper
 - `celltypist`

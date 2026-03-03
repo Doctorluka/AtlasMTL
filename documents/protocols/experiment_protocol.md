@@ -25,7 +25,7 @@ The runner currently supports atlasmtl plus these comparator methods:
 - `scanvi`
 - `singler`
 - `symphony`
-- `azimuth`
+- `seurat_anchor_transfer`
 
 The benchmark reporting layer should be interpreted as two synchronized tables:
 
@@ -434,7 +434,7 @@ accurately and reliably in `sc -> sc` reference mapping?
 | `scanvi` | probabilistic generative model | Python env `atlasmtl-env` | one target label level | label accuracy + confidence | Evaluated as single-level comparator |
 | `singler` | classical reference annotator | R bridge + `atlasmtl-env` helper | one target label level | label accuracy + abstention | Uses `pruned.labels` as default benchmark-facing output |
 | `symphony` | reference mapping | R bridge + repo-local R libs | one target label level | label mapping quality | Mapping + KNN label transfer |
-| `azimuth` | reference mapping | native `Azimuth` / `Seurat v5` R libs | one target label level | label mapping quality | Prefer `azimuth_native`; fallback backend is testing-only unless explicitly stated |
+| `seurat_anchor_transfer` | reference mapping | `Seurat v5` R libs | one target label level | label mapping quality | Seurat anchor-transfer plus `MapQuery`; follow benchmark `HVG 3000` policy |
 
 ### Fairness rules
 
@@ -452,9 +452,8 @@ accurately and reliably in `sc -> sc` reference mapping?
 - Treat hierarchy consistency, KNN rescue/harm, open-set behavior, and
   coordinate/topology diagnostics as atlasmtl-centered secondary analyses
   unless an external comparator exposes a truly comparable signal.
-- Do not mix native `azimuth` results with fallback results in a formal main
-  table. If fallback is used, record it in metadata and treat it as a smoke or
-  engineering validation path.
+- Do not relabel a generic Seurat anchor-transfer run as `Azimuth`. Report this
+  comparator explicitly as `seurat_anchor_transfer`.
 - Do not claim full multi-level fairness for comparators that only output a
   single label level.
 
@@ -464,7 +463,7 @@ accurately and reliably in `sc -> sc` reference mapping?
   `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env`
 - Recommended `NUMBA_CACHE_DIR`:
   `/tmp/numba_cache`
-- Native `Azimuth` / `Seurat v5` R library:
+- `Seurat v5` R library:
   `/home/data/fhz/seurat_v5`
 - Repo-local comparator R library:
   `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
@@ -651,7 +650,7 @@ These are primary metrics whenever hierarchy rules are supplied.
 
 The intended first-line comparator family is:
 
-- native `Azimuth` / Seurat reference mapping
+- Seurat anchor transfer / `MapQuery` reference mapping
 - Symphony
 - scANVI
 - SingleR

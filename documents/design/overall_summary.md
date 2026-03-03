@@ -412,7 +412,7 @@ The current runnable benchmark methods are:
 - `scanvi`
 - `singler`
 - `symphony`
-- `azimuth`
+- `seurat_anchor_transfer`
 
 These comparators were chosen because they belong to the same broad
 `sc -> sc` reference mapping / annotation family.
@@ -457,7 +457,7 @@ Recommended runtime setting for `scanpy`-related commands:
 
 Current comparator stack uses two R library locations:
 
-- native `Azimuth` / `Seurat v5`:
+- `Seurat v5`:
   `/home/data/fhz/seurat_v5`
 - repo-local comparator R library:
   `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
@@ -497,7 +497,8 @@ assignment.
 - comparator matrix execution is not fully automated yet
 - topology and hierarchy metrics are not yet uniformly comparable across all
   methods
-- native `Azimuth` can require fallback on very small synthetic smoke datasets
+- `seurat_anchor_transfer` is the current Seurat-based reference-mapping
+  comparator baseline
 
 ## Practical interpretation
 

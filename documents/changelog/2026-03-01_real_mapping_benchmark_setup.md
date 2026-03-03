@@ -33,8 +33,8 @@ Follow-up comparator closure:
   compatibility fix in `benchmark/methods/celltypist.py`
 - completed a unified all-method sampled benchmark bundle at
   `~/tmp/atlasmtl_real_mapping_benchmark_20260301/single_level_benchmark/all_methods_final_v2/`
-- `azimuth` completed in fallback mode
-  (`seurat_anchor_transfer_fallback`), and the result is now recorded as such
+- the Seurat comparator predecessor completed in fallback mode, and this result
+  has since been formalized under `seurat_anchor_transfer`
 
 Runtime storage policy for this run:
 

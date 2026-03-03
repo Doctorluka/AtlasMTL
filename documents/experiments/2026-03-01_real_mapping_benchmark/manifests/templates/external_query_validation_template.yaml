@@ -47,11 +47,12 @@ method_configs:
     batch_key: REFERENCE_OR_QUERY_BATCH_KEY
     reference_layer: counts
     query_layer: counts
-  azimuth:
+  seurat_anchor_transfer:
     target_label_column: TARGET_LABEL
     batch_key: REFERENCE_OR_QUERY_BATCH_KEY
     reference_layer: counts
     query_layer: counts
+    nfeatures: 3000
   reference_knn:
     input_transform: binary
 train:

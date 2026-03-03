@@ -19,7 +19,7 @@
 
 ### 缺口 D：公平对照协议（comparators）要更“论文级”
 
-* 你们 comparator closure 已做，但审稿会追问：每个方法是否按 best practice、是否存在参数不公平、Azimuth fallback 如何表述、资源统计是否完整。
+* 你们 comparator closure 已做，但审稿会追问：每个方法是否按 best practice、是否存在参数不公平、`seurat_anchor_transfer` 的 backend/fallback 如何表述、资源统计是否完整。
 
 ---
 
@@ -159,7 +159,7 @@
 
 为了避免审稿人质疑“只对 AtlasMTL 做了曲线/校准/资源表”，建议在关键里程碑（A1、C4、D2、E1、F2）同步跑 **对照方法面板**，至少包括：
 
-* celltypist、scanvi/scANVI、singler、symphony、azimuth（若仍 fallback 必须明确）
+* celltypist、scanvi/scANVI、singler、symphony、seurat_anchor_transfer（若仍 fallback 必须明确）
   并对每个方法给出：
 * 点指标（accuracy/mF1/bAcc）
 * selective：如果方法自身不支持 abstention，则用统一方式从其置信度/score 构造（需在协议里写清；否则只报告点指标）
@@ -176,7 +176,7 @@
 3. **selective prediction**：risk–coverage + AURC，并在固定 coverage 点做比较
 4. **长尾分解**：head/mid/tail 的 F1/recall + 最差K类
 5. **CPU-first 资源表 + scaling**：cells/genes/HVG 规模变化下的 time/RSS
-6. 对照公平性声明：参数策略、阈值策略、预算、Azimuth fallback 的措辞边界
+6. 对照公平性声明：参数策略、阈值策略、预算、`seurat_anchor_transfer` backend/fallback 的措辞边界
 
 ---
 
@@ -186,5 +186,4 @@
 * **需要调整的是“证据呈现形式”**：把“可靠性”从实现变成曲线与统计；把“单数据集”变成多数据集与 shift；把“资源片段”变成系统表格与 scaling。
 
 ---
-
 

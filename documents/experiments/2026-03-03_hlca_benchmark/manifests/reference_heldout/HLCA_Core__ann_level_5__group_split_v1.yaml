@@ -50,11 +50,12 @@ method_configs:
     batch_key: donor_id
     reference_layer: counts
     query_layer: counts
-  azimuth:
+  seurat_anchor_transfer:
     target_label_column: ann_level_5
     batch_key: donor_id
     reference_layer: counts
     query_layer: counts
+    nfeatures: 3000
   reference_knn:
     input_transform: binary
 train:

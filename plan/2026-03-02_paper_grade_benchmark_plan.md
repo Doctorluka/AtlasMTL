@@ -548,7 +548,7 @@ Acceptance:
 - [ ] For each comparator method run:
   - [ ] verify input semantics are recorded in `input_contract`
   - [ ] if a comparator cannot provide abstention curves, mark as “no selective outputs”
-  - [ ] ensure Azimuth fallback is clearly labeled in metadata
+  - [ ] ensure `seurat_anchor_transfer` backend is clearly labeled in metadata
 - [ ] Fill resource reporting gaps:
   - [ ] if wrapper cannot report peak RSS/VRAM, tables must show `null` and the report must state “not reported by wrapper”
 

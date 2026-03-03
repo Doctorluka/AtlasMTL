@@ -887,7 +887,7 @@ def test_benchmark_runner_can_compare_atlasmtl_and_symphony(tmp_path: Path):
     assert set(summary["method"]) == {"atlasmtl", "symphony"}
 
 
-def test_benchmark_runner_can_compare_atlasmtl_and_azimuth(tmp_path: Path):
+def test_benchmark_runner_can_compare_atlasmtl_and_seurat_anchor_transfer(tmp_path: Path):
     rng = np.random.default_rng(2)
     n_noise = 27
     ref_a = np.hstack([rng.poisson([12, 1, 1], size=(12, 3)), rng.poisson(2, size=(12, n_noise))]).astype(np.float32)
@@ -922,7 +922,7 @@ def test_benchmark_runner_can_compare_atlasmtl_and_azimuth(tmp_path: Path):
     query.write_h5ad(query_path)
 
     manifest = {
-        "dataset_name": "tiny_azimuth",
+        "dataset_name": "tiny_seurat_anchor_transfer",
         "version": 1,
         "protocol_version": 1,
         "reference_h5ad": str(ref_path),
@@ -932,7 +932,7 @@ def test_benchmark_runner_can_compare_atlasmtl_and_azimuth(tmp_path: Path):
         "train": {"num_epochs": 1, "batch_size": 2, "hidden_sizes": [8]},
         "predict": {"knn_correction": "off", "batch_size": 1},
         "method_configs": {
-            "azimuth": {
+            "seurat_anchor_transfer": {
                 "target_label_column": "anno_lv1",
                 "batch_key": "batch",
                 "reference_layer": "counts",
@@ -940,12 +940,6 @@ def test_benchmark_runner_can_compare_atlasmtl_and_azimuth(tmp_path: Path):
                 "nfeatures": 20,
                 "npcs": 5,
                 "dims": [1, 2, 3, 4, 5],
-                "k_anchor": 5,
-                "k_score": 4,
-                "k_weight": 3,
-                "reference_k_param": 10,
-                "mapping_score_k": 10,
-                "n_trees": 5,
                 "save_raw_outputs": True,
             }
         },
@@ -965,24 +959,26 @@ def test_benchmark_runner_can_compare_atlasmtl_and_azimuth(tmp_path: Path):
             "cpu",
             "--methods",
             "atlasmtl",
-            "azimuth",
+            "seurat_anchor_transfer",
         ]
     )
 
     metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
     methods = {item["method"] for item in metrics["results"]}
-    assert methods == {"atlasmtl", "azimuth"}
+    assert methods == {"atlasmtl", "seurat_anchor_transfer"}
 
-    azimuth_result = next(item for item in metrics["results"] if item["method"] == "azimuth")
-    assert azimuth_result["label_columns"] == ["anno_lv1"]
-    assert azimuth_result["model_source"] == "external_comparator"
-    assert azimuth_result["prediction_metadata"]["comparator_name"] == "azimuth"
-    assert azimuth_result["prediction_metadata"]["implementation_backend"] in {
-        "azimuth_native",
-        "seurat_anchor_transfer_fallback",
+    seurat_result = next(
+        item for item in metrics["results"] if item["method"] == "seurat_anchor_transfer"
+    )
+    assert seurat_result["label_columns"] == ["anno_lv1"]
+    assert seurat_result["model_source"] == "external_comparator"
+    assert seurat_result["prediction_metadata"]["comparator_name"] == "seurat_anchor_transfer"
+    assert seurat_result["prediction_metadata"]["implementation_backend"] in {
+        "seurat_anchor_transfer",
+        "seurat_anchor_transfer_transferdata",
     }
-    assert "b1" in azimuth_result["metrics_by_domain"]
-    assert azimuth_result["artifact_checksums"]
+    assert "b1" in seurat_result["metrics_by_domain"]
+    assert seurat_result["artifact_checksums"]
 
     summary = pd.read_csv(out_dir / "summary.csv")
-    assert set(summary["method"]) == {"atlasmtl", "azimuth"}
+    assert set(summary["method"]) == {"atlasmtl", "seurat_anchor_transfer"}

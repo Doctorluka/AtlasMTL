@@ -14,9 +14,9 @@ current comparator set and produce standardized benchmark outputs.
 - prepared split: `5k` reference / `1k` heldout
 - device: `cpu`
 - methods:
-  `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, `azimuth`
+  `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, `seurat_anchor_transfer`
 - output root:
-  `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-03/reference_heldout/PHMap_Lung_Full_v43_light/smoke_all_methods`
+  `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-03/reference_heldout/PHMap_Lung_Full_v43_light/smoke_all_methods_seurat_refactor`
 
 ## Implementation detail added during run
 
@@ -39,8 +39,9 @@ current comparator set and produce standardized benchmark outputs.
 ## Notable observations
 
 - all configured methods now finish successfully
-- `azimuth` completed through `seurat_anchor_transfer_fallback`, not the native
-  Azimuth backend
+- the Seurat comparator now runs under the formal
+  `seurat_anchor_transfer` name and completed on this split through the
+  `seurat_anchor_transfer_transferdata` backend
 - `atlasmtl` shows strong abstention on this split, so covered accuracy is more
   informative than raw accuracy in this smoke round
 

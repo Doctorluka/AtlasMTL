@@ -342,14 +342,14 @@ Implemented methods:
 - `scanvi`
 - `singler`
 - `symphony`
-- `azimuth`
+- `seurat_anchor_transfer`
 
 Comparator environment notes:
 
 - Python benchmark env:
   `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env`
 - Set `NUMBA_CACHE_DIR=/tmp/numba_cache` before running benchmark tests
-- Native `Azimuth` / `Seurat v5` R library:
+- `Seurat v5` R library:
   `/home/data/fhz/seurat_v5`
 - Repo-local R library used for comparator additions such as `symphony`:
   `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
@@ -358,11 +358,11 @@ Comparator implementation notes:
 
 - `celltypist`, `scanvi` run from the Python benchmark env
 - `singler` and `symphony` run through R bridge scripts
-- `azimuth` prefers the native `Azimuth` path and records
-  `implementation_backend` in metadata
-- tiny smoke datasets may fall back to Seurat anchor transfer for `azimuth`
-  when native Azimuth is numerically unstable; formal benchmarks should use
-  native datasets large enough to avoid fallback
+- `seurat_anchor_transfer` is the formal Seurat-based reference-mapping
+  comparator
+- its implementation follows a Seurat anchor-transfer / `MapQuery` workflow and
+  keeps the benchmark-wide `HVG 3000` policy instead of inheriting an external
+  `HVG 2000` default
 
 Current benchmark limitations:
 

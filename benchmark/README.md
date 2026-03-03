@@ -8,7 +8,7 @@ benchmark runner.
 The benchmark layer is intentionally conservative but no longer atlasmtl-only.
 
 - implemented methods: `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`,
-  `singler`, `symphony`, `azimuth`
+  `singler`, `symphony`, `seurat_anchor_transfer`
 - the runner focuses on reproducible reporting and stable method wrappers
 - the runner supports a single config block per method per run
 - multi-run comparator matrices across many datasets and variants are not fully
@@ -99,7 +99,7 @@ Paper-oriented exports now include:
   `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env`
 - `NUMBA_CACHE_DIR` recommendation:
   `/tmp/numba_cache`
-- native `Azimuth` / `Seurat v5` R library:
+- `Seurat v5` R library:
   `/home/data/fhz/seurat_v5`
 - repo-local comparator R library:
   `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
@@ -108,15 +108,15 @@ Paper-oriented exports now include:
 
 - `celltypist` and `scanvi` use the Python env directly
 - `singler` and `symphony` use R bridge scripts
-- `azimuth` prefers a native `Azimuth` backend and records the actual backend
-  in result metadata
+- `seurat_anchor_transfer` uses a Seurat anchor-transfer / `MapQuery` workflow
+  and records the active backend in result metadata
 - comparator wrappers now inherit the benchmark-manifest `counts_layer` unless
   a method-specific `counts_layer` or `reference_layer` / `query_layer`
   override is provided
 - every benchmark result now records an `input_contract` block so downstream
   paper tables can distinguish method performance from method input semantics
-- tiny synthetic smoke tests may use `seurat_anchor_transfer_fallback` for
-  `azimuth`; formal result tables should prefer `azimuth_native`
+- the comparator aligns to the benchmark-wide `HVG 3000` policy instead of an
+  external `HVG 2000` default
 
 ## Known limitations
 

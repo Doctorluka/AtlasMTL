@@ -3,7 +3,7 @@
 Runtime environment:
 
 - Python: `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env/bin/python`
-- native `Azimuth` / `Seurat v5` R library:
+- `Seurat v5` R library:
   `/home/data/fhz/seurat_v5`
 - repo-local comparator R library:
   `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`

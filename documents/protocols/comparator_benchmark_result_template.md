@@ -36,7 +36,7 @@ For paper-oriented CSV / Markdown exports, use:
 | `scanvi` |  |  |  |
 | `singler` |  |  |  |
 | `symphony` |  |  |  |
-| `azimuth` |  |  |  |
+| `seurat_anchor_transfer` |  |  |  |
 
 ## Main comparison table
 
@@ -50,7 +50,7 @@ Fill this table for the shared `target_label_column` only.
 | `scanvi` |  |  |  |  |  |  |  |  |  |
 | `singler` |  |  |  |  |  |  |  |  |  |
 | `symphony` |  |  |  |  |  |  |  |  |  |
-| `azimuth` |  |  |  |  |  |  |  |  |  |
+| `seurat_anchor_transfer` |  |  |  |  |  |  |  |  |  |
 
 ## Domain-wise table
 
@@ -64,7 +64,7 @@ Use only when `domain_key` is defined.
 | `scanvi` |  |  |  |  |  |  |  |
 | `singler` |  |  |  |  |  |  |  |
 | `symphony` |  |  |  |  |  |  |  |
-| `azimuth` |  |  |  |  |  |  |  |
+| `seurat_anchor_transfer` |  |  |  |  |  |  |  |
 
 ## atlasmtl-specific analysis
 
@@ -93,7 +93,8 @@ Use only when coordinate heads and query coordinate targets are available.
 - Same reference/query split used for all methods
 - Same `target_label_column` used for all external comparators
 - Same held-out truth labels used for scoring
-- `azimuth` fallback not mixed into the formal main table unless explicitly labeled
+- `seurat_anchor_transfer` should be reported under its own name and backend
+  rather than being relabeled as `Azimuth`
 - Single-level comparators not described as full multi-level methods
 - atlasmtl-specific hierarchy/KNN/open-set metrics kept in method-specific analysis
 
@@ -107,7 +108,7 @@ Use only when coordinate heads and query coordinate targets are available.
 
 ### R
 
-- Native `Azimuth` / `Seurat v5` library:
+- `Seurat v5` library:
   `/home/data/fhz/seurat_v5`
 - Repo-local comparator R library:
   `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`

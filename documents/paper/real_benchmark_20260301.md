@@ -67,7 +67,7 @@ Headline results on `anno_lv4`:
 | --- | ---: | ---: | ---: |
 | celltypist | 0.7900 | 0.7093 | 0.7104 |
 | atlasmtl | 0.7467 | 0.6381 | 0.6068 |
-| azimuth | 0.7343 | 0.5888 | 0.5854 |
+| seurat_anchor_transfer | 0.7343 | 0.5888 | 0.5854 |
 | singler | 0.6850 | 0.5990 | 0.6360 |
 | symphony | 0.6160 | 0.4838 | 0.4875 |
 | scanvi | 0.5773 | 0.3161 | 0.3409 |
@@ -80,12 +80,13 @@ Interpretation:
 - `atlasmtl` is competitive and clearly ahead of `scanvi` and
   `reference_knn`.
 - `singler` remains a strong single-level baseline.
-- `azimuth` completed in fallback mode, not strict native mode.
+- `seurat_anchor_transfer` completed through the Seurat anchor-transfer path.
 
-Azimuth backend note:
+Seurat comparator backend note:
 
 - this run used:
-  `seurat_anchor_transfer_fallback`
+  a Seurat anchor-transfer fallback path that has since been formalized under
+  the `seurat_anchor_transfer` method name
 - therefore the result should be labeled explicitly in any manuscript table
 
 ## 3. Multi-level AtlasMTL results
@@ -186,7 +187,7 @@ Comparator runtime fields were also recorded, but with weaker resource detail:
 - `symphony`
   - map/predict:
     `33.6403 s`
-- `azimuth`
+- `seurat_anchor_transfer`
   - transfer/predict:
     `208.4910 s`
 
@@ -231,5 +232,5 @@ What this run does not yet support:
 
 - formal KNN correction analysis
 - coordinate-regression analysis
-- strict native-only Azimuth reporting
+- strict backend-explicit Seurat comparator reporting
 - fully standardized cross-method peak-memory comparison

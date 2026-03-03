@@ -38,7 +38,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--methods",
         nargs="+",
-        default=["atlasmtl", "reference_knn", "celltypist", "scanvi", "singler", "symphony", "azimuth"],
+        default=[
+            "atlasmtl",
+            "reference_knn",
+            "celltypist",
+            "scanvi",
+            "singler",
+            "symphony",
+            "seurat_anchor_transfer",
+        ],
     )
     return parser.parse_args()
 
@@ -136,12 +144,12 @@ def _build_manifest(
                 "d": 20,
                 "K": 20,
             },
-            "azimuth": {
+            "seurat_anchor_transfer": {
                 "target_label_column": args.label_column,
                 "batch_key": args.domain_key,
                 "reference_layer": "counts",
                 "query_layer": "counts",
-                "nfeatures": 2000,
+                "nfeatures": 3000,
                 "npcs": 30,
             },
             "reference_knn": {

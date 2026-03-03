@@ -23,7 +23,7 @@ Completed methods and current headline metrics:
 | scanvi | 0.5773 | 0.3161 | 0.3409 | completed through benchmark runner |
 | singler | 0.6850 | 0.5990 | 0.6360 | completed through benchmark runner |
 | symphony | 0.6160 | 0.4838 | 0.4875 | completed through benchmark runner |
-| azimuth | 0.7343 | 0.5888 | 0.5854 | completed through benchmark runner; backend = `seurat_anchor_transfer_fallback` |
+| seurat_anchor_transfer | 0.7343 | 0.5888 | 0.5854 | completed through benchmark runner on the predecessor Seurat anchor-transfer path |
 
 Current interpretation:
 
@@ -34,9 +34,8 @@ Current interpretation:
 - `scanvi` improves over the local `reference_knn` baseline but remains behind
   `atlasmtl`, `singler`, and `celltypist`.
 - `singler` remains a competitive single-level baseline.
-- `azimuth` completed, but this run used
-  `seurat_anchor_transfer_fallback`, so it should not be presented as a strict
-  native-Azimuth result.
+- this comparator result corresponds to the Seurat anchor-transfer path and
+  should now be reported under `seurat_anchor_transfer`.
 
 Important scope note:
 

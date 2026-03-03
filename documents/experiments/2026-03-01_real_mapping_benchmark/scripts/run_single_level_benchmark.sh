@@ -10,11 +10,11 @@ mkdir -p "${NUMBA_CACHE_DIR}" "${RUNTIME_ROOT}/single_level_benchmark" "${RUNTIM
 export NUMBA_CACHE_DIR
 export PYTHONPATH="${REPO_ROOT}"
 export ATLASMTL_PYTHON="${PYTHON_BIN}"
-export ATLASMTL_AZIMUTH_LIB="/home/data/fhz/seurat_v5"
+export ATLASMTL_SEURAT_LIB="/home/data/fhz/seurat_v5"
 export R_LIBS_USER="/home/data/fhz/project/phmap_package/atlasmtl/.r_libs"
 
 "${PYTHON_BIN}" "${REPO_ROOT}/benchmark/pipelines/run_benchmark.py" \
   --dataset-manifest "${REPO_ROOT}/documents/experiments/2026-03-01_real_mapping_benchmark/manifests/single_level_benchmark.yaml" \
   --output-dir "${RUNTIME_ROOT}/single_level_benchmark" \
-  --methods atlasmtl reference_knn celltypist scanvi singler symphony azimuth \
+  --methods atlasmtl reference_knn celltypist scanvi singler symphony seurat_anchor_transfer \
   --device cpu

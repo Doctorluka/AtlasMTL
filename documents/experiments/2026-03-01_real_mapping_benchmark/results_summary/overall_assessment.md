@@ -12,7 +12,7 @@ What is already closed in this run:
   - `scanvi`
   - `singler`
   - `symphony`
-  - `azimuth`
+  - `seurat_anchor_transfer`
 - a multi-level AtlasMTL run on `anno_lv1` to `anno_lv4` completed with
   hierarchy enforcement
 
@@ -44,5 +44,5 @@ Recommended next action after this run:
 3. benchmark AtlasMTL CPU and GPU modes as separate formal variants
 4. if KNN correction needs formal evaluation, prepare reference/query latent or
    coordinate targets
-5. if a strict native Azimuth result is required, rerun with a setup that
-   avoids fallback and record the backend explicitly
+5. keep the Seurat comparator recorded under the explicit
+   `seurat_anchor_transfer` name and backend

@@ -41,12 +41,12 @@ method_configs:
     d: 20
     topn: 2000
     knn_k: 5
-  azimuth:
+  seurat_anchor_transfer:
     target_label_column: anno_lv4
     batch_key: sample
     reference_layer: counts
     query_layer: counts
-    nfeatures: 2000
+    nfeatures: 3000
     npcs: 30
   reference_knn:
     input_transform: binary

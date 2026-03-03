@@ -132,7 +132,7 @@ sensibly. They should not be treated as the main research claim.
 
 The first benchmark comparator set should stay within the same task family:
 
-- Seurat / Azimuth-style anchor transfer
+- Seurat anchor transfer
 - Symphony
 - scANVI
 - SingleR
