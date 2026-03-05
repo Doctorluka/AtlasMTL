@@ -29,6 +29,8 @@ Current rule for the paper-grade benchmark rollout:
   - second-wave scale-out dossier for `cd8`
 - `2026-03-04_projectsvr_vento_benchmark`
   - second-wave scale-out dossier for `Vento`
+- `2026-03-05_formal_third_wave_hlca_benchmark`
+  - formal third-wave pilot dossier for `HLCA_Core` (`train10k/test5k`, CPU/GPU split groups)
 
 ## Pilot rollout
 

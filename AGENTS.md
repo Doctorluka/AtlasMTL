@@ -16,8 +16,10 @@ This repository root is `/home/data/fhz/project/phmap_package/atlasmtl`. The Pyt
 Use Python 3.8+ as defined in `pyproject.toml`.
 
 Environment note:
-- Target dev env: `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env` (Python 3.11.14, phmap 0.1.1, scanpy 1.11.5 as of 2026-02-28).
+- Target dev env: `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env` (Python 3.11.14, phmap 0.1.1, scanpy 1.11.5, scikit-learn 1.7.2 as of 2026-03-05).
+- Historical reference env used by earlier PH-Map scripts: `/home/data/fhz/.local/share/mamba/envs/phmap-env`.
 - If `scanpy` import fails with a numba cache locator/write error, set `NUMBA_CACHE_DIR` to a writable path (e.g. `/tmp/numba_cache`) before running Python.
+- In restricted/sandboxed execution, `joblib` may report `Permission denied` and fall back to serial mode; treat resulting runtime/throughput numbers as non-final for fairness analysis.
 - Comparator benchmark R libraries:
   - native `Azimuth` / `Seurat v5`: `/home/data/fhz/seurat_v5`
   - repo-local comparator R packages such as `symphony`: `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
@@ -57,10 +59,21 @@ Treat `atlasmtl` primarily as a reliable `sc -> sc reference mapping` and multi-
   CPU-mode and GPU-mode atlasmtl runs distinguishable in manifests and tables.
 
 ## Benchmark Comparator Constraints
-- Current runnable benchmark methods are `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, and `azimuth`.
+- Current runnable benchmark methods are `atlasmtl`, `reference_knn`, `celltypist`, `scanvi`, `singler`, `symphony`, and `seurat_anchor_transfer`.
 - Treat most external comparators as single-level baselines unless they natively support a richer contract; do not overstate them as full multi-level hierarchical methods.
 - For formal benchmark interpretation, compare all methods on a shared target label level first, then report atlasmtl-specific hierarchy/KNN/open-set behavior as secondary method-specific analysis.
-- `azimuth` should prefer the native backend when dataset size and numerics permit. Any Seurat anchor-transfer fallback must be clearly labeled as fallback in metadata and documentation, and should not be presented as the primary formal benchmark result.
+- `azimuth` is currently treated as a config alias into `seurat_anchor_transfer`; any fallback path must be explicitly labeled in metadata and reports.
+
+## Fairness Protocol
+Third-wave runtime fairness rules are documented in:
+
+- `documents/protocols/third_wave_fairness_protocol.md`
+
+When updating benchmark scripts or reports, preserve explicit fields for:
+
+- fairness policy (`cpu_only_strict` vs mixed backend)
+- thread policy (OMP/MKL/OPENBLAS/NUMEXPR)
+- degraded-runtime flags (e.g., joblib serial fallback)
 
 ## Testing Guidelines
 Write unit tests for model utilities, serialization, and confidence/KNN logic in `tests/unit/`, integration tests for end-to-end AnnData IO and CLI behavior in `tests/integration/`, and metric/regression checks in `tests/regression/`. Include at least one smoke test for `build_model()` and `predict()` whenever API signatures, artifact layout, or `uns["atlasmtl"]` metadata change.
