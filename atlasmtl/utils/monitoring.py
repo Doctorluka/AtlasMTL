@@ -4,9 +4,11 @@ import os
 import resource
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable, Optional, TypeVar
 
 import torch
@@ -95,6 +97,23 @@ def _process_tree(process_id: int) -> list["psutil.Process"]:
     return processes
 
 
+def _parse_time_v_maxrss_gb(path: str) -> float | None:
+    try:
+        content = Path(path).read_text(encoding="utf-8")
+    except Exception:
+        return None
+    for line in content.splitlines():
+        line = line.strip()
+        if line.startswith("Maximum resident set size (kbytes):"):
+            value = line.split(":", 1)[1].strip()
+            try:
+                kb = float(value)
+            except Exception:
+                return None
+            return round((kb * 1024.0) / (1024 ** 3), 4)
+    return None
+
+
 @dataclass
 class SampledResourceTracker:
     device: torch.device | str
@@ -119,7 +138,7 @@ class SampledResourceTracker:
 
     def start(self) -> None:
         self.start_time = time.perf_counter()
-        if self.device.type == "cuda":
+        if self.device.type == "cuda" and torch.cuda.is_available():
             torch.cuda.reset_peak_memory_stats(self.device)
         self._prime_cpu_percent()
         self._sample_once()
@@ -144,7 +163,7 @@ class SampledResourceTracker:
         if process_peak_rss_gb is None and self.process_id == os.getpid():
             process_peak_rss_gb = _max_rss_gb()
         gpu_peak_gb = _bytes_to_gb(self._gpu_peak_bytes)
-        if gpu_peak_gb is None and self.device.type == "cuda":
+        if gpu_peak_gb is None and self.device.type == "cuda" and torch.cuda.is_available():
             gpu_peak_gb = round(torch.cuda.max_memory_allocated(self.device) / (1024 ** 3), 4)
         cpu_percent_avg = (
             round(self._cpu_percent_sum / self._cpu_percent_samples, 4)
@@ -199,7 +218,7 @@ class SampledResourceTracker:
             self._rss_samples += 1
             self._rss_peak_bytes = max(self._rss_peak_bytes, rss_bytes)
 
-        if self.device.type == "cuda":
+        if self.device.type == "cuda" and torch.cuda.is_available():
             gpu_bytes = int(torch.cuda.memory_allocated(self.device))
             self._gpu_memory_sum_bytes += gpu_bytes
             self._gpu_memory_samples += 1
@@ -218,8 +237,15 @@ def run_subprocess_monitored(
     text: bool = True,
     capture_output: bool = True,
 ) -> tuple[subprocess.CompletedProcess[str], dict[str, object]]:
+    time_file: str | None = None
+    wrapped_command = list(command)
+    if psutil is None and text and capture_output and os.path.exists("/usr/bin/time"):
+        fd, time_file = tempfile.mkstemp(prefix="atlasmtl_time_", suffix=".txt")
+        os.close(fd)
+        wrapped_command = ["/usr/bin/time", "-v", "-o", time_file, "--", *command]
+
     process = subprocess.Popen(
-        command,
+        wrapped_command,
         cwd=cwd,
         env=env,
         text=text,
@@ -236,6 +262,19 @@ def run_subprocess_monitored(
         device_used=device,
         num_threads_used=num_threads_used,
     )
+    if time_file:
+        parsed_rss_gb = _parse_time_v_maxrss_gb(time_file)
+        if parsed_rss_gb is not None:
+            current_peak = usage.get("process_peak_rss_gb")
+            current_avg = usage.get("process_avg_rss_gb")
+            if current_peak in (None, 0.0):
+                usage["process_peak_rss_gb"] = parsed_rss_gb
+            if current_avg in (None, 0.0):
+                usage["process_avg_rss_gb"] = parsed_rss_gb
+        try:
+            os.remove(time_file)
+        except Exception:
+            pass
     completed = subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
     return completed, usage
 

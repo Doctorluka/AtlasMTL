@@ -12,5 +12,9 @@ Expected records:
 - `pip_freeze_2026-03-05.txt`
 - `r_sessioninfo_2026-03-05.txt`
 - `r_packages_2026-03-05.csv`
+- `formal_performance_table_2026-03-05.csv`
+- `formal_resource_table_2026-03-05.csv`
+- `formal_performance_table_2026-03-05.md`
+- `formal_resource_table_2026-03-05.md`
 
 Large runtime outputs should remain under `/tmp/atlasmtl_benchmarks/...`.

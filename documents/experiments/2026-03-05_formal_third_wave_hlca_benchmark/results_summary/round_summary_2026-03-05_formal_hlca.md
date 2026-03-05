@@ -22,8 +22,8 @@ This formal pilot run is considered successful at process level:
 
 | method | accuracy | macro_f1 | train_elapsed_s | predict_elapsed_s | train_peak_gpu_gb | predict_peak_gpu_gb |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| atlasmtl (cuda) | 0.8384 | 0.5274 | 2.0867 | 0.0446 | 0.0351 | 0.0229 |
-| scanvi (cuda) | 0.8734 | 0.7016 | 54.0555 | 13.8746 | 0.1108 | 0.1023 |
+| atlasmtl (cuda) | 0.8536 | 0.5658 | 1.4069 | 0.0288 | 0.0351 | 0.0229 |
+| scanvi (cuda) | 0.8672 | 0.6422 | 36.5337 | 7.0884 | 0.1072 | 0.1010 |
 
 ### Interpretation
 
@@ -37,17 +37,30 @@ This formal pilot run is considered successful at process level:
 - add explicit `fairness_policy/thread_policy/runtime_fairness_degraded/effective_threads_observed` into machine-readable run payloads (not only report text).
 
 2. R comparator resource visibility
-- extend subprocess monitoring for `singler/symphony/seurat_anchor_transfer` to improve RSS/core-equivalent capture (currently partial/zeroed in this run).
+- status update: peak RSS now captured for `singler/symphony/seurat_anchor_transfer`
+  via subprocess `/usr/bin/time` fallback.
+- remaining gap: effective CPU core-equivalent still limited for R comparators in
+  this environment.
 
 3. GPU reliability gate
 - add a preflight CUDA check in the GPU launcher:
   - fail fast with clear message if `torch.cuda.is_available()` is false.
 
 4. `scanvi` runtime tuning (without changing benchmark scope)
-- evaluate smaller epoch settings for formal runtime tables (for example controlled `scvi_max_epochs/scanvi_max_epochs/query_max_epochs` ablation) and lock one setting for all datasets in wave 3.
+- completed mini ablation on `HLCA train10k/test5k`:
+  - `20/20/20`: accuracy `0.8516`, macro_f1 `0.6881`, train+predict `63.28s`
+  - `15/15/10`: accuracy `0.8708`, macro_f1 `0.6728`, train+predict `43.97s`
+  - `10/10/5`: accuracy `0.8676`, macro_f1 `0.6198`, train+predict `28.13s`
+- locked wave-3 default for scale-out runtime runs:
+  - `scvi_max_epochs=15`, `scanvi_max_epochs=15`, `query_max_epochs=10`
+  - `datasplitter_num_workers=0` (deterministic and lightweight process behavior)
 
 5. CPU thread policy consistency
 - keep fixed thread env vars and add per-method recorded `num_threads_used` where available, especially for Python comparators.
+  
+6. Wrapper efficiency for mixed method sets
+- status update: wrapper now prepares/trains CellTypist only when `celltypist` is
+  included in `--methods`; GPU group no longer pays this overhead.
 
 ## Next action for wave-3 expansion
 

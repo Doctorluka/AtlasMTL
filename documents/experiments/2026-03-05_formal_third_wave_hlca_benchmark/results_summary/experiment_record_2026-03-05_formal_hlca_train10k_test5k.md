@@ -23,6 +23,8 @@
   - `bash documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/scripts/run_formal_hlca_cpu_group.sh`
 - GPU group:
   - `bash documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/scripts/run_formal_hlca_gpu_group.sh`
+- table export:
+  - `python documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/scripts/export_formal_tables.py`
 
 ## Observations
 

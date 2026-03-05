@@ -13,6 +13,7 @@ export OPENBLAS_NUM_THREADS=8
 export NUMEXPR_NUM_THREADS=8
 export NUMBA_CACHE_DIR="${REPO_ROOT}/.tmp/numba_cache"
 export PYTHONPATH="${REPO_ROOT}"
+export ATLASMTL_FAIRNESS_POLICY="cpu_only_strict"
 
 mkdir -p "${REPO_ROOT}/.tmp/numba_cache"
 mkdir -p "${OUT_DIR}"

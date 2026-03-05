@@ -72,6 +72,7 @@ def _main_table(results: List[Dict[str, Any]], target_label_column: str | None) 
             "variant_name": _effective_variant_name(result),
             "level": level,
             "backend": metadata.get("implementation_backend") or metadata.get("comparator_name") or result.get("method"),
+            "method_backend_path": (result.get("fairness_metadata") or {}).get("method_backend_path"),
             "knn_space_used": metadata.get("knn_space_used"),
             "knn_space_preferred": metadata.get("knn_space_preferred"),
         }
@@ -204,6 +205,9 @@ def _runtime_resource_table(results: List[Dict[str, Any]]) -> pd.DataFrame:
                 "method": result.get("method"),
                 "variant_name": _effective_variant_name(result),
                 "backend": (result.get("input_contract") or {}).get("backend"),
+                "fairness_policy": (result.get("fairness_metadata") or {}).get("fairness_policy"),
+                "runtime_fairness_degraded": (result.get("fairness_metadata") or {}).get("runtime_fairness_degraded"),
+                "method_backend_path": (result.get("fairness_metadata") or {}).get("method_backend_path"),
                 "device_used": predict_usage.get("device_used") or train_usage.get("device_used"),
                 "num_threads_used": predict_usage.get("num_threads_used") or train_usage.get("num_threads_used"),
                 "train_elapsed_seconds": train_usage.get("elapsed_seconds"),

@@ -19,6 +19,8 @@
 - CPU main-table policy: `cpu_only_strict`
 - fixed thread env: `OMP=8`, `MKL=8`, `OPENBLAS=8`, `NUMEXPR=8`
 - `scanvi` excluded from CPU group by round policy
+- machine-readable fairness fields are written into per-method `metrics.json`
+  (`fairness_metadata`) and wrapper `scaleout_status.json`
 
 ## Runtime output paths
 
@@ -46,24 +48,30 @@
 
 | method | accuracy | macro_f1 | train_elapsed_s | predict_elapsed_s |
 | --- | ---: | ---: | ---: | ---: |
-| atlasmtl | 0.8492 | 0.5432 | 2.3156 | 0.0544 |
-| reference_knn | 0.7766 | 0.4942 | 0.1331 | 1.2175 |
-| celltypist (formal native) | 0.8626 | 0.7384 | 0.0018 | 0.2548 |
-| singler | 0.8026 | 0.6863 | 92.7538 | 92.7538 |
-| symphony | 0.6976 | 0.4192 | 18.8356 | 18.8356 |
-| seurat_anchor_transfer | 0.8112 | 0.4563 | 84.8176 | 84.8176 |
+| atlasmtl | 0.8376 | 0.5643 | 2.1903 | 0.0540 |
+| reference_knn | 0.7766 | 0.4942 | 0.1328 | 1.2315 |
+| celltypist (formal native) | 0.8618 | 0.7386 | 0.0018 | 0.2488 |
+| singler | 0.8026 | 0.6863 | 92.8093 | 92.8093 |
+| symphony | 0.6976 | 0.4192 | 18.8621 | 18.8621 |
+| seurat_anchor_transfer | 0.8112 | 0.4563 | 85.4420 | 85.4420 |
 
 ## GPU metrics snapshot (`ann_level_5`)
 
 | method | accuracy | macro_f1 | train_elapsed_s | predict_elapsed_s |
 | --- | ---: | ---: | ---: | ---: |
-| atlasmtl (cuda) | 0.8384 | 0.5274 | 2.0867 | 0.0446 |
-| scanvi (cuda) | 0.8734 | 0.7016 | 54.0555 | 13.8746 |
+| atlasmtl (cuda) | 0.8536 | 0.5658 | 1.4069 | 0.0288 |
+| scanvi (cuda) | 0.8672 | 0.6422 | 36.5337 | 7.0884 |
+
+`scanvi` formal runtime defaults used in this wave:
+
+- `scvi_max_epochs=15`
+- `scanvi_max_epochs=15`
+- `query_max_epochs=10`
+- `datasplitter_num_workers=0`
 
 ## Resource-monitoring note
 
-- Python-native methods reported RSS/throughput fields as expected.
-- R comparator runs (`singler`, `symphony`, `seurat_anchor_transfer`) still
-  show incomplete RSS/core-equivalent fields under current monitoring path.
-- `joblib` serial fallback warning still appears in stderr in this environment;
-  keep this run marked as fairness-degraded for strict runtime interpretation.
+- Python-native methods report RSS/throughput and fairness metadata as expected.
+- R comparator runs now include peak RSS via subprocess `/usr/bin/time` fallback.
+- `joblib` serial fallback warning appears in CPU-group stderr, so CPU runtime is
+  marked `runtime_fairness_degraded=true` in machine-readable metadata.

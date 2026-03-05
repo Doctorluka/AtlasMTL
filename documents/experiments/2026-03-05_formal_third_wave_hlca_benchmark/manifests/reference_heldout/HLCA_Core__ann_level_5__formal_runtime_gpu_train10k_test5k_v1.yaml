@@ -17,6 +17,10 @@ method_configs:
   scanvi:
     target_label_column: ann_level_5
     batch_key: donor_id
+    scvi_max_epochs: 15
+    scanvi_max_epochs: 15
+    query_max_epochs: 10
+    datasplitter_num_workers: 0
   reference_knn:
     input_transform: binary
 train:

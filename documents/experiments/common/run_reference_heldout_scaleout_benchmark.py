@@ -7,7 +7,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import anndata as ad
 import numpy as np
@@ -21,6 +21,7 @@ RUNNER = REPO_ROOT / "benchmark" / "pipelines" / "run_benchmark.py"
 CELLTYPIST_TRAINER = (
     REPO_ROOT / "documents" / "experiments" / "2026-03-01_real_mapping_benchmark" / "scripts" / "train_celltypist_model.py"
 )
+JOBLIB_SERIAL_FALLBACK_MARKER = "joblib will operate in serial mode"
 
 
 def parse_args() -> argparse.Namespace:
@@ -57,6 +58,86 @@ def _write_manifest(path: Path, payload: Dict[str, Any]) -> None:
 
 def _run_command(cmd: List[str], *, env: Dict[str, str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=cwd, env=env, text=True, capture_output=True)
+
+
+def _thread_policy_from_env(env: Dict[str, str]) -> Dict[str, Optional[str]]:
+    return {
+        "OMP_NUM_THREADS": env.get("OMP_NUM_THREADS"),
+        "MKL_NUM_THREADS": env.get("MKL_NUM_THREADS"),
+        "OPENBLAS_NUM_THREADS": env.get("OPENBLAS_NUM_THREADS"),
+        "NUMEXPR_NUM_THREADS": env.get("NUMEXPR_NUM_THREADS"),
+    }
+
+
+def _backend_path_for_method(method: str, *, metrics_payload: Dict[str, Any], celltypist_train: Optional[Dict[str, Any]]) -> str:
+    if method == "celltypist":
+        trainer = (celltypist_train or {}).get("trainer_summary") or {}
+        return str(trainer.get("trainer_backend_path") or trainer.get("trainer_backend") or "unknown")
+    if method == "seurat_anchor_transfer":
+        results = list(metrics_payload.get("results") or [])
+        if results:
+            impl = str(((results[0].get("prediction_metadata") or {}).get("implementation_backend") or ""))
+            if impl == "seurat_anchor_transfer_transferdata":
+                return "TransferData-only"
+            if impl == "seurat_anchor_transfer":
+                return "MapQuery"
+        return "unknown"
+    if method == "scanvi":
+        return "scanvi_native"
+    if method == "atlasmtl":
+        return "atlasmtl_native"
+    if method == "singler":
+        return "singler_native"
+    if method == "symphony":
+        return "symphony_native"
+    if method == "reference_knn":
+        return "reference_knn_native"
+    return "unknown"
+
+
+def _annotate_metrics_with_fairness(
+    method_dir: Path,
+    *,
+    method: str,
+    fairness_policy: str,
+    thread_policy: Dict[str, Optional[str]],
+    runtime_fairness_degraded: bool,
+    degrade_reasons: List[str],
+    device_requested: str,
+    celltypist_train: Optional[Dict[str, Any]],
+) -> Dict[str, Any]:
+    metrics_json = method_dir / "metrics.json"
+    if not metrics_json.exists():
+        return {}
+    payload = json.loads(metrics_json.read_text(encoding="utf-8"))
+    results = list(payload.get("results") or [])
+    if not results:
+        return {}
+    result = dict(results[0])
+    train_usage = dict(result.get("train_usage") or {})
+    predict_usage = dict(result.get("predict_usage") or {})
+    device_used = str(predict_usage.get("device_used") or train_usage.get("device_used") or device_requested)
+    method_backend_path = _backend_path_for_method(method, metrics_payload=payload, celltypist_train=celltypist_train)
+    effective_threads_observed = (
+        train_usage.get("num_threads_used")
+        or predict_usage.get("num_threads_used")
+        or train_usage.get("cpu_core_equiv_avg")
+        or predict_usage.get("cpu_core_equiv_avg")
+    )
+    fairness_metadata = {
+        "fairness_policy": fairness_policy,
+        "thread_policy": thread_policy,
+        "runtime_fairness_degraded": bool(runtime_fairness_degraded),
+        "runtime_fairness_degraded_reasons": list(degrade_reasons),
+        "effective_threads_observed": effective_threads_observed,
+        "device_requested": device_requested,
+        "device_used": device_used,
+        "method_backend_path": method_backend_path,
+    }
+    result["fairness_metadata"] = fairness_metadata
+    payload["results"] = [result]
+    metrics_json.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    return fairness_metadata
 
 
 def _log1p_norm_from_counts_layer(input_h5ad: Path, output_h5ad: Path, *, counts_layer: str = "counts") -> None:
@@ -145,9 +226,12 @@ def _collect_method_summary(method_dir: Path) -> Dict[str, Any]:
     summary = pd.read_csv(summary_csv)
     payload = json.loads(metrics_json.read_text(encoding="utf-8"))
     first_row = summary.iloc[0].to_dict() if not summary.empty else {}
+    results = list(payload.get("results") or [])
+    fairness_metadata = (results[0].get("fairness_metadata") if results else None)
     return {
         "summary_row": first_row,
         "result_count": len(payload.get("results", [])),
+        "fairness_metadata": fairness_metadata,
     }
 
 
@@ -186,47 +270,58 @@ def main() -> None:
     env = os.environ.copy()
     env["PYTHONPATH"] = str(REPO_ROOT)
     env.setdefault("NUMBA_CACHE_DIR", str((REPO_ROOT / ".tmp" / "numba_cache").resolve()))
-
-    celltypist_inputs_dir = output_dir / "comparator_inputs" / "celltypist"
-    celltypist_ref_h5ad = celltypist_inputs_dir / "reference_log1p_norm.h5ad"
-    celltypist_query_h5ad = celltypist_inputs_dir / "query_log1p_norm.h5ad"
-    _log1p_norm_from_counts_layer(reference_h5ad, celltypist_ref_h5ad, counts_layer=counts_layer)
-    _log1p_norm_from_counts_layer(query_h5ad, celltypist_query_h5ad, counts_layer=counts_layer)
-
-    celltypist_model = output_dir / "comparator_models" / f"celltypist_{label_column}.pkl"
-    celltypist_model.parent.mkdir(parents=True, exist_ok=True)
-    celltypist_training_summary = output_dir / "comparator_models" / f"celltypist_{label_column}_training_summary.json"
-    celltypist_train = _train_celltypist_model(
-        reference_h5ad=celltypist_ref_h5ad,
-        label_column=label_column,
-        model_path=celltypist_model,
-        method_cfg=celltypist_cfg,
-        summary_json=celltypist_training_summary,
-        env=env,
-    )
-    if celltypist_train["returncode"] != 0:
-        raise RuntimeError(
-            "CellTypist model training failed before scale-out benchmark run:\n"
-            f"STDOUT:\n{celltypist_train['stdout']}\n"
-            f"STDERR:\n{celltypist_train['stderr']}"
-        )
+    fairness_policy = str(env.get("ATLASMTL_FAIRNESS_POLICY") or ("cpu_only_strict" if args.device == "cpu" else "mixed_backend_labeled"))
+    thread_policy = _thread_policy_from_env(env)
 
     base_manifest_path = output_dir / "runtime_manifest.yaml"
     _write_manifest(base_manifest_path, manifest)
-    celltypist_manifest = _build_celltypist_manifest(
-        manifest,
-        reference_h5ad=celltypist_ref_h5ad,
-        query_h5ad=celltypist_query_h5ad,
-        model_path=celltypist_model,
-    )
-    celltypist_manifest_path = output_dir / "runtime_manifest_celltypist.yaml"
-    _write_manifest(celltypist_manifest_path, celltypist_manifest)
+
+    requested_methods = list(args.methods)
+    run_celltypist = "celltypist" in requested_methods
+
+    celltypist_model: Optional[Path] = None
+    celltypist_training_summary: Optional[Path] = None
+    celltypist_train: Optional[Dict[str, Any]] = None
+    celltypist_manifest_path: Optional[Path] = None
+    if run_celltypist:
+        celltypist_inputs_dir = output_dir / "comparator_inputs" / "celltypist"
+        celltypist_ref_h5ad = celltypist_inputs_dir / "reference_log1p_norm.h5ad"
+        celltypist_query_h5ad = celltypist_inputs_dir / "query_log1p_norm.h5ad"
+        _log1p_norm_from_counts_layer(reference_h5ad, celltypist_ref_h5ad, counts_layer=counts_layer)
+        _log1p_norm_from_counts_layer(query_h5ad, celltypist_query_h5ad, counts_layer=counts_layer)
+
+        celltypist_model = output_dir / "comparator_models" / f"celltypist_{label_column}.pkl"
+        celltypist_model.parent.mkdir(parents=True, exist_ok=True)
+        celltypist_training_summary = output_dir / "comparator_models" / f"celltypist_{label_column}_training_summary.json"
+        celltypist_train = _train_celltypist_model(
+            reference_h5ad=celltypist_ref_h5ad,
+            label_column=label_column,
+            model_path=celltypist_model,
+            method_cfg=celltypist_cfg,
+            summary_json=celltypist_training_summary,
+            env=env,
+        )
+        if celltypist_train["returncode"] != 0:
+            raise RuntimeError(
+                "CellTypist model training failed before scale-out benchmark run:\n"
+                f"STDOUT:\n{celltypist_train['stdout']}\n"
+                f"STDERR:\n{celltypist_train['stderr']}"
+            )
+
+        celltypist_manifest = _build_celltypist_manifest(
+            manifest,
+            reference_h5ad=celltypist_ref_h5ad,
+            query_h5ad=celltypist_query_h5ad,
+            model_path=celltypist_model,
+        )
+        celltypist_manifest_path = output_dir / "runtime_manifest_celltypist.yaml"
+        _write_manifest(celltypist_manifest_path, celltypist_manifest)
 
     statuses = []
-    for method in args.methods:
+    for method in requested_methods:
         method_dir = output_dir / "runs" / method
         method_dir.mkdir(parents=True, exist_ok=True)
-        active_manifest = celltypist_manifest_path if method == "celltypist" else base_manifest_path
+        active_manifest = celltypist_manifest_path if (method == "celltypist" and celltypist_manifest_path is not None) else base_manifest_path
         cmd = [
             sys.executable,
             str(RUNNER),
@@ -240,15 +335,40 @@ def main() -> None:
             args.device,
         ]
         completed = _run_command(cmd, env=env, cwd=REPO_ROOT)
+        degraded_reasons: List[str] = []
+        if JOBLIB_SERIAL_FALLBACK_MARKER in str(completed.stderr):
+            degraded_reasons.append("joblib_serial_fallback")
+        if method == "celltypist" and celltypist_train and JOBLIB_SERIAL_FALLBACK_MARKER in str(celltypist_train.get("stderr", "")):
+            degraded_reasons.append("joblib_serial_fallback_celltypist_train")
         status: Dict[str, Any] = {
             "method": method,
             "returncode": int(completed.returncode),
             "command": cmd,
             "stdout_path": str(method_dir / "stdout.log"),
             "stderr_path": str(method_dir / "stderr.log"),
+            "fairness_policy": fairness_policy,
+            "thread_policy": thread_policy,
+            "runtime_fairness_degraded": bool(degraded_reasons),
+            "runtime_fairness_degraded_reasons": degraded_reasons,
+            "device_requested": args.device,
         }
         (method_dir / "stdout.log").write_text(completed.stdout, encoding="utf-8")
         (method_dir / "stderr.log").write_text(completed.stderr, encoding="utf-8")
+        fairness_metadata = _annotate_metrics_with_fairness(
+            method_dir,
+            method=method,
+            fairness_policy=fairness_policy,
+            thread_policy=thread_policy,
+            runtime_fairness_degraded=bool(degraded_reasons),
+            degrade_reasons=degraded_reasons,
+            device_requested=args.device,
+            celltypist_train=celltypist_train if method == "celltypist" else None,
+        )
+        if fairness_metadata:
+            status["fairness_metadata"] = fairness_metadata
+            status["method_backend_path"] = fairness_metadata.get("method_backend_path")
+            status["device_used"] = fairness_metadata.get("device_used")
+            status["effective_threads_observed"] = fairness_metadata.get("effective_threads_observed")
         if completed.returncode == 0:
             status["status"] = "success"
             status.update(_collect_method_summary(method_dir))
@@ -262,11 +382,14 @@ def main() -> None:
         "label_column": label_column,
         "reference_h5ad": str(reference_h5ad),
         "query_h5ad": str(query_h5ad),
+        "fairness_policy": fairness_policy,
+        "thread_policy": thread_policy,
         "runtime_manifest": str(base_manifest_path),
-        "runtime_manifest_celltypist": str(celltypist_manifest_path),
-        "celltypist_model": str(celltypist_model),
-        "celltypist_training_summary": str(celltypist_training_summary),
-        "celltypist_training": celltypist_train.get("trainer_summary"),
+        "runtime_manifest_celltypist": None if celltypist_manifest_path is None else str(celltypist_manifest_path),
+        "celltypist_model": None if celltypist_model is None else str(celltypist_model),
+        "celltypist_training_summary": None if celltypist_training_summary is None else str(celltypist_training_summary),
+        "celltypist_training": (celltypist_train or {}).get("trainer_summary"),
+        "runtime_fairness_degraded": any(bool(item.get("runtime_fairness_degraded")) for item in statuses),
         "methods": statuses,
     }
     (output_dir / "scaleout_status.json").write_text(

@@ -96,6 +96,8 @@ def run_scanvi(
     scvi_epochs = int(method_cfg.get("scvi_max_epochs", 20))
     scanvi_epochs = int(method_cfg.get("scanvi_max_epochs", 20))
     query_epochs = int(method_cfg.get("query_max_epochs", 20))
+    datasplitter_num_workers = int(method_cfg.get("datasplitter_num_workers", 0))
+    datasplitter_kwargs = {"num_workers": max(datasplitter_num_workers, 0)}
     n_samples_per_label = method_cfg.get("n_samples_per_label")
     save_model = bool(method_cfg.get("save_model", False))
 
@@ -118,6 +120,7 @@ def run_scanvi(
         batch_size=batch_size,
         early_stopping=False,
         enable_progress_bar=False,
+        datasplitter_kwargs=datasplitter_kwargs,
     )
     scanvi_model = scvi.model.SCANVI.from_scvi_model(
         scvi_model,
@@ -134,6 +137,7 @@ def run_scanvi(
         validation_size=validation_size,
         batch_size=batch_size,
         enable_progress_bar=False,
+        datasplitter_kwargs=datasplitter_kwargs,
     )
     train_usage = train_monitor.finish(phase="train", num_items=ref_adata.n_obs, device_used=device)
 
@@ -186,6 +190,7 @@ def run_scanvi(
             batch_size=min(batch_size, max(query_adata.n_obs, 1)),
             enable_progress_bar=False,
             plan_kwargs={"weight_decay": 0.0},
+            datasplitter_kwargs=datasplitter_kwargs,
         )
     pred_labels = np.asarray(query_model.predict(), dtype=object)
     soft_pred = query_model.predict(soft=True)
@@ -274,14 +279,20 @@ def run_scanvi(
             "batch_key": batch_key,
             "counts_layer": counts_layer,
             "query_max_epochs": query_epochs,
+            "datasplitter_num_workers": datasplitter_num_workers,
         },
         "prediction_metadata": {
             "method_family": "published_comparator",
             "comparator_name": "scanvi",
+            "method_backend_path": "scanvi_native",
             "counts_layer_used": counts_layer,
             "matrix_source": f"layers/{counts_layer}",
             "label_column": label_column,
             "batch_key": batch_key,
+            "scvi_max_epochs": scvi_epochs,
+            "scanvi_max_epochs": scanvi_epochs,
+            "query_max_epochs": query_epochs,
+            "datasplitter_num_workers": datasplitter_num_workers,
             "n_latent": n_latent,
             "latent_shape": list(latent.shape),
             "probability_classes": list(prob_df.columns.astype(str)),

@@ -99,6 +99,13 @@ Each run summary/record must include:
 - `device_used`
 - `method_backend_path` (native/fallback label)
 
+For benchmark runs through
+`documents/experiments/common/run_reference_heldout_scaleout_benchmark.py`,
+these fields should be present in machine-readable outputs:
+
+- wrapper-level `scaleout_status.json`
+- per-method `runs/<method>/metrics.json` under `results[0].fairness_metadata`
+
 ## Execution checklist
 
 1. export fixed thread env vars in launch shell

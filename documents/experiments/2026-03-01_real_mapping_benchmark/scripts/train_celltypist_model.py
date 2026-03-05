@@ -62,7 +62,7 @@ def _train_wrapped_logreg(adata: ad.AnnData, args: argparse.Namespace):
     scaler = StandardScaler(with_mean=bool(args.with_mean), with_std=True)
     scaler.fit(adata.X)
 
-    return models.Model(
+    model = models.Model(
         classifier,
         scaler,
         {
@@ -72,6 +72,7 @@ def _train_wrapped_logreg(adata: ad.AnnData, args: argparse.Namespace):
             "version": "2026-03-04",
         },
     )
+    return model, "wrapped_logreg"
 
 
 def _train_formal_celltypist(adata: ad.AnnData, args: argparse.Namespace):
@@ -97,14 +98,14 @@ def _train_formal_celltypist(adata: ad.AnnData, args: argparse.Namespace):
     )
 
     try:
-        return celltypist.train(adata, **train_kwargs)
+        return celltypist.train(adata, **train_kwargs), "formal_native"
     except TypeError as exc:
         if "multi_class" not in str(exc):
             raise
         from benchmark.methods.celltypist_compat import CompatibleCellTypistLogisticRegression
 
         celltypist_train_module.LogisticRegression = CompatibleCellTypistLogisticRegression
-        return celltypist.train(adata, **train_kwargs)
+        return celltypist.train(adata, **train_kwargs), "formal_with_compat_shim"
 
 
 def main() -> None:
@@ -119,9 +120,9 @@ def main() -> None:
 
     start = time.perf_counter()
     if args.trainer_backend == "wrapped_logreg":
-        model = _train_wrapped_logreg(adata, args)
+        model, trainer_backend_path = _train_wrapped_logreg(adata, args)
     else:
-        model = _train_formal_celltypist(adata, args)
+        model, trainer_backend_path = _train_formal_celltypist(adata, args)
     elapsed = round(time.perf_counter() - start, 4)
 
     output_path = Path(args.output_model).resolve()
@@ -130,6 +131,7 @@ def main() -> None:
 
     summary = {
         "trainer_backend": args.trainer_backend,
+        "trainer_backend_path": trainer_backend_path,
         "reference_h5ad": str(Path(args.reference_h5ad).resolve()),
         "label_column": args.label_column,
         "n_obs_used": int(adata.n_obs),
