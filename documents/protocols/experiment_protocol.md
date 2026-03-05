@@ -84,6 +84,23 @@ quality and resource cost:
   to the best observed quality, instead of hard-coding the numerically best
   accuracy run as the universal default
 
+CellTypist implementation note:
+
+- the current benchmark repo contains two distinct CellTypist training paths:
+  - a lightweight wrapped-logistic path used in recent engineering runs
+  - a formal `celltypist.train(...)` path being restored for better
+    comparability with historical PH-Map benchmarking
+- as of `2026-03-04`, the formal path has code-level support but has not yet
+  passed a complete small-scale validation run under the current local
+  `celltypist==1.7.1` and `scikit-learn==1.8.0` environment
+- until that validation is complete, benchmark reports must explicitly mark the
+  active CellTypist comparator path as `wrapped_logreg`
+- do not compare recent lightweight CellTypist build times against historical
+  ProjectSVR/PH-Map CellTypist build-time figures without labeling the
+  implementation difference explicitly
+- detailed note:
+  - `documents/protocols/celltypist_comparator_gap_note_2026-03-04.md`
+
 Current interpretation from the completed ablation round:
 
 - `hvg6000 + binary + phmap` is the strongest current default candidate
@@ -257,6 +274,28 @@ Review each pilot manifest before execution with:
 Recommended `run_id` composition for notes, tables, and summaries:
 
 - `<date>__<dataset_id>__<scenario_class>__<target_label>__<split_name>__seed<seed>`
+
+## Second-wave scale-out defaults
+
+For the current post-smoke expansion round, use these defaults unless a
+dataset-specific ceiling forces an exception:
+
+- preferred reference build target: `100k`
+- preferred heldout targets: `10k` plus nested `5k`
+- continue group-aware split construction by sample-like group
+- continue per-reference dossier organization
+- treat `Vento` as a reduced-ceiling case with `50k` build target by default
+
+This round still targets **workflow expansion and reproducibility**, not final
+paper-grade ranking.
+
+Operational rule:
+
+- if Seurat reference integration is unstable at smoke/scale-out size,
+  `seurat_anchor_transfer` may fall back to `single_reference_pca`
+- if `MapQuery`-style projection is unstable, it may fall back to
+  `TransferData`
+- the actual backend used must remain explicit in result metadata and reports
 
 Minimum files that should be present in each output directory:
 

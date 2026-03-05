@@ -1,0 +1,28 @@
+# PH-Map second-wave scale-out experiment record
+
+- date: `2026-03-04`
+- stage: `preparation`
+- dataset: `PHMap_Lung_Full_v43_light`
+- prep manifest: `documents/experiments/2026-03-03_phmap_benchmark/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__scaleout_prep_v1.yaml`
+- runtime manifest 10k: `documents/experiments/2026-03-03_phmap_benchmark/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__scaleout_runtime_10k_v1.yaml`
+- runtime manifest 5k: `documents/experiments/2026-03-03_phmap_benchmark/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__scaleout_runtime_5k_v1.yaml`
+- seed: `2026`
+- split key: `sample`
+- target label: `anno_lv4`
+- build size: `100000`
+- heldout sizes: `10000`, nested `5000`
+- main outputs:
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/split_plan.json`
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/split_summary.json`
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/preprocessing_summary.json`
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/preparation_resource_summary.json`
+- warnings:
+  - `build_pool_has_label_with_lt25_cells`
+  - `build_subset_has_label_with_lt25_cells`
+  - `predict_subset_has_label_with_lt10_cells`
+- observed issue:
+  - `numba` emitted a non-fatal `TBB` warning during execution
+- resolution:
+  - no action required for this run; execution completed successfully
+- next action:
+  - start the `PH-Map 10k` second-wave benchmark with the prepared assets

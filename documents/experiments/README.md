@@ -21,6 +21,14 @@ Current rule for the paper-grade benchmark rollout:
   - pilot dossier for `HLCA_Core`
 - `2026-03-03_projectsvr_disco_benchmark`
   - pilot dossier for `DISCO_hPBMCs`
+- `2026-03-04_projectsvr_mtca_benchmark`
+  - second-wave scale-out dossier for `mTCA`
+- `2026-03-04_projectsvr_cd4_benchmark`
+  - second-wave scale-out dossier for `cd4`
+- `2026-03-04_projectsvr_cd8_benchmark`
+  - second-wave scale-out dossier for `cd8`
+- `2026-03-04_projectsvr_vento_benchmark`
+  - second-wave scale-out dossier for `Vento`
 
 ## Pilot rollout
 
@@ -46,3 +54,40 @@ Shared pre-execution checklist:
 Shared first-wave preprocessing contract:
 
 - `documents/protocols/preprocessing_contract_first_wave.md`
+
+## Second-wave scale-out
+
+The current scale-out round expands from smoke validation to:
+
+- all reference datasets
+- larger heldout reference runs
+- explicit preparation resource summaries
+- nested `10k` / `5k` heldout outputs
+
+Latest round-close status (`2026-03-05`):
+
+- completed: `PHMap_Lung_Full_v43_light`, `DISCO_hPBMCs`, `mTCA`,
+  `HLCA_Core`, `Vento`
+- excluded in this round: `cd4`, `cd8` (raw-count contract blockers)
+
+Execution plan:
+
+- `plan/2026-03-04_second_wave_scaleout_benchmark_plan.md`
+- `documents/experiments/2026-03-04_second_wave_round_status.md`
+- `documents/experiments/2026-03-04_second_wave_execution_template.md`
+
+## Runtime caveats
+
+When running comparator benchmarks in restricted/sandboxed environments, some
+methods may silently degrade to serial execution even if `n_jobs > 1` is
+configured. The most common signal is:
+
+- `joblib will operate in serial mode` (`Errno 13: Permission denied`)
+
+Implications:
+
+- label-metric comparability is usually still valid
+- runtime/throughput/core-usage comparisons are not strictly fair
+
+For formal runtime fairness checks, rerun on an unrestricted server shell and
+record effective thread/device usage in the run report.

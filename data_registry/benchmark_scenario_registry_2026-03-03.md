@@ -89,6 +89,13 @@ Current pilot dossier roots already created:
 - `documents/experiments/2026-03-03_hlca_benchmark/`
 - `documents/experiments/2026-03-03_projectsvr_disco_benchmark/`
 
+Second-wave scale-out dossier roots:
+
+- `documents/experiments/2026-03-04_projectsvr_mtca_benchmark/`
+- `documents/experiments/2026-03-04_projectsvr_cd4_benchmark/`
+- `documents/experiments/2026-03-04_projectsvr_cd8_benchmark/`
+- `documents/experiments/2026-03-04_projectsvr_vento_benchmark/`
+
 Current first-pass heldout manifest drafts:
 
 - `documents/experiments/2026-03-03_phmap_benchmark/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__group_split_v1.yaml`

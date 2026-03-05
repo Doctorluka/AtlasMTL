@@ -21,3 +21,10 @@ Current smoke benchmark records:
 
 - `execution_report_2026-03-03_smoke_benchmark.md`
 - `experiment_record_2026-03-03_smoke_benchmark.md`
+
+Current second-wave records:
+
+- `execution_report_2026-03-04_scaleout_preparation.md`
+- `experiment_record_2026-03-04_scaleout_preparation.md`
+- `execution_report_2026-03-04_scaleout_benchmark_10k.md`
+- `experiment_record_2026-03-04_scaleout_benchmark_10k.md`

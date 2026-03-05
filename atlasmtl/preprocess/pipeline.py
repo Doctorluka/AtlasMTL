@@ -8,6 +8,7 @@ from .matrix_semantics import (
     classify_count_semantics,
     detect_input_matrix_type,
     is_count_like_matrix,
+    materialize_matrix,
     summarize_matrix_semantics,
 )
 from .metadata import attach_preprocess_metadata
@@ -62,7 +63,7 @@ def ensure_counts_layer(
         }
 
     if decision == "counts_confirmed":
-        adata.layers[counts_layer] = adata.X.copy()
+        adata.layers[counts_layer] = materialize_matrix(adata.X)
         return adata, {
             "input_matrix_type_detected": detected_type,
             "counts_decision": decision,

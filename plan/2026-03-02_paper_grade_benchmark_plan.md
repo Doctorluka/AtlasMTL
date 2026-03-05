@@ -8,6 +8,10 @@ Motivation: `documents/reference/experts/experts_suggesstions.md`
 This plan converts the expert reviewer checklist into a **trackable execution
 plan** with explicit deliverables and acceptance criteria.
 
+Second-wave scale-out execution details are now tracked separately in:
+
+- `plan/2026-03-04_second_wave_scaleout_benchmark_plan.md`
+
 Non-goal: performing dataset cleaning inside this plan. Dataset cleaning is
 handled externally and delivered back as “cleaned AnnData assets + notes”.
 

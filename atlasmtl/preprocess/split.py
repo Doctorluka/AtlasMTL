@@ -41,6 +41,8 @@ def make_group_split_plan(
     predict_size: int,
     seed: int,
     n_candidates: int = 128,
+    warning_build_label_min: int = 10,
+    warning_predict_label_min: int = 5,
 ) -> Dict[str, Any]:
     if split_key not in adata.obs.columns:
         raise ValueError(f"split_key not found in adata.obs: {split_key}")
@@ -143,16 +145,20 @@ def make_group_split_plan(
     )[0]
 
     warnings = []
-    if min(best["predict_label_counts"].values()) < 5:
-        warnings.append("heldout_pool_has_label_with_lt5_cells")
-    if min(best["build_label_counts"].values()) < 10:
-        warnings.append("build_pool_has_label_with_lt10_cells")
+    min_predict_label_count = min(best["predict_label_counts"].values())
+    min_build_label_count = min(best["build_label_counts"].values())
+    if min_predict_label_count < warning_predict_label_min:
+        warnings.append(f"heldout_pool_has_label_with_lt{warning_predict_label_min}_cells")
+    if min_build_label_count < warning_build_label_min:
+        warnings.append(f"build_pool_has_label_with_lt{warning_build_label_min}_cells")
 
     return {
         "split_key": split_key,
         "target_label": target_label,
         "seed": int(seed),
         "n_candidates": int(n_candidates),
+        "warning_build_label_min": int(warning_build_label_min),
+        "warning_predict_label_min": int(warning_predict_label_min),
         "candidate_count_valid": int(len(candidate_summaries)),
         "candidate_rejections": {str(k): int(v) for k, v in rejected_reasons.items()},
         "chosen_candidate_id": int(best["candidate_id"]),
@@ -173,6 +179,8 @@ def materialize_group_split_subsets(
     build_size: int,
     predict_size: int,
     seed: int,
+    warning_build_label_min: int | None = None,
+    warning_predict_label_min: int | None = None,
 ) -> Dict[str, Any]:
     split_key = str(plan["split_key"])
     target_label = str(plan["target_label"])
@@ -190,13 +198,17 @@ def materialize_group_split_subsets(
         subset_size=predict_size,
         seed=seed + 1,
     )
+    warning_build_label_min = int(plan.get("warning_build_label_min", 10) if warning_build_label_min is None else warning_build_label_min)
+    warning_predict_label_min = int(
+        plan.get("warning_predict_label_min", 5) if warning_predict_label_min is None else warning_predict_label_min
+    )
     warnings = list(plan.get("warnings") or [])
     build_counts = _label_counts(build, target_label)
     predict_counts = _label_counts(predict, target_label)
-    if min(build_counts.values()) < 10:
-        warnings.append("build_subset_has_label_with_lt10_cells")
-    if min(predict_counts.values()) < 5:
-        warnings.append("predict_subset_has_label_with_lt5_cells")
+    if min(build_counts.values()) < warning_build_label_min:
+        warnings.append(f"build_subset_has_label_with_lt{warning_build_label_min}_cells")
+    if min(predict_counts.values()) < warning_predict_label_min:
+        warnings.append(f"predict_subset_has_label_with_lt{warning_predict_label_min}_cells")
     return {
         "reference_build_adata": build,
         "predict_adata": predict,

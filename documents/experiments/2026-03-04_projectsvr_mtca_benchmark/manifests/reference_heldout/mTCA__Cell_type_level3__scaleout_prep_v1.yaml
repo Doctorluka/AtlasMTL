@@ -1,0 +1,11 @@
+dataset_name: mTCA
+var_names_type: symbol
+species: mouse
+input_matrix_type: counts
+counts_layer: counts
+feature_space: hvg
+hvg_config:
+  method: seurat_v3
+  n_top_genes: 3000
+duplicate_policy: sum
+unmapped_policy: drop

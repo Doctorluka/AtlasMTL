@@ -1,0 +1,33 @@
+# PH-Map second-wave scale-out preparation
+
+- scenario: `PHMap_Lung_Full_v43_light` reference-heldout scale-out preparation
+- source data: `/home/data/fhz/project/phmap_package/data/real_test/phmap/phmap_clean.h5ad`
+- command: `documents/experiments/2026-03-03_phmap_benchmark/scripts/run_prepare_scaleout.sh`
+- output root: `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/`
+- prepared assets:
+  - `reference_train.h5ad`
+  - `heldout_test_10k.h5ad`
+  - `heldout_test_5k.h5ad`
+  - `feature_panel.json`
+  - `split_plan.json`
+  - `split_summary.json`
+  - `preprocessing_summary.json`
+  - `preparation_resource_summary.json`
+- split result:
+  - build subset: `100000`
+  - heldout 10k subset: `10000`
+  - nested heldout 5k subset: `5000`
+  - build groups: `34`
+  - predict groups: `30`
+- warnings:
+  - `build_pool_has_label_with_lt25_cells`
+  - `build_subset_has_label_with_lt25_cells`
+  - `predict_subset_has_label_with_lt10_cells`
+- preparation runtime:
+  - elapsed: `121.0114 s`
+  - peak RSS: `49.3992 GB`
+  - average RSS: `32.7637 GB`
+- discussion:
+  - PH-Map second-wave preparation is executable at `100k/10k/5k`
+  - compared with DISCO, PH-Map preparation is materially heavier in memory and time
+  - heldout low-support fine labels remain present and should be treated as a benchmark difficulty signal rather than a preparation failure

@@ -81,6 +81,8 @@ note and may contain stale fields or manual transcription errors.
   - `var_names`: Symbol-like
   - `obsm`: `X_umap`
   - `layers`: none
+- **Species**:
+  - mouse
 - **Intended use**:
   - multi-level training: `Cell_type_level1`, `Cell_type_level2`, `Cell_type_level3`
   - single-level coarse benchmark: `Cell_type_level2`
@@ -108,8 +110,11 @@ note and may contain stale fields or manual transcription errors.
   - single-level coarse benchmark: `cell_type`
   - single-level fine benchmark: `cell_subtype`
 - **Matrix semantics**:
-  - `adata.X` has been manually verified as count-like integer sparse matrix
-  - kept without `layers["counts"]` to validate auto-handling of counts in `adata.X`
+  - `adata.X` was re-checked on `2026-03-04` and shows non-integer positive values
+    consistent with a log-normalized matrix rather than raw counts
+  - `layers["counts"]` is absent
+  - this dataset is therefore currently **not ready** for formal atlasmtl-scale
+    preprocessing until a valid raw-count source is provided
 - **Sample-like grouping field**:
   - `sample`
 
@@ -128,8 +133,10 @@ note and may contain stale fields or manual transcription errors.
   - single-level coarse benchmark: `cell_type`
   - single-level fine benchmark: `cell_subtype`
 - **Matrix semantics**:
-  - `adata.X` has been manually verified as count-like integer sparse matrix
-  - kept without `layers["counts"]` to validate auto-handling of counts in `adata.X`
+  - re-checked on `2026-03-04`
+  - `adata.X` remains consistent with count-like integer sparse values
+  - `layers["counts"]` is absent by design
+  - still suitable for validating auto-handling of counts stored in `adata.X`
 - **Sample-like grouping field**:
   - `sample`
 
@@ -148,8 +155,12 @@ note and may contain stale fields or manual transcription errors.
   - single-level coarse benchmark: `cell_type`
   - single-level fine benchmark: `cell_subtype`
 - **Matrix semantics**:
-  - `adata.X` has been manually verified as count-like integer sparse matrix
-  - kept without `layers["counts"]` to validate auto-handling of counts in `adata.X`
+  - re-checked on `2026-03-04`
+  - `adata.X` contains non-integer positive values in later rows, consistent
+    with a normalized matrix rather than strict raw counts
+  - `layers["counts"]` is absent and `raw` is absent
+  - this dataset is therefore currently **not ready** for formal atlasmtl-scale
+    preprocessing until a valid raw-count source is provided
 - **Sample-like grouping field**:
   - `sample`
 
@@ -169,8 +180,10 @@ note and may contain stale fields or manual transcription errors.
 - **Intended use**:
   - single-label reference dataset only, using `annotation`
 - **Matrix semantics**:
-  - `adata.X` is count-like integer sparse matrix
-  - kept without `layers["counts"]` to validate auto-handling of counts in `adata.X`
+  - re-checked on `2026-03-04`
+  - `adata.X` remains consistent with count-like integer sparse values
+  - `layers["counts"]` is absent by design
+  - still suitable for validating auto-handling of counts stored in `adata.X`
 - **Sample-like grouping field**:
   - `orig.ident`
 

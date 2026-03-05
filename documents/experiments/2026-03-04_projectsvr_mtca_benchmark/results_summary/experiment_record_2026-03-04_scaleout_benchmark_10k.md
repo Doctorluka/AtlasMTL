@@ -1,0 +1,29 @@
+# mTCA second-wave scale-out benchmark record (`10k` heldout)
+
+- date: `2026-03-04`
+- stage: `benchmark`
+- dataset: `mTCA`
+- command:
+  - `documents/experiments/common/run_reference_heldout_scaleout_benchmark.py --dataset-manifest documents/experiments/2026-03-04_projectsvr_mtca_benchmark/manifests/reference_heldout/mTCA__Cell_type_level3__scaleout_runtime_10k_v1.yaml --output-dir /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/mTCA/benchmark/group_split_v2_train100k_test10k/all_methods_v2_mouse_fix --methods atlasmtl reference_knn celltypist scanvi singler symphony seurat_anchor_transfer --device cpu`
+- prepared input root:
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/mTCA/prepared/group_split_v2_train100k_test10k_nested5k/`
+- benchmark output root:
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/mTCA/benchmark/group_split_v2_train100k_test10k/all_methods_v2_mouse_fix/`
+- status summary:
+  - all `7` methods completed successfully
+- important runtime files:
+  - `scaleout_status.json`
+  - `runtime_manifest.yaml`
+  - `runtime_manifest_celltypist.yaml`
+  - `runs/<method>/summary.csv`
+  - `runs/<method>/metrics.json`
+- major issue encountered:
+  - the first `mTCA` attempt used the wrong species contract in the prep manifest and produced an invalid gene space
+- resolution:
+  - changed `documents/experiments/2026-03-04_projectsvr_mtca_benchmark/manifests/reference_heldout/mTCA__Cell_type_level3__scaleout_prep_v1.yaml` from `species: human` to `species: mouse`
+  - reran preparation and benchmark from scratch
+- remaining caveat:
+  - current `celltypist` benchmark result still uses `trainer_backend=wrapped_logreg`
+  - comparator RSS reporting for several R-based methods remains incomplete
+- next action:
+  - start `cd4` second-wave preparation with the same scale-out protocol

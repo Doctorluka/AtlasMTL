@@ -30,12 +30,27 @@ class MatrixSemanticsSummary:
         return payload
 
 
+def _is_indexable_matrix(data) -> bool:
+    return hasattr(data, "shape") and hasattr(data, "__getitem__")
+
+
 def _sample_values(
     data,
     *,
     n_obs: int = 100,
     n_vals: int = 20000,
 ) -> np.ndarray:
+    if _is_indexable_matrix(data) and not sparse.issparse(data) and not isinstance(data, np.ndarray):
+        sampled = _sample_rows(data, n_obs=n_obs)
+        if sparse.issparse(sampled):
+            values = np.asarray(sampled.data)
+        else:
+            values = np.asarray(sampled).reshape(-1)
+        if values.size > n_vals:
+            idx = np.random.default_rng(0).choice(values.size, size=n_vals, replace=False)
+            values = values[idx]
+        return values
+
     if sparse.issparse(data):
         values = np.asarray(data.data)
         if values.size > n_vals:
@@ -55,6 +70,23 @@ def _sample_values(
         value_idx = np.random.default_rng(0).choice(values.size, size=n_vals, replace=False)
         values = values[value_idx]
     return values
+
+
+def _sample_rows(data, *, n_obs: int):
+    n_rows = int(data.shape[0]) if hasattr(data, "shape") and len(data.shape) > 0 else 0
+    if n_rows == 0:
+        return data[:]
+    if n_rows > n_obs:
+        obs_idx = np.random.default_rng(0).choice(n_rows, size=n_obs, replace=False)
+        obs_idx = np.sort(obs_idx)
+        return data[obs_idx]
+    return data[:]
+
+
+def materialize_matrix(data):
+    if _is_indexable_matrix(data) and not sparse.issparse(data) and not isinstance(data, np.ndarray):
+        return data[:]
+    return data.copy() if hasattr(data, "copy") else np.asarray(data)
 
 
 def summarize_matrix_semantics(

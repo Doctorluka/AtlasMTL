@@ -1,0 +1,31 @@
+# DISCO second-wave scale-out preparation
+
+- scenario: `DISCO_hPBMCs` reference-heldout scale-out preparation
+- source data: `/home/data/fhz/project/phmap_package/data/real_test/ProjectSVR/reference_atlas/DISCO_hPBMCs.h5ad`
+- command: `documents/experiments/2026-03-03_projectsvr_disco_benchmark/scripts/run_prepare_scaleout.sh`
+- output root: `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/DISCO_hPBMCs/prepared/group_split_v2_train100k_test10k_nested5k/`
+- prepared assets:
+  - `reference_train.h5ad`
+  - `heldout_test_10k.h5ad`
+  - `heldout_test_5k.h5ad`
+  - `feature_panel.json`
+  - `split_plan.json`
+  - `split_summary.json`
+  - `preprocessing_summary.json`
+  - `preparation_resource_summary.json`
+- split result:
+  - build subset: `100000`
+  - heldout 10k subset: `10000`
+  - nested heldout 5k subset: `5000`
+  - build groups: `60`
+  - predict groups: `40`
+- warnings:
+  - `build_pool_has_label_with_lt25_cells`
+  - `build_subset_has_label_with_lt25_cells`
+- preparation runtime:
+  - elapsed: `70.6514 s`
+  - peak RSS: `23.9861 GB`
+  - average RSS: `19.2704 GB`
+- discussion:
+  - second-wave preparation path is executable on the DISCO count-in-`adata.X` contract
+  - low-support long-tail labels still remain in the build subset and must stay visible in later benchmark interpretation

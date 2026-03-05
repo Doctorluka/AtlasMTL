@@ -74,3 +74,29 @@ def test_materialize_group_split_subsets_hits_requested_sizes():
     assert set(build.obs["sample"].astype(str)).isdisjoint(set(predict.obs["sample"].astype(str)))
     assert materialized["split_summary"]["build_subset_cells"] == 1200
     assert materialized["split_summary"]["predict_subset_cells"] == 600
+
+
+def test_split_plan_records_custom_warning_thresholds():
+    adata = _make_adata()
+    plan = make_group_split_plan(
+        adata,
+        split_key="sample",
+        target_label="label",
+        build_size=1200,
+        predict_size=600,
+        seed=2026,
+        n_candidates=32,
+        warning_build_label_min=25,
+        warning_predict_label_min=10,
+    )
+    materialized = materialize_group_split_subsets(
+        adata,
+        plan,
+        build_size=1200,
+        predict_size=600,
+        seed=2026,
+    )
+
+    assert plan["warning_build_label_min"] == 25
+    assert plan["warning_predict_label_min"] == 10
+    assert "warnings" in materialized["split_summary"]

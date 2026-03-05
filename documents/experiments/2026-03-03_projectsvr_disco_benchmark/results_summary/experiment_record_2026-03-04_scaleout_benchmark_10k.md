@@ -1,0 +1,28 @@
+# DISCO second-wave scale-out benchmark record (`10k` heldout)
+
+- date: `2026-03-04`
+- stage: `benchmark`
+- dataset: `DISCO_hPBMCs`
+- command:
+  - `documents/experiments/common/run_reference_heldout_scaleout_benchmark.py --dataset-manifest documents/experiments/2026-03-03_projectsvr_disco_benchmark/manifests/reference_heldout/DISCO_hPBMCs__cell_subtype__scaleout_runtime_10k_v1.yaml --output-dir /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/DISCO_hPBMCs/benchmark/group_split_v2_train100k_test10k/all_methods_v2 --methods atlasmtl reference_knn celltypist scanvi singler symphony seurat_anchor_transfer --device cpu`
+- prepared input root:
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/DISCO_hPBMCs/prepared/group_split_v2_train100k_test10k_nested5k/`
+- benchmark output root:
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/DISCO_hPBMCs/benchmark/group_split_v2_train100k_test10k/all_methods_v2/`
+- status summary:
+  - all `7` methods completed successfully
+- important runtime files:
+  - `scaleout_status.json`
+  - `runtime_manifest.yaml`
+  - `runtime_manifest_celltypist.yaml`
+  - `runs/<method>/summary.csv`
+  - `runs/<method>/metrics.json`
+- main engineering issue encountered:
+  - the generic benchmark runner cannot launch `celltypist` without an explicit comparator model path
+- resolution:
+  - added `documents/experiments/common/run_reference_heldout_scaleout_benchmark.py`
+  - wrapper now prepares log1p comparator inputs, trains the CellTypist model, writes a dedicated runtime manifest, and then launches the standard runner per method
+- remaining caveat:
+  - `seurat_anchor_transfer` still stabilizes on backend `seurat_anchor_transfer_transferdata`
+- next action:
+  - start `PH-Map` second-wave preparation and benchmark using the same wrapper

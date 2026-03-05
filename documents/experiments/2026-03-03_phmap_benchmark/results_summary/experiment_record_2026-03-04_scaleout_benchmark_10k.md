@@ -1,0 +1,27 @@
+# PH-Map second-wave scale-out benchmark record (`10k` heldout)
+
+- date: `2026-03-04`
+- stage: `benchmark`
+- dataset: `PHMap_Lung_Full_v43_light`
+- command:
+  - `documents/experiments/common/run_reference_heldout_scaleout_benchmark.py --dataset-manifest documents/experiments/2026-03-03_phmap_benchmark/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__scaleout_runtime_10k_v1.yaml --output-dir /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/benchmark/group_split_v2_train100k_test10k/all_methods_v1 --methods atlasmtl reference_knn celltypist scanvi singler symphony seurat_anchor_transfer --device cpu`
+- prepared input root:
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/`
+- benchmark output root:
+  - `/home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/benchmark/group_split_v2_train100k_test10k/all_methods_v1/`
+- status summary:
+  - all `7` methods completed successfully
+- important runtime files:
+  - `scaleout_status.json`
+  - `runtime_manifest.yaml`
+  - `runtime_manifest_celltypist.yaml`
+  - `runs/<method>/summary.csv`
+  - `runs/<method>/metrics.json`
+- main engineering issue encountered:
+  - runtime length was dominated by later external comparators, especially `scanvi`, `singler`, and `seurat_anchor_transfer`
+- resolution:
+  - no code change required during this run; the scale-out wrapper completed successfully
+- remaining caveat:
+  - external-comparator RSS tracking still needs improvement for the formal paper-grade round
+- next action:
+  - move to the next second-wave reference dataset using the same preparation and benchmark wrappers

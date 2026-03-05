@@ -163,8 +163,12 @@ def _train_celltypist_model(
     args: argparse.Namespace,
     *,
     model_path: Path,
+    method_cfg: Dict[str, Any],
+    summary_json: Path,
     env: Dict[str, str],
 ) -> Dict[str, Any]:
+    trainer_backend = str(method_cfg.get("trainer_backend", "wrapped_logreg"))
+    trainer_config = dict(method_cfg.get("trainer_config") or {})
     cmd = [
         sys.executable,
         str(CELLTYPIST_TRAINER),
@@ -174,17 +178,40 @@ def _train_celltypist_model(
         args.label_column,
         "--output-model",
         str(model_path),
+        "--trainer-backend",
+        trainer_backend,
         "--max-iter",
-        "200",
+        str(int(trainer_config.get("max_iter", 200))),
         "--n-jobs",
-        "1",
+        str(int(trainer_config.get("n_jobs", 1))),
+        "--feature-selection",
+        str(bool(trainer_config.get("feature_selection", False))).lower(),
+        "--balance-cell-type",
+        str(bool(trainer_config.get("balance_cell_type", False))).lower(),
+        "--batch-size",
+        str(int(trainer_config.get("batch_size", 1000))),
+        "--top-genes",
+        str(int(trainer_config.get("top_genes", 300))),
+        "--use-gpu",
+        str(bool(trainer_config.get("use_gpu", False))).lower(),
+        "--with-mean",
+        str(bool(trainer_config.get("with_mean", False))).lower(),
+        "--min-cells-per-class",
+        str(int(trainer_config.get("min_cells_per_class", 0))),
+        "--summary-json",
+        str(summary_json.resolve()),
     ]
     completed = _run_command(cmd, env=env, cwd=REPO_ROOT)
+    trainer_summary = None
+    if summary_json.exists():
+        trainer_summary = json.loads(summary_json.read_text(encoding="utf-8"))
     return {
         "returncode": int(completed.returncode),
         "stdout": completed.stdout,
         "stderr": completed.stderr,
         "command": cmd,
+        "trainer_backend": trainer_backend,
+        "trainer_summary": trainer_summary,
     }
 
 
@@ -206,6 +233,7 @@ def main() -> None:
     args = parse_args()
     output_dir = Path(args.output_dir).resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    celltypist_method_cfg: Dict[str, Any] = {}
 
     env = os.environ.copy()
     env["PYTHONPATH"] = str(REPO_ROOT)
@@ -219,9 +247,16 @@ def main() -> None:
 
     celltypist_model = output_dir / "comparator_models" / f"celltypist_{args.label_column}.pkl"
     celltypist_model.parent.mkdir(parents=True, exist_ok=True)
+    celltypist_training_summary = output_dir / "comparator_models" / f"celltypist_{args.label_column}_training_summary.json"
     celltypist_args = argparse.Namespace(**vars(args))
     celltypist_args.reference_h5ad = str(celltypist_ref_h5ad)
-    celltypist_train = _train_celltypist_model(celltypist_args, model_path=celltypist_model, env=env)
+    celltypist_train = _train_celltypist_model(
+        celltypist_args,
+        model_path=celltypist_model,
+        method_cfg=celltypist_method_cfg,
+        summary_json=celltypist_training_summary,
+        env=env,
+    )
     if celltypist_train["returncode"] != 0:
         raise RuntimeError(
             "CellTypist model training failed before smoke benchmark run:\n"
@@ -289,6 +324,8 @@ def main() -> None:
         "runtime_manifest": str(manifest_path),
         "runtime_manifest_celltypist": str(celltypist_manifest_path),
         "celltypist_model": str(celltypist_model),
+        "celltypist_training_summary": str(celltypist_training_summary),
+        "celltypist_training": celltypist_train.get("trainer_summary"),
         "methods": statuses,
     }
     (output_dir / "smoke_status.json").write_text(

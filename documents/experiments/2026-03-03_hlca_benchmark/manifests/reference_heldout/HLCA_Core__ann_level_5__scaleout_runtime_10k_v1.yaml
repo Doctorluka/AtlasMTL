@@ -1,0 +1,55 @@
+dataset_name: HLCA_Core
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: group_split_v2_train100k_test10k
+split_description: second-wave prepared benchmark run with 100k build and 10k heldout
+reference_subset: train_100k_prepared
+query_subset: heldout_test_10k_prepared
+reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/HLCA_Core/prepared/group_split_v2_train100k_test10k_nested5k/reference_train.h5ad
+query_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/HLCA_Core/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_10k.h5ad
+label_columns:
+  - ann_level_5
+domain_key: donor_id
+input_matrix_type: lognorm
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: ann_level_5
+  scanvi:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+  singler:
+    target_label_column: ann_level_5
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+  seurat_anchor_transfer:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 3000
+  reference_knn:
+    input_transform: binary
+train:
+  hidden_sizes: [256, 128]
+  dropout_rate: 0.2
+  batch_size: 256
+  num_epochs: 8
+  learning_rate: 0.001
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 3
+  random_state: 2026
+  reference_storage: external
+predict:
+  knn_correction: "off"
+  batch_size: 256
+  input_transform: binary

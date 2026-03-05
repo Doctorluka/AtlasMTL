@@ -11,3 +11,5 @@ Current first-wave entrypoint:
   - validates count-like `adata.X`, then standardizes it into `layers["counts"]`
   - uses `sample` as both `split_key` and `domain_key`
   - writes prepared outputs to the manifest-declared `~/tmp/...` location
+- `run_prepare_scaleout.sh`
+  - materialize second-wave `100k/10k/5k` prepared assets
