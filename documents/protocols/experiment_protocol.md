@@ -101,6 +101,13 @@ CellTypist implementation note:
 - detailed note:
   - `documents/protocols/celltypist_comparator_gap_note_2026-03-04.md`
 
+Third-wave fairness note:
+
+- stricter runtime fairness controls are defined in
+  `documents/protocols/third_wave_fairness_protocol.md`
+- this includes explicit thread-policy and degraded-runtime labeling rules
+  (for example `joblib` serial fallback under restricted execution)
+
 Current interpretation from the completed ablation round:
 
 - `hvg6000 + binary + phmap` is the strongest current default candidate

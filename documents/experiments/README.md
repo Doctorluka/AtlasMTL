@@ -75,6 +75,7 @@ Execution plan:
 - `plan/2026-03-04_second_wave_scaleout_benchmark_plan.md`
 - `documents/experiments/2026-03-04_second_wave_round_status.md`
 - `documents/experiments/2026-03-04_second_wave_execution_template.md`
+- `documents/protocols/third_wave_fairness_protocol.md`
 
 ## Runtime caveats
 
