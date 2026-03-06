@@ -31,6 +31,10 @@ Current rule for the paper-grade benchmark rollout:
   - second-wave scale-out dossier for `Vento`
 - `2026-03-05_formal_third_wave_hlca_benchmark`
   - formal third-wave pilot dossier for `HLCA_Core` (`train10k/test5k`, CPU/GPU split groups)
+- `2026-03-06_scanvi_param_lock_benchmark`
+  - pre-formal `scanvi` parameter confirmation dossier (GPU-only, cross-dataset stage-A/stage-B)
+- `2026-03-07_atlasmtl_param_lock_benchmark`
+  - pre-formal `atlasmtl` parameter confirmation dossier (CPU/GPU dual-track lock; Stage A/B completed on `2026-03-06`)
 
 ## Pilot rollout
 

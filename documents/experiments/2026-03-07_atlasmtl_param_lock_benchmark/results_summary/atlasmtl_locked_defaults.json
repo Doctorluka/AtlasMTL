@@ -1,0 +1,60 @@
+{
+  "cpu_candidates": [
+    {
+      "batch_size": 128,
+      "hidden_sizes": "256,128",
+      "learning_rate": 0.0003,
+      "mean_accuracy": 0.8131999999999999,
+      "mean_macro_f1": 0.6911412621162227,
+      "mean_total_elapsed_seconds": 5.81056,
+      "param_id": "c5_lr3e4_h256_128_b128"
+    },
+    {
+      "batch_size": 256,
+      "hidden_sizes": "256,128",
+      "learning_rate": 0.001,
+      "mean_accuracy": 0.81716,
+      "mean_macro_f1": 0.689377835817978,
+      "mean_total_elapsed_seconds": 3.3229599999999997,
+      "param_id": "c2_lr1e3_h256_128_b256"
+    }
+  ],
+  "cpu_default": {
+    "batch_size": 128,
+    "hidden_sizes": "256,128",
+    "learning_rate": 0.0003,
+    "mean_accuracy": 0.8131999999999999,
+    "mean_macro_f1": 0.6911412621162227,
+    "mean_total_elapsed_seconds": 5.81056,
+    "param_id": "c5_lr3e4_h256_128_b128"
+  },
+  "gpu_candidates": [
+    {
+      "batch_size": 512,
+      "hidden_sizes": "1024,512",
+      "learning_rate": 0.001,
+      "mean_accuracy": 0.8204,
+      "mean_macro_f1": 0.7068852744905786,
+      "mean_total_elapsed_seconds": 1.57636,
+      "param_id": "g6_lr1e3_h1024_512_b512"
+    },
+    {
+      "batch_size": 512,
+      "hidden_sizes": "1024,512",
+      "learning_rate": 0.0003,
+      "mean_accuracy": 0.81968,
+      "mean_macro_f1": 0.7034652658559934,
+      "mean_total_elapsed_seconds": 2.46918,
+      "param_id": "g12_lr3e4_h1024_512_b512"
+    }
+  ],
+  "gpu_default": {
+    "batch_size": 512,
+    "hidden_sizes": "1024,512",
+    "learning_rate": 0.001,
+    "mean_accuracy": 0.8204,
+    "mean_macro_f1": 0.7068852744905786,
+    "mean_total_elapsed_seconds": 1.57636,
+    "param_id": "g6_lr1e3_h1024_512_b512"
+  }
+}

@@ -1,0 +1,141 @@
+train_size: 10000
+num_threads: 8
+input_transform: binary
+reference_storage: external
+max_epochs: 50
+val_fraction: 0.1
+early_stopping_patience: 5
+early_stopping_min_delta: 0.0
+random_seed: 2026
+predict_knn_correction: "off"
+
+stage_a:
+  default_seed: 2026
+  query_size: 5000
+  cpu_grid:
+    - param_id: c1_lr1e3_h256_128_b128
+      learning_rate: 0.001
+      hidden_sizes: [256, 128]
+      batch_size: 128
+    - param_id: c2_lr1e3_h256_128_b256
+      learning_rate: 0.001
+      hidden_sizes: [256, 128]
+      batch_size: 256
+    - param_id: c3_lr1e3_h512_256_b128
+      learning_rate: 0.001
+      hidden_sizes: [512, 256]
+      batch_size: 128
+    - param_id: c4_lr1e3_h512_256_b256
+      learning_rate: 0.001
+      hidden_sizes: [512, 256]
+      batch_size: 256
+    - param_id: c5_lr3e4_h256_128_b128
+      learning_rate: 0.0003
+      hidden_sizes: [256, 128]
+      batch_size: 128
+    - param_id: c6_lr3e4_h256_128_b256
+      learning_rate: 0.0003
+      hidden_sizes: [256, 128]
+      batch_size: 256
+    - param_id: c7_lr3e4_h512_256_b128
+      learning_rate: 0.0003
+      hidden_sizes: [512, 256]
+      batch_size: 128
+    - param_id: c8_lr3e4_h512_256_b256
+      learning_rate: 0.0003
+      hidden_sizes: [512, 256]
+      batch_size: 256
+    - param_id: c9_lr1e4_h256_128_b128
+      learning_rate: 0.0001
+      hidden_sizes: [256, 128]
+      batch_size: 128
+    - param_id: c10_lr1e4_h256_128_b256
+      learning_rate: 0.0001
+      hidden_sizes: [256, 128]
+      batch_size: 256
+    - param_id: c11_lr1e4_h512_256_b128
+      learning_rate: 0.0001
+      hidden_sizes: [512, 256]
+      batch_size: 128
+    - param_id: c12_lr1e4_h512_256_b256
+      learning_rate: 0.0001
+      hidden_sizes: [512, 256]
+      batch_size: 256
+  gpu_grid:
+    - param_id: g1_lr1e3_h256_128_b256
+      learning_rate: 0.001
+      hidden_sizes: [256, 128]
+      batch_size: 256
+    - param_id: g2_lr1e3_h256_128_b512
+      learning_rate: 0.001
+      hidden_sizes: [256, 128]
+      batch_size: 512
+    - param_id: g3_lr1e3_h512_256_b256
+      learning_rate: 0.001
+      hidden_sizes: [512, 256]
+      batch_size: 256
+    - param_id: g4_lr1e3_h512_256_b512
+      learning_rate: 0.001
+      hidden_sizes: [512, 256]
+      batch_size: 512
+    - param_id: g5_lr1e3_h1024_512_b256
+      learning_rate: 0.001
+      hidden_sizes: [1024, 512]
+      batch_size: 256
+    - param_id: g6_lr1e3_h1024_512_b512
+      learning_rate: 0.001
+      hidden_sizes: [1024, 512]
+      batch_size: 512
+    - param_id: g7_lr3e4_h256_128_b256
+      learning_rate: 0.0003
+      hidden_sizes: [256, 128]
+      batch_size: 256
+    - param_id: g8_lr3e4_h256_128_b512
+      learning_rate: 0.0003
+      hidden_sizes: [256, 128]
+      batch_size: 512
+    - param_id: g9_lr3e4_h512_256_b256
+      learning_rate: 0.0003
+      hidden_sizes: [512, 256]
+      batch_size: 256
+    - param_id: g10_lr3e4_h512_256_b512
+      learning_rate: 0.0003
+      hidden_sizes: [512, 256]
+      batch_size: 512
+    - param_id: g11_lr3e4_h1024_512_b256
+      learning_rate: 0.0003
+      hidden_sizes: [1024, 512]
+      batch_size: 256
+    - param_id: g12_lr3e4_h1024_512_b512
+      learning_rate: 0.0003
+      hidden_sizes: [1024, 512]
+      batch_size: 512
+    - param_id: g13_lr1e4_h256_128_b256
+      learning_rate: 0.0001
+      hidden_sizes: [256, 128]
+      batch_size: 256
+    - param_id: g14_lr1e4_h256_128_b512
+      learning_rate: 0.0001
+      hidden_sizes: [256, 128]
+      batch_size: 512
+    - param_id: g15_lr1e4_h512_256_b256
+      learning_rate: 0.0001
+      hidden_sizes: [512, 256]
+      batch_size: 256
+    - param_id: g16_lr1e4_h512_256_b512
+      learning_rate: 0.0001
+      hidden_sizes: [512, 256]
+      batch_size: 512
+    - param_id: g17_lr1e4_h1024_512_b256
+      learning_rate: 0.0001
+      hidden_sizes: [1024, 512]
+      batch_size: 256
+    - param_id: g18_lr1e4_h1024_512_b512
+      learning_rate: 0.0001
+      hidden_sizes: [1024, 512]
+      batch_size: 512
+
+stage_b:
+  top_k: 2
+  seeds: [17, 23]
+  query_sizes: [5000, 10000]

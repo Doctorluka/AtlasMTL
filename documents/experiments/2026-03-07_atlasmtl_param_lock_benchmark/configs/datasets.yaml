@@ -1,0 +1,45 @@
+datasets:
+  - dataset_name: PHMap_Lung_Full_v43_light
+    label_column: anno_lv4
+    domain_key: sample
+    counts_layer: counts
+    input_matrix_type: counts
+    source_reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/reference_train.h5ad
+    source_query_5k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_5k.h5ad
+    source_query_10k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/PHMap_Lung_Full_v43_light/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_10k.h5ad
+
+  - dataset_name: DISCO_hPBMCs
+    label_column: cell_subtype
+    domain_key: sample
+    counts_layer: counts
+    input_matrix_type: counts
+    source_reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/DISCO_hPBMCs/prepared/group_split_v2_train100k_test10k_nested5k/reference_train.h5ad
+    source_query_5k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/DISCO_hPBMCs/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_5k.h5ad
+    source_query_10k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/DISCO_hPBMCs/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_10k.h5ad
+
+  - dataset_name: mTCA
+    label_column: Cell_type_level3
+    domain_key: orig.ident
+    counts_layer: counts
+    input_matrix_type: counts
+    source_reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/mTCA/prepared/group_split_v2_train100k_test10k_nested5k/reference_train.h5ad
+    source_query_5k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/mTCA/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_5k.h5ad
+    source_query_10k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/mTCA/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_10k.h5ad
+
+  - dataset_name: HLCA_Core
+    label_column: ann_level_5
+    domain_key: donor_id
+    counts_layer: counts
+    input_matrix_type: lognorm
+    source_reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/HLCA_Core/prepared/group_split_v2_train100k_test10k_nested5k/reference_train.h5ad
+    source_query_5k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/HLCA_Core/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_5k.h5ad
+    source_query_10k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/HLCA_Core/prepared/group_split_v2_train100k_test10k_nested5k/heldout_test_10k.h5ad
+
+  - dataset_name: Vento
+    label_column: annotation
+    domain_key: orig.ident
+    counts_layer: counts
+    input_matrix_type: counts
+    source_reference_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/Vento/prepared/group_split_v2_train50k_test10k_nested5k/reference_train.h5ad
+    source_query_5k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/Vento/prepared/group_split_v2_train50k_test10k_nested5k/heldout_test_5k.h5ad
+    source_query_10k_h5ad: /home/data/fhz/tmp/atlasmtl_benchmarks/2026-03-04/reference_heldout/Vento/prepared/group_split_v2_train50k_test10k_nested5k/heldout_test_10k.h5ad

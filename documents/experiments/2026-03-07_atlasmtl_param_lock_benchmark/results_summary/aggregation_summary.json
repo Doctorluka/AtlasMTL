@@ -1,0 +1,11 @@
+{
+  "locked_defaults_json": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/results_summary/atlasmtl_locked_defaults.json",
+  "n_stage_a_cpu": 60,
+  "n_stage_a_gpu": 90,
+  "n_stage_b_cpu": 40,
+  "n_stage_b_gpu": 40,
+  "stage_a_core_ranking_cpu_csv": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/results_summary/stage_a_core_ranking_cpu.csv",
+  "stage_a_core_ranking_gpu_csv": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/results_summary/stage_a_core_ranking_gpu.csv",
+  "stage_b_stability_cpu_csv": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/results_summary/stage_b_stability_cpu.csv",
+  "stage_b_stability_gpu_csv": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/results_summary/stage_b_stability_gpu.csv"
+}

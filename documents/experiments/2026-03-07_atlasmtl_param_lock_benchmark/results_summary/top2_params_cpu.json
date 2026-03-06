@@ -1,0 +1,28 @@
+{
+  "device": "cpu",
+  "selection_rule": {
+    "primary": "mean_macro_f1 desc",
+    "secondary": "mean_accuracy desc",
+    "tiebreak": "mean_total_elapsed_seconds asc"
+  },
+  "top_params": [
+    {
+      "batch_size": 128,
+      "hidden_sizes": "256,128",
+      "learning_rate": 0.0003,
+      "mean_accuracy": 0.8131999999999999,
+      "mean_macro_f1": 0.6911412621162227,
+      "mean_total_elapsed_seconds": 5.81056,
+      "param_id": "c5_lr3e4_h256_128_b128"
+    },
+    {
+      "batch_size": 256,
+      "hidden_sizes": "256,128",
+      "learning_rate": 0.001,
+      "mean_accuracy": 0.81716,
+      "mean_macro_f1": 0.689377835817978,
+      "mean_total_elapsed_seconds": 3.3229599999999997,
+      "param_id": "c2_lr1e3_h256_128_b256"
+    }
+  ]
+}
