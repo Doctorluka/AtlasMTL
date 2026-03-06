@@ -1,0 +1,54 @@
+train_size: 10000
+batch_size: 256
+datasplitter_num_workers: 0
+fairness_policy: mixed_backend_labeled
+
+stage_a:
+  default_seed: 2026
+  query_size: 5000
+  param_grid:
+    - param_id: p1_e10_10_5_nl10
+      scvi_max_epochs: 10
+      scanvi_max_epochs: 10
+      query_max_epochs: 5
+      n_latent: 10
+    - param_id: p2_e10_10_5_nl20
+      scvi_max_epochs: 10
+      scanvi_max_epochs: 10
+      query_max_epochs: 5
+      n_latent: 20
+    - param_id: p3_e15_15_10_nl10
+      scvi_max_epochs: 15
+      scanvi_max_epochs: 15
+      query_max_epochs: 10
+      n_latent: 10
+    - param_id: p4_e15_15_10_nl20
+      scvi_max_epochs: 15
+      scanvi_max_epochs: 15
+      query_max_epochs: 10
+      n_latent: 20
+    - param_id: p5_e20_20_20_nl10
+      scvi_max_epochs: 20
+      scanvi_max_epochs: 20
+      query_max_epochs: 20
+      n_latent: 10
+    - param_id: p6_e20_20_20_nl20
+      scvi_max_epochs: 20
+      scanvi_max_epochs: 20
+      query_max_epochs: 20
+      n_latent: 20
+    - param_id: p7_e25_25_20_nl10
+      scvi_max_epochs: 25
+      scanvi_max_epochs: 25
+      query_max_epochs: 20
+      n_latent: 10
+    - param_id: p8_e25_25_20_nl20
+      scvi_max_epochs: 25
+      scanvi_max_epochs: 25
+      query_max_epochs: 20
+      n_latent: 20
+
+stage_b:
+  top_k: 2
+  seeds: [17, 23]
+  query_sizes: [5000, 10000]

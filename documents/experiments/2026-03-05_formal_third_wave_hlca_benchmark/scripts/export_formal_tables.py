@@ -82,12 +82,15 @@ def _write_markdown_table(path: Path, title: str, frame: pd.DataFrame) -> None:
     if frame.empty:
         lines.append("_no rows_")
     else:
-        columns = list(frame.columns)
-        lines.append("| " + " | ".join(columns) + " |")
-        lines.append("| " + " | ".join(["---"] * len(columns)) + " |")
-        for row in frame.itertuples(index=False, name=None):
-            values = ["" if value is None else str(value) for value in row]
-            lines.append("| " + " | ".join(values) + " |")
+        try:
+            lines.append(frame.to_markdown(index=False))
+        except Exception:
+            columns = list(frame.columns)
+            lines.append("| " + " | ".join(columns) + " |")
+            lines.append("| " + " | ".join(["---"] * len(columns)) + " |")
+            for row in frame.itertuples(index=False, name=None):
+                values = ["" if value is None else str(value) for value in row]
+                lines.append("| " + " | ".join(values) + " |")
     lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 

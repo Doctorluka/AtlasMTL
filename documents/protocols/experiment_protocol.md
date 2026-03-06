@@ -704,6 +704,63 @@ The intended first-line comparator family is:
 
 These methods belong to the same `sc -> sc reference mapping` task family.
 
+### Locked scANVI default for formal runs
+
+Based on the completed pre-formal parameter confirmation experiment on
+`2026-03-06`, the default `scanvi` setting for subsequent formal experiments is
+locked as:
+
+- `scvi_max_epochs=25`
+- `scanvi_max_epochs=25`
+- `query_max_epochs=20`
+- `n_latent=20`
+- `batch_size=256`
+- `datasplitter_num_workers=0`
+
+Execution rule:
+
+- in this project phase, `scanvi` is evaluated in `GPU` mode only for formal
+  benchmark runs.
+- if a future run must deviate from this lock, the deviation must be documented
+  explicitly as an ablation or exception note.
+
+Evidence dossier:
+
+- `documents/experiments/2026-03-06_scanvi_param_lock_benchmark/results_summary/experiment_report_2026-03-06_scanvi_param_lock.md`
+- `documents/experiments/2026-03-06_scanvi_param_lock_benchmark/results_summary/param_lock_decision_2026-03-06.md`
+
+### AtlasMTL pre-formal lock protocol (CPU/GPU)
+
+Before formal atlasmtl reporting, run the dedicated atlasmtl parameter-lock
+benchmark with separate CPU/GPU tracks:
+
+- dossier:
+  - `documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/`
+- fixed settings:
+  - `num_threads=8`
+  - `max_epochs=50`
+  - `val_fraction=0.1`
+  - `early_stopping_patience=5`
+  - `input_transform=binary`
+  - `reference_storage=external`
+- core tuned dimensions:
+  - `learning_rate`
+  - `hidden_sizes`
+  - `batch_size`
+- lock strategy:
+  - lock one default for CPU track
+  - lock one default for GPU track
+  - ranking priority: `macro_f1`, then `accuracy`, then elapsed-time tie-break
+
+Deferred to later ablation round:
+
+- `domain_loss_weight`
+- `topology_loss_weight`
+- `calibration_method`
+
+Formal tables should label CPU and GPU atlasmtl as separate variants when
+reporting runtime or throughput.
+
 The following are not primary comparators for the current atlasmtl claim:
 
 - deconvolution-specific methods such as cell2location, CARD, stereoscope, or

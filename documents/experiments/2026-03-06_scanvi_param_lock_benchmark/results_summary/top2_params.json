@@ -1,0 +1,29 @@
+{
+  "selection_rule": {
+    "primary": "mean_macro_f1 desc",
+    "secondary": "mean_accuracy desc",
+    "tiebreak": "mean_total_elapsed_seconds asc"
+  },
+  "top_params": [
+    {
+      "mean_accuracy": 0.84016,
+      "mean_macro_f1": 0.7458628664970008,
+      "mean_total_elapsed_seconds": 41.23856,
+      "n_latent": 20,
+      "param_id": "p8_e25_25_20_nl20",
+      "query_max_epochs": 20,
+      "scanvi_max_epochs": 25,
+      "scvi_max_epochs": 25
+    },
+    {
+      "mean_accuracy": 0.83908,
+      "mean_macro_f1": 0.7261090343632434,
+      "mean_total_elapsed_seconds": 34.40514,
+      "n_latent": 20,
+      "param_id": "p6_e20_20_20_nl20",
+      "query_max_epochs": 20,
+      "scanvi_max_epochs": 20,
+      "scvi_max_epochs": 20
+    }
+  ]
+}

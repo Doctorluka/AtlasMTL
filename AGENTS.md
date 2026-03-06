@@ -20,6 +20,9 @@ Environment note:
 - Historical reference env used by earlier PH-Map scripts: `/home/data/fhz/.local/share/mamba/envs/phmap-env`.
 - If `scanpy` import fails with a numba cache locator/write error, set `NUMBA_CACHE_DIR` to a writable path (e.g. `/tmp/numba_cache`) before running Python.
 - In restricted/sandboxed execution, `joblib` may report `Permission denied` and fall back to serial mode; treat resulting runtime/throughput numbers as non-final for fairness analysis.
+- In restricted/sandboxed execution, CUDA/GPU is not reliably available to
+  `torch/lightning/scvi`; do not treat sandbox GPU failures as method failures.
+  Run GPU benchmarks from a non-sandbox shell and document the execution mode.
 - Comparator benchmark R libraries:
   - native `Azimuth` / `Seurat v5`: `/home/data/fhz/seurat_v5`
   - repo-local comparator R packages such as `symphony`: `/home/data/fhz/project/phmap_package/atlasmtl/.r_libs`
