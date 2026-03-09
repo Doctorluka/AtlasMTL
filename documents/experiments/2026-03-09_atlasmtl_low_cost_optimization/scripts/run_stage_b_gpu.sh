@@ -17,6 +17,25 @@ export ATLASMTL_FAIRNESS_POLICY="mixed_backend_labeled"
 
 mkdir -p "${REPO_ROOT}/.tmp/numba_cache"
 
+should_skip_point() {
+  local out_dir="$1"
+  local status_json="${out_dir}/scaleout_status.json"
+  local metrics_json="${out_dir}/runs/atlasmtl/metrics.json"
+  local summary_csv="${out_dir}/runs/atlasmtl/summary.csv"
+  if [[ ! -f "${status_json}" || ! -f "${metrics_json}" || ! -f "${summary_csv}" ]]; then
+    return 1
+  fi
+  "${PYTHON_BIN}" - "${status_json}" <<'PY'
+import json
+import sys
+
+payload = json.load(open(sys.argv[1]))
+methods = payload.get("methods") or []
+atlas = next((item for item in methods if item.get("method") == "atlasmtl"), None)
+raise SystemExit(0 if atlas and atlas.get("status") == "success" else 1)
+PY
+}
+
 "${PYTHON_BIN}" - <<'PY'
 import torch
 if not torch.cuda.is_available():
@@ -37,6 +56,10 @@ PY
   [[ -n "${manifest}" ]] || continue
   out_dir="/tmp/atlasmtl_benchmarks/2026-03-09/atlasmtl_low_cost_optimization/${dataset}/benchmark/stage_b/gpu/${point}/${config}"
   mkdir -p "${out_dir}"
+  if should_skip_point "${out_dir}"; then
+    echo "=== skip existing stage_b gpu ${dataset} ${point} ${config} ==="
+    continue
+  fi
   echo "=== stage_b gpu ${dataset} ${point} ${config} ==="
   "${PYTHON_BIN}" "${RUNNER}" \
     --dataset-manifest "${manifest}" \
