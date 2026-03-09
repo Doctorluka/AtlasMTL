@@ -69,6 +69,20 @@ while allowing the internals to evolve independently.
 This separation reflects the project’s priorities: stable user entrypoints,
 predictable artifact layout, and benchmark reproducibility.
 
+### Current default training policy
+
+The current atlasmtl training default is:
+
+- `optimizer_name="adamw"`
+- `weight_decay=5e-5`
+- `scheduler_name=None`
+
+This default should be interpreted as a low-cost practical setting rather than
+as a general invitation to expand optimizer complexity. `ReduceLROnPlateau`
+remains supported for explicit experiments, but it is not part of the default
+configuration because the fourth-round confirmation did not justify promoting it
+for broad use.
+
 ## Gene identifier and feature policy
 
 atlasmtl currently performs exact gene-name alignment using `adata.var_names`.

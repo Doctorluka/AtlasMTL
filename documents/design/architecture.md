@@ -418,6 +418,8 @@ Writeback targets:
 include:
 
 - core hyperparameters
+- optimizer and weight-decay settings
+- scheduler settings when explicitly enabled
 - device and thread settings
 - coordinate enablement
 - train/validation sizes
@@ -426,6 +428,16 @@ include:
 - calibration payload
 - domain/topology settings
 - preset selection
+
+Current default training configuration:
+
+- `optimizer_name="adamw"`
+- `weight_decay=5e-5`
+- `scheduler_name=None`
+
+This default was promoted after the 2026-03-09 low-cost optimization round.
+The decision was driven primarily by Stage B GPU confirmation, while CPU
+results in restricted execution remained supportive but non-decisive.
 
 ### Prediction metadata
 

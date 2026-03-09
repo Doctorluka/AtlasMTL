@@ -163,6 +163,14 @@ Notable defaults:
 - `topology_loss_weight=0.0`
 - `domain_loss_weight=0.0`
 
+Current default training note:
+
+- the default optimizer path was updated after the 2026-03-09 low-cost
+  optimization confirmation round
+- the promoted default is `AdamW + weight_decay=5e-5`
+- `ReduceLROnPlateau` remains available as an explicit option but is not part
+  of the default configuration
+
 Current training default remains phmap-consistent:
 
 - `input_transform="binary"` binarizes the input matrix as `(X > 0)`
