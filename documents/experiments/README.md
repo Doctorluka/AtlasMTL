@@ -37,6 +37,8 @@ Current rule for the paper-grade benchmark rollout:
   - pre-formal `atlasmtl` parameter confirmation dossier (CPU/GPU dual-track lock; Stage A/B completed on `2026-03-06`)
 - `2026-03-06_formal_third_wave_scaling`
   - round-level formal scaling preparation dossier for third-wave main-panel and supplementary execution
+- `2026-03-09_atlasmtl_low_cost_optimization`
+  - fourth-round low-cost optimization dossier for atlasmtl default training refinement (`AdamW` / `weight_decay` / scheduler screening and confirmation)
 
 ## Pilot rollout
 
@@ -116,3 +118,30 @@ Primary entry points:
 - `documents/experiments/2026-03-06_formal_third_wave_execution_template.md`
 - `documents/experiments/2026-03-06_formal_third_wave_round_status.md`
 - `documents/experiments/2026-03-06_formal_third_wave_scaling/README.md`
+
+## Recent round status
+
+Latest dossier-level outcomes relevant to current atlasmtl defaults:
+
+- `2026-03-07_atlasmtl_param_lock_benchmark`
+  - completed
+  - locked reproducible atlasmtl CPU/GPU benchmark grids before low-cost
+    optimizer refinement
+- `2026-03-09_atlasmtl_low_cost_optimization`
+  - completed
+  - Stage A selected `AdamW + wd=5e-5` as the only credible candidate
+  - Stage B confirmed promotion using GPU-first evidence
+  - `ReduceLROnPlateau` was rejected as a default
+
+Current atlasmtl training default after the completed optimization round:
+
+- `optimizer_name="adamw"`
+- `weight_decay=5e-5`
+- `scheduler_name=None`
+
+Important interpretation caveat:
+
+- CPU evidence from the optimization round was mixed and collected under
+  `joblib_serial_fallback`
+- non-degraded GPU Stage B confirmation is therefore the primary evidence for
+  the default-promotion decision

@@ -171,10 +171,31 @@ Rerun only if:
 
 ## Current status
 
-Current status: `planning only`
+Current status: `completed`
 
-No execution should begin until:
+Completed outcomes:
 
-- this dossier is reviewed
-- the plan file is approved
-- the exact result tables to be written are accepted
+- Stage A CPU and GPU screening finished
+- `AdamW + wd=5e-5` selected as the only Stage B candidate
+- scheduler branch stopped after screening
+- Stage B CPU and GPU confirmation finished
+- final decision recorded:
+  - promote `AdamW + weight_decay=5e-5` as the new default training
+    configuration
+  - do not promote `ReduceLROnPlateau`
+
+Primary result files:
+
+- `results_summary/stage_a_screening_results.csv`
+- `results_summary/stage_a_screening_results.md`
+- `results_summary/stage_a_decision_note.md`
+- `results_summary/stage_b_confirmation_results.csv`
+- `results_summary/stage_b_confirmation_results.md`
+- `results_summary/final_default_decision.md`
+
+Interpretation caveat:
+
+- CPU runs in this dossier reported `joblib_serial_fallback` in the restricted
+  environment
+- the non-degraded Stage B GPU confirmation should be treated as the primary
+  evidence for the default-promotion decision
