@@ -195,3 +195,90 @@ Stage A lock after review:
   not whether it is strictly better on every single representative point
 - the isolated `mTCA gpu predict` regression should remain a watchpoint in Stage
   B, but not a standalone reason to reject the candidate before confirmation
+
+## Stage B CPU execution (`2026-03-09`)
+
+Status:
+
+- completed for `cpu_core`
+
+Execution command:
+
+```bash
+bash documents/experiments/2026-03-09_atlasmtl_low_cost_optimization/scripts/run_stage_b_cpu_core.sh
+```
+
+Execution mode note:
+
+- runs were executed in the restricted Codex environment
+- every CPU run reported `joblib_serial_fallback`
+- CPU runtime and throughput numbers remain provisional fairness evidence only
+
+Observed Stage B CPU summary (`macro_f1`, candidate minus baseline):
+
+- `HLCA_Core / build_100000_eval10k`: `-0.022878`
+- `HLCA_Core / predict_100000_10000`: `-0.013927`
+- `PHMap_Lung_Full_v43_light / build_100000_eval10k`: `-0.001764`
+- `PHMap_Lung_Full_v43_light / predict_100000_10000`: `+0.000693`
+- `mTCA / build_100000_eval10k`: `-0.005925`
+- `mTCA / predict_100000_10000`: `+0.039689`
+- `DISCO_hPBMCs / build_100000_eval10k`: `-0.028083`
+- `DISCO_hPBMCs / predict_100000_10000`: `+0.008827`
+
+CPU interpretation:
+
+- CPU evidence alone is mixed and does not justify a default promotion
+- the strongest positive CPU signal remains `mTCA predict`
+- the strongest negative CPU signals are `HLCA` and `DISCO build`
+
+## Stage B GPU execution (`2026-03-09`)
+
+Status:
+
+- completed for `gpu`
+
+Execution command:
+
+```bash
+bash documents/experiments/2026-03-09_atlasmtl_low_cost_optimization/scripts/run_stage_b_gpu.sh
+```
+
+Execution mode note:
+
+- runs were executed outside the sandbox on `NVIDIA GeForce RTX 4090`
+- GPU runs did not report runtime fairness degradation
+
+Observed Stage B GPU summary (`macro_f1`, candidate minus baseline):
+
+- `HLCA_Core / build_100000_eval10k`: `+0.014619`
+- `HLCA_Core / predict_100000_10000`: `+0.005678`
+- `PHMap_Lung_Full_v43_light / build_100000_eval10k`: `+0.016954`
+- `PHMap_Lung_Full_v43_light / predict_100000_10000`: `-0.008676`
+- `mTCA / build_100000_eval10k`: `+0.014338`
+- `mTCA / predict_100000_10000`: `+0.021822`
+- `DISCO_hPBMCs / build_100000_eval10k`: `+0.034498`
+- `DISCO_hPBMCs / predict_100000_10000`: `+0.041895`
+
+GPU interpretation:
+
+- candidate improves `7/8` representative GPU points
+- candidate preserves the previously watched `mTCA gpu predict` point and turns
+  it into a positive result
+- the only GPU regression is `PHMap predict`, and it is materially smaller than
+  the gains seen on `PHMap build`, `mTCA`, and `DISCO`
+
+## Stage B final interpretation
+
+- CPU evidence is mixed but runtime-degraded
+- GPU evidence is strong, non-degraded, and favorable to the candidate
+- GPU memory usage remained effectively unchanged across datasets
+- RSS differences were negligible
+- train-time cost increased on some GPU points but stayed within a small
+  practical range for this benchmark round
+
+Decision:
+
+- promote `AdamW + wd=5e-5` as the new default training configuration candidate
+- keep scheduler disabled by default
+- record CPU caution explicitly when reporting Stage B because CPU fairness was
+  degraded by serial fallback in the restricted environment
