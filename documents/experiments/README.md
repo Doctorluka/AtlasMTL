@@ -35,6 +35,8 @@ Current rule for the paper-grade benchmark rollout:
   - pre-formal `scanvi` parameter confirmation dossier (GPU-only, cross-dataset stage-A/stage-B)
 - `2026-03-07_atlasmtl_param_lock_benchmark`
   - pre-formal `atlasmtl` parameter confirmation dossier (CPU/GPU dual-track lock; Stage A/B completed on `2026-03-06`)
+- `2026-03-06_formal_third_wave_scaling`
+  - round-level formal scaling preparation dossier for third-wave main-panel and supplementary execution
 
 ## Pilot rollout
 
@@ -98,3 +100,19 @@ Implications:
 
 For formal runtime fairness checks, rerun on an unrestricted server shell and
 record effective thread/device usage in the run report.
+
+## Formal third-wave scaling
+
+The current formal benchmark round starts with a dedicated preparation phase:
+
+- data audit
+- group-aware split
+- preprocessing and prepared subset materialization
+
+Primary entry points:
+
+- `plan/2026-03-06_formal_third_wave_scaling_plan.md`
+- `documents/protocols/formal_third_wave_scaling_protocol.md`
+- `documents/experiments/2026-03-06_formal_third_wave_execution_template.md`
+- `documents/experiments/2026-03-06_formal_third_wave_round_status.md`
+- `documents/experiments/2026-03-06_formal_third_wave_scaling/README.md`

@@ -8,10 +8,14 @@
 
 ## Manifest references
 
-- CPU manifest:
+- historical CPU manifest used in the `2026-03-05` run:
   - `documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/manifests/reference_heldout/HLCA_Core__ann_level_5__formal_runtime_cpu_train10k_test5k_v1.yaml`
-- GPU manifest:
+- historical GPU manifest used in the `2026-03-05` run:
   - `documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/manifests/reference_heldout/HLCA_Core__ann_level_5__formal_runtime_gpu_train10k_test5k_v1.yaml`
+- rerun-ready CPU manifest with locked formal defaults:
+  - `documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/manifests/reference_heldout/HLCA_Core__ann_level_5__formal_runtime_cpu_train10k_test5k_v2.yaml`
+- rerun-ready GPU manifest with locked formal defaults:
+  - `documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/manifests/reference_heldout/HLCA_Core__ann_level_5__formal_runtime_gpu_train10k_test5k_v2.yaml`
 
 ## Commands
 
@@ -104,3 +108,5 @@
 
 - this pilot template is ready to be reused for the remaining third-wave
   datasets (`PHMap`, `DISCO`, `mTCA`, `Vento`) with the same CPU/GPU split policy.
+- for any HLCA rerun intended to match the locked formal defaults, use the
+  `*_v2.yaml` manifests instead of the historical `*_v1.yaml` manifests.

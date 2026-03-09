@@ -10,6 +10,15 @@ This dossier tracks the formal third-wave pilot run for `HLCA_Core` using:
   - CPU group: all methods except `scanvi`
   - GPU group: `atlasmtl` and `scanvi`
 
+Status note:
+
+- the `2026-03-05` run is a historical formal pilot executed before the final
+  `scanvi` (`2026-03-06`) and `atlasmtl` (`2026-03-07`) parameter locks were
+  completed.
+- the original pilot manifests are preserved as `*_v1.yaml`.
+- rerun-ready manifests aligned to the locked formal defaults are provided as
+  `*_v2.yaml`.
+
 ## Structure
 
 - `manifests/reference_heldout/`

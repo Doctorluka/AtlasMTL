@@ -34,7 +34,15 @@ Use one of the two allowed policies and declare it in each run record:
 - `mixed_backend_labeled`: methods use their native backend capability, but
   every method must record actual `device_used`
 
-For paper-grade runtime tables, prefer `cpu_only_strict` first.
+For the formal third-wave scaling round, use:
+
+- `mixed_backend_labeled` for the combined headline round
+- explicit CPU-only sub-analyses only when the selected method set supports it
+
+Additional locked rules for this round:
+
+- `scanvi` remains GPU-only
+- `atlasmtl_cpu` and `atlasmtl_gpu` must remain separate runtime/resource rows
 
 ## Thread policy
 
@@ -66,15 +74,28 @@ When this appears:
 
 ## Sample-size contract
 
-For formal third-wave runs, keep second-wave dataset sizing unless explicitly
-overridden and justified:
+For the formal third-wave scaling round:
 
-- default references: `100k build + 10k heldout + nested 5k`
-- `Vento`: `50k build + 10k heldout + nested 5k`
-- `cd4/cd8`: excluded until raw-count contract is satisfied
+- main-panel datasets: `HLCA_Core`, `PHMap_Lung_Full_v43_light`, `mTCA`,
+  `DISCO_hPBMCs`
+- supplementary dataset: `Vento`
+- excluded: `cd4`, `cd8`
 
-Quick debug runs (for pipeline validation only) may downsample training (for
-example `train5k`), but must be labeled as `debug_only`.
+Build scaling:
+
+- build grid: `10k / 20k / 30k / 50k / 100k / 150k / 200k / 300k`
+- fixed query: one dedicated `build_eval_fixed_10k`
+
+Predict scaling:
+
+- fixed build: reuse the `100k` build artifact from build scaling
+- predict grid: `1k / 3k / 5k / 8k / 10k / 15k / 20k`
+- optional tail: `50k`
+
+Locked separation rule:
+
+- build-scaling fixed `10k` and predict-scaling `10k` must be different
+  heldout subsets
 
 ## Fallback labeling rule
 
@@ -105,6 +126,12 @@ these fields should be present in machine-readable outputs:
 
 - wrapper-level `scaleout_status.json`
 - per-method `runs/<method>/metrics.json` under `results[0].fairness_metadata`
+
+For the formal third-wave scaling round, preparation outputs must also record:
+
+- whether the fixed `100k` artifact is a true `100k` artifact or a
+  dataset-ceiling exception
+- whether a run belongs to the main panel or supplementary panel
 
 ## Execution checklist
 

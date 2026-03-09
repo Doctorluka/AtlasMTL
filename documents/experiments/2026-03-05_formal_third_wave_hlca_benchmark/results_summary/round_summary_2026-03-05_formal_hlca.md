@@ -9,6 +9,14 @@ This formal pilot run is considered successful at process level:
 - per-method artifacts (`summary.csv`, `metrics.json`, `scaleout_status.json`) are complete
 - native `celltypist` formal training path is now confirmed in the formal flow
 
+Historical-scope note:
+
+- this HLCA run should be treated as a process-valid formal pilot, not the
+  final locked-parameter reference for later formal datasets.
+- later formal reruns should use the locked defaults from:
+  - `documents/protocols/experiment_protocol.md`
+  - `documents/experiments/2026-03-05_formal_third_wave_hlca_benchmark/manifests/reference_heldout/*_v2.yaml`
+
 ## GPU-focused summary
 
 ### What happened
@@ -46,14 +54,13 @@ This formal pilot run is considered successful at process level:
 - add a preflight CUDA check in the GPU launcher:
   - fail fast with clear message if `torch.cuda.is_available()` is false.
 
-4. `scanvi` runtime tuning (without changing benchmark scope)
-- completed mini ablation on `HLCA train10k/test5k`:
-  - `20/20/20`: accuracy `0.8516`, macro_f1 `0.6881`, train+predict `63.28s`
-  - `15/15/10`: accuracy `0.8708`, macro_f1 `0.6728`, train+predict `43.97s`
-  - `10/10/5`: accuracy `0.8676`, macro_f1 `0.6198`, train+predict `28.13s`
-- locked wave-3 default for scale-out runtime runs:
-  - `scvi_max_epochs=15`, `scanvi_max_epochs=15`, `query_max_epochs=10`
-  - `datasplitter_num_workers=0` (deterministic and lightweight process behavior)
+4. `scanvi` runtime tuning
+- historical note:
+  - the HLCA pilot itself used `15/15/10` before the dedicated cross-dataset
+    lock experiment was completed.
+- current formal default after the dedicated lock experiment:
+  - `scvi_max_epochs=25`, `scanvi_max_epochs=25`, `query_max_epochs=20`
+  - `n_latent=20`, `batch_size=256`, `datasplitter_num_workers=0`
 
 5. CPU thread policy consistency
 - keep fixed thread env vars and add per-method recorded `num_threads_used` where available, especially for Python comparators.

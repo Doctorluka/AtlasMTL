@@ -1,0 +1,63 @@
+dataset_name: PHMap_Lung_Full_v43_light
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: formal_build_scaling_cpu_build30000_eval10k_v1
+split_description: formal third-wave build scaling manifest (cpu); build=30000, fixed
+  query=10k, panel=main
+reference_subset: reference_train_30000_prepared
+query_subset: heldout_build_eval_10k_prepared
+reference_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/build_scaling/build_30000/reference_train_30000.h5ad
+query_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/build_scaling/build_30000/heldout_build_eval_10k.h5ad
+label_columns:
+- anno_lv4
+domain_key: sample
+input_matrix_type: infer
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: anno_lv4
+    trainer_backend: formal
+    trainer_config:
+      n_jobs: 8
+      feature_selection: true
+      balance_cell_type: true
+      batch_size: 5000
+      top_genes: 500
+      use_gpu: false
+  singler:
+    target_label_column: anno_lv4
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+  seurat_anchor_transfer:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 3000
+  reference_knn:
+    input_transform: binary
+train:
+  hidden_sizes:
+  - 256
+  - 128
+  dropout_rate: 0.2
+  batch_size: 128
+  num_epochs: 50
+  learning_rate: 0.0003
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 5
+  random_state: 2026
+  reference_storage: external
+predict:
+  knn_correction: 'off'
+  batch_size: 128
+  input_transform: binary

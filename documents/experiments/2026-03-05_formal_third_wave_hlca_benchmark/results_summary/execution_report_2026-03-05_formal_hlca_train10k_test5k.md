@@ -7,6 +7,16 @@
 - train: `10k`
 - heldout predict: `5k`
 
+## Historical status note
+
+- this report records the historical `2026-03-05` HLCA formal pilot exactly as
+  executed.
+- it predates the final pre-formal parameter locks completed on `2026-03-06`
+  (`scanvi`) and `2026-03-07` (`atlasmtl`).
+- do not reuse the pilot's `atlasmtl` or `scanvi` training defaults for later
+  formal runs; use the locked defaults in the current protocol and the `*_v2`
+  manifests instead.
+
 ## Group policy
 
 - CPU group methods:
@@ -62,11 +72,20 @@
 | atlasmtl (cuda) | 0.8536 | 0.5658 | 1.4069 | 0.0288 |
 | scanvi (cuda) | 0.8672 | 0.6422 | 36.5337 | 7.0884 |
 
-`scanvi` formal runtime defaults used in this wave:
+`scanvi` runtime defaults used in this historical pilot:
 
 - `scvi_max_epochs=15`
 - `scanvi_max_epochs=15`
 - `query_max_epochs=10`
+- `datasplitter_num_workers=0`
+
+Current locked formal default for later reruns:
+
+- `scvi_max_epochs=25`
+- `scanvi_max_epochs=25`
+- `query_max_epochs=20`
+- `n_latent=20`
+- `batch_size=256`
 - `datasplitter_num_workers=0`
 
 ## Resource-monitoring note

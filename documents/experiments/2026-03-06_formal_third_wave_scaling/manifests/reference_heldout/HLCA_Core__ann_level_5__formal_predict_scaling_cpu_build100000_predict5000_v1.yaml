@@ -1,0 +1,63 @@
+dataset_name: HLCA_Core
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: formal_predict_scaling_cpu_build100000_predict5000_v1
+split_description: formal third-wave predict scaling manifest (cpu); fixed build=100000,
+  query=5000, panel=main
+reference_subset: reference_train_100000_prepared
+query_subset: heldout_predict_5000_prepared
+reference_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/HLCA_Core/prepared/formal_split_v1/build_scaling/build_100000/reference_train_100000.h5ad
+query_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/HLCA_Core/prepared/formal_split_v1/predict_scaling/fixed_build_100000/heldout_predict_5000.h5ad
+label_columns:
+- ann_level_5
+domain_key: donor_id
+input_matrix_type: lognorm
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: ann_level_5
+    trainer_backend: formal
+    trainer_config:
+      n_jobs: 8
+      feature_selection: true
+      balance_cell_type: true
+      batch_size: 5000
+      top_genes: 500
+      use_gpu: false
+  singler:
+    target_label_column: ann_level_5
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+  seurat_anchor_transfer:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 3000
+  reference_knn:
+    input_transform: binary
+train:
+  hidden_sizes:
+  - 256
+  - 128
+  dropout_rate: 0.2
+  batch_size: 128
+  num_epochs: 50
+  learning_rate: 0.0003
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 5
+  random_state: 2026
+  reference_storage: external
+predict:
+  knn_correction: 'off'
+  batch_size: 128
+  input_transform: binary

@@ -16,5 +16,10 @@ benchmark/reports/generated/
 tests/integration/logs/
 .r_libs/
 data/test_adatas/*.h5ad
+documents/tmp/
+!documents/tmp/2026-02-28_celltypist_benchmark_progress_report.md
+!documents/tmp/2026-03-02_atlasmtl_framework_and_experiments_expert_report.md
+!documents/tmp/Hyperparameter_tuning_suggestions.md
+!documents/tmp/preprocessing_advice.md
 
 vendor/

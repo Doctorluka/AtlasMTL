@@ -86,18 +86,17 @@ quality and resource cost:
 
 CellTypist implementation note:
 
-- the current benchmark repo contains two distinct CellTypist training paths:
-  - a lightweight wrapped-logistic path used in recent engineering runs
-  - a formal `celltypist.train(...)` path being restored for better
-    comparability with historical PH-Map benchmarking
-- as of `2026-03-04`, the formal path has code-level support but has not yet
-  passed a complete small-scale validation run under the current local
-  `celltypist==1.7.1` and `scikit-learn==1.8.0` environment
-- until that validation is complete, benchmark reports must explicitly mark the
-  active CellTypist comparator path as `wrapped_logreg`
-- do not compare recent lightweight CellTypist build times against historical
-  ProjectSVR/PH-Map CellTypist build-time figures without labeling the
-  implementation difference explicitly
+- the benchmark repo still contains multiple CellTypist training paths:
+  - `formal_native`
+  - `formal_with_compat_shim`
+  - `wrapped_logreg`
+- formal third-wave reports must record the active backend path explicitly in
+  machine-readable outputs and markdown summaries
+- headline formal tables must not silently mix `wrapped_logreg` outputs with
+  native CellTypist outputs
+- do not compare wrapped-logistic CellTypist build times against historical
+  PH-Map-style `celltypist.train(...)` figures without labeling the path
+  difference explicitly
 - detailed note:
   - `documents/protocols/celltypist_comparator_gap_note_2026-03-04.md`
 
@@ -114,6 +113,17 @@ Current interpretation from the completed ablation round:
 - `whole` remains the stability baseline and must stay in future grids
 - future HVG selection should be a local search around the current optimum,
   not an unrestricted sweep
+
+Formal third-wave scaling note:
+
+- the formal scaling contract is defined in
+  `documents/protocols/formal_third_wave_scaling_protocol.md`
+- build scaling uses a dedicated `build_eval_fixed_10k`
+- predict scaling reuses the already-trained `100k` build artifact
+- the build-scaling `10k` query and predict-scaling `10k` query must be
+  different heldout subsets
+- `Vento` is treated as a supplementary reduced-ceiling dataset in this formal
+  round
 
 ## Dataset manifest schema
 
@@ -729,28 +739,39 @@ Evidence dossier:
 - `documents/experiments/2026-03-06_scanvi_param_lock_benchmark/results_summary/experiment_report_2026-03-06_scanvi_param_lock.md`
 - `documents/experiments/2026-03-06_scanvi_param_lock_benchmark/results_summary/param_lock_decision_2026-03-06.md`
 
-### AtlasMTL pre-formal lock protocol (CPU/GPU)
+### Locked AtlasMTL defaults for formal runs
 
-Before formal atlasmtl reporting, run the dedicated atlasmtl parameter-lock
-benchmark with separate CPU/GPU tracks:
+Based on the completed pre-formal parameter confirmation experiment on
+`2026-03-07`, the default `atlasmtl` settings for subsequent formal experiments
+are locked as:
 
-- dossier:
-  - `documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/`
-- fixed settings:
+- shared fixed settings:
   - `num_threads=8`
   - `max_epochs=50`
   - `val_fraction=0.1`
   - `early_stopping_patience=5`
   - `input_transform=binary`
   - `reference_storage=external`
-- core tuned dimensions:
-  - `learning_rate`
-  - `hidden_sizes`
-  - `batch_size`
-- lock strategy:
-  - lock one default for CPU track
-  - lock one default for GPU track
-  - ranking priority: `macro_f1`, then `accuracy`, then elapsed-time tie-break
+- CPU default:
+  - `learning_rate=3e-4`
+  - `hidden_sizes=[256,128]`
+  - `batch_size=128`
+- GPU default:
+  - `learning_rate=1e-3`
+  - `hidden_sizes=[1024,512]`
+  - `batch_size=512`
+
+Execution rule:
+
+- in formal reporting, `atlasmtl` CPU and `atlasmtl` GPU should be treated as
+  separate runtime/resource variants.
+- if a future formal run deviates from these defaults, the deviation must be
+  documented explicitly as an ablation or exception note.
+
+Evidence dossier:
+
+- `documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/results_summary/experiment_report_2026-03-07_atlasmtl_param_lock.md`
+- `documents/experiments/2026-03-07_atlasmtl_param_lock_benchmark/results_summary/atlasmtl_lock_decision_2026-03-07.md`
 
 Deferred to later ablation round:
 
