@@ -24,8 +24,8 @@ def test_build_model_records_default_optimizer_config():
         device="cpu",
     )
 
-    assert model.train_config["optimizer_name"] == "adam"
-    assert model.train_config["weight_decay"] == 0.0
+    assert model.train_config["optimizer_name"] == "adamw"
+    assert model.train_config["weight_decay"] == 5e-5
     assert model.train_config["scheduler_name"] is None
 
 

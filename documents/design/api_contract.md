@@ -73,8 +73,8 @@ Coordinate behavior:
 
 Defaults that should remain stable unless a versioned change is announced:
 - `input_transform="binary"`
-- `optimizer_name="adam"`
-- `weight_decay=0.0`
+- `optimizer_name="adamw"`
+- `weight_decay=5e-5`
 - `scheduler_name=None`
 - `reference_storage="external"`
 - `num_threads=10`
