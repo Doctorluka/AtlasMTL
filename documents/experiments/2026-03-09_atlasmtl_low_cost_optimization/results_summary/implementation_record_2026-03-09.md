@@ -128,3 +128,70 @@ Smoke check outcome:
 ## Runtime execution note
 
 No Stage A or Stage B benchmark execution has started yet in this record.
+
+## Stage A CPU execution (`2026-03-09`)
+
+Status:
+
+- completed for `cpu_core`
+
+Execution command:
+
+```bash
+bash documents/experiments/2026-03-09_atlasmtl_low_cost_optimization/scripts/run_stage_a_cpu_core.sh
+```
+
+Execution mode note:
+
+- runs were executed in the restricted Codex environment
+- every CPU run reported `joblib_serial_fallback`
+- therefore runtime numbers should be treated as provisional fairness data, not
+  final paper-grade resource evidence
+
+Observed CPU Stage A screening summary:
+
+- `PHMap_Lung_Full_v43_light / build_100000_eval10k`
+  - baseline `macro_f1=0.642994`
+  - `wd=1e-5` `macro_f1=0.625151`
+  - `wd=5e-5` `macro_f1=0.647272`
+  - `wd=1e-4` `macro_f1=0.640712`
+- `PHMap_Lung_Full_v43_light / predict_100000_10000`
+  - baseline `macro_f1=0.651921`
+  - `wd=1e-5` `macro_f1=0.648428`
+  - `wd=5e-5` `macro_f1=0.651283`
+  - `wd=1e-4` `macro_f1=0.635325`
+- `mTCA / build_100000_eval10k`
+  - baseline `macro_f1=0.845717`
+  - `wd=1e-5` `macro_f1=0.865667`
+  - `wd=5e-5` `macro_f1=0.869528`
+  - `wd=1e-4` `macro_f1=0.837774`
+- `mTCA / predict_100000_10000`
+  - baseline `macro_f1=0.846167`
+  - `wd=1e-5` `macro_f1=0.869166`
+  - `wd=5e-5` `macro_f1=0.859251`
+  - `wd=1e-4` `macro_f1=0.852248`
+
+Provisional CPU-only interpretation:
+
+- `wd=1e-5` is not a robust candidate because it underperforms on both PHMap points
+- `wd=1e-4` is not a robust candidate because it harms PHMap predict and mTCA build
+- `wd=5e-5` is the strongest compromise on CPU:
+  - slightly better than baseline on difficult `PHMap build`
+  - near-neutral on `PHMap predict`
+  - clearly better than baseline on both `mTCA` points
+
+Next step:
+
+- Stage A GPU was subsequently executed outside the sandbox
+- final Stage A candidate is `AdamW + wd=5e-5`
+- scheduler check completed and was rejected
+
+Stage A lock after review:
+
+- proceed to Stage B with `AdamW + wd=5e-5` as the only candidate default
+- stop the scheduler branch completely
+- do not expand the `weight_decay` grid further
+- Stage B should answer whether the candidate remains broadly default-acceptable,
+  not whether it is strictly better on every single representative point
+- the isolated `mTCA gpu predict` regression should remain a watchpoint in Stage
+  B, but not a standalone reason to reject the candidate before confirmation

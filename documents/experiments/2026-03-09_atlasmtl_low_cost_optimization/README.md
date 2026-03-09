@@ -85,6 +85,13 @@ Configurations:
 
 Only run if Stage A identifies a credible candidate default.
 
+Current lock after Stage A review (`2026-03-09`):
+
+- Stage B candidate: `AdamW + wd=5e-5`
+- scheduler branch: stopped
+- no further `weight_decay` expansion inside Stage A
+- Stage B compares `baseline` vs `AdamW + wd=5e-5` only
+
 Datasets:
 
 - `HLCA_Core`
