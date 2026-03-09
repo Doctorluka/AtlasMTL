@@ -142,6 +142,13 @@ def build_model(
     batch_size: int = 256,
     num_epochs: int = 40,
     learning_rate: float = 1e-3,
+    optimizer_name: str = "adam",
+    weight_decay: float = 0.0,
+    scheduler_name: Optional[str] = None,
+    scheduler_factor: float = 0.5,
+    scheduler_patience: int = 5,
+    scheduler_min_lr: float = 1e-6,
+    scheduler_monitor: str = "val_loss",
     input_transform: str = "binary",
     val_fraction: float = 0.0,
     early_stopping_patience: Optional[int] = None,
@@ -209,6 +216,21 @@ def build_model(
         Maximum number of training epochs.
     learning_rate
         Adam learning rate.
+    optimizer_name
+        Optimizer to use. Supported values are `"adam"` and `"adamw"`.
+    weight_decay
+        Weight decay passed to the selected optimizer.
+    scheduler_name
+        Optional learning-rate scheduler. Supported values are `None` and
+        `"reduce_lr_on_plateau"`.
+    scheduler_factor
+        Multiplicative factor for `ReduceLROnPlateau`.
+    scheduler_patience
+        Plateau patience in epochs for `ReduceLROnPlateau`.
+    scheduler_min_lr
+        Minimum learning rate for `ReduceLROnPlateau`.
+    scheduler_monitor
+        Quantity monitored by the scheduler. Only `"val_loss"` is supported.
     input_transform
         Input preprocessing applied to `adata.X`. Supported values are
         `"binary"` and `"float"`. `"binary"` is the default and recommended
@@ -272,6 +294,16 @@ def build_model(
         raise ValueError(f"Missing domain_key column in adata.obs: {domain_key}")
     if domain_loss_method != "mean":
         raise ValueError("domain_loss_method must be 'mean'")
+    optimizer_name = str(optimizer_name).lower()
+    if optimizer_name not in {"adam", "adamw"}:
+        raise ValueError("optimizer_name must be 'adam' or 'adamw'")
+    if weight_decay < 0:
+        raise ValueError("weight_decay must be >= 0")
+    scheduler_name = None if scheduler_name is None else str(scheduler_name).lower()
+    if scheduler_name not in {None, "reduce_lr_on_plateau"}:
+        raise ValueError("scheduler_name must be None or 'reduce_lr_on_plateau'")
+    if scheduler_monitor != "val_loss":
+        raise ValueError("scheduler_monitor must be 'val_loss'")
     if domain_loss_weight < 0:
         raise ValueError("domain_loss_weight must be >= 0")
     if topology_loss_weight < 0:
@@ -328,7 +360,8 @@ def build_model(
 
     ce = torch.nn.CrossEntropyLoss()
     huber = torch.nn.HuberLoss()
-    opt = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer_cls = torch.optim.Adam if optimizer_name == "adam" else torch.optim.AdamW
+    opt = optimizer_cls(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
     coord_names = list(coord_targets.keys())
     train_indices = np.arange(adata.n_obs)
@@ -362,6 +395,18 @@ def build_model(
             val_tensors.append(d_t[val_indices])
         val_dataset = TensorDataset(*val_tensors)
         val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    if scheduler_name == "reduce_lr_on_plateau" and val_loader is None:
+        raise ValueError("scheduler_name='reduce_lr_on_plateau' requires val_fraction > 0")
+
+    scheduler = None
+    if scheduler_name == "reduce_lr_on_plateau":
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            opt,
+            mode="min",
+            factor=float(scheduler_factor),
+            patience=int(scheduler_patience),
+            min_lr=float(scheduler_min_lr),
+        )
 
     best_state = None
     best_val_loss = float("inf")
@@ -455,6 +500,8 @@ def build_model(
 
         mean_val_loss = total_val_loss / max(total_val_items, 1)
         last_val_loss = mean_val_loss
+        if scheduler is not None:
+            scheduler.step(mean_val_loss)
         if hasattr(epoch_iterator, "set_postfix"):
             epoch_iterator.set_postfix(train_loss=f"{last_train_loss:.4f}", val_loss=f"{mean_val_loss:.4f}")
         if mean_val_loss < (best_val_loss - early_stopping_min_delta):
@@ -551,6 +598,14 @@ def build_model(
         "num_epochs": num_epochs,
         "epochs_completed": epochs_completed,
         "learning_rate": learning_rate,
+        "optimizer_name": optimizer_name,
+        "weight_decay": float(weight_decay),
+        "scheduler_name": scheduler_name,
+        "scheduler_factor": float(scheduler_factor),
+        "scheduler_patience": int(scheduler_patience),
+        "scheduler_min_lr": float(scheduler_min_lr),
+        "scheduler_monitor": scheduler_monitor,
+        "final_learning_rate": float(opt.param_groups[0]["lr"]),
         "coord_targets": coord_targets,
         "coord_loss_weights": coord_loss_weights,
         "task_weights": task_weights,

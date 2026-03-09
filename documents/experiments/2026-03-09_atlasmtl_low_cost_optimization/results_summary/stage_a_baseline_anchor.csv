@@ -1,0 +1,9 @@
+dataset,track,point,config_name,accuracy,macro_f1,balanced_accuracy,train_elapsed_seconds,predict_elapsed_seconds,train_process_peak_rss_gb,predict_process_peak_rss_gb,train_gpu_peak_memory_gb,predict_gpu_peak_memory_gb
+PHMap_Lung_Full_v43_light,cpu_core,build_100000_eval10k,baseline_anchor,0.5866,0.6268299470304705,0.6432119035854491,37.6296,0.0955,5.362,6.299,0.0,0.0
+PHMap_Lung_Full_v43_light,cpu_core,predict_100000_10000,baseline_anchor,0.5724,0.6498163693737028,0.6747696215642741,36.6934,0.1281,5.3672,6.4392,0.0,0.0
+PHMap_Lung_Full_v43_light,gpu,build_100000_eval10k,baseline_anchor,0.5904,0.6510108191264689,0.6703135017397137,9.6157,0.0577,5.857,6.5884,0.0926,0.0447
+PHMap_Lung_Full_v43_light,gpu,predict_100000_10000,baseline_anchor,0.5791,0.6505651076532692,0.668168591509851,9.5201,0.0563,5.8058,6.174,0.0855,0.0447
+mTCA,cpu_core,build_100000_eval10k,baseline_anchor,0.9394,0.840301766459052,0.8418226672647693,27.0559,0.1249,5.3453,6.2585,0.0,0.0
+mTCA,cpu_core,predict_100000_10000,baseline_anchor,0.9447,0.8740905727768017,0.8705281320498788,33.3265,0.1098,5.3412,5.4758,0.0,0.0
+mTCA,gpu,build_100000_eval10k,baseline_anchor,0.9407,0.8412067538410519,0.8441335772137842,8.1451,0.0554,5.8342,6.1656,0.0923,0.0443
+mTCA,gpu,predict_100000_10000,baseline_anchor,0.9407,0.8522576878700159,0.8539916685751371,8.2364,0.0563,5.8448,6.1683,0.0846,0.0443

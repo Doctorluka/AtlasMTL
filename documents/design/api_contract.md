@@ -37,6 +37,13 @@ Important optional controls:
 - `batch_size`
 - `num_epochs`
 - `learning_rate`
+- `optimizer_name`
+- `weight_decay`
+- `scheduler_name`
+- `scheduler_factor`
+- `scheduler_patience`
+- `scheduler_min_lr`
+- `scheduler_monitor`
 - `input_transform`
 - `val_fraction`
 - `early_stopping_patience`
@@ -66,6 +73,9 @@ Coordinate behavior:
 
 Defaults that should remain stable unless a versioned change is announced:
 - `input_transform="binary"`
+- `optimizer_name="adam"`
+- `weight_decay=0.0`
+- `scheduler_name=None`
 - `reference_storage="external"`
 - `num_threads=10`
 - `device="auto"`

@@ -982,3 +982,54 @@ def test_benchmark_runner_can_compare_atlasmtl_and_seurat_anchor_transfer(tmp_pa
 
     summary = pd.read_csv(out_dir / "summary.csv")
     assert set(summary["method"]) == {"atlasmtl", "seurat_anchor_transfer"}
+
+
+def test_benchmark_runner_passes_optimizer_controls_to_atlasmtl(tmp_path: Path):
+    ref_obs = pd.DataFrame({"anno_lv1": ["A", "A", "B", "B"]}, index=["r1", "r2", "r3", "r4"])
+    ref = AnnData(X=np.array([[1, 0], [1, 1], [0, 1], [0, 2]], dtype=np.float32), obs=ref_obs)
+    ref.var_names = ["g1", "g2"]
+
+    query_obs = pd.DataFrame({"anno_lv1": ["A", "B"]}, index=["q1", "q2"])
+    query = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=query_obs)
+    query.var_names = ["g1", "g2"]
+
+    ref_path = tmp_path / "ref_optimizer.h5ad"
+    query_path = tmp_path / "query_optimizer.h5ad"
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    manifest = {
+        "dataset_name": "tiny_optimizer_controls",
+        "version": 1,
+        "protocol_version": 1,
+        "reference_h5ad": str(ref_path),
+        "query_h5ad": str(query_path),
+        "label_columns": ["anno_lv1"],
+        "train": {
+            "num_epochs": 2,
+            "batch_size": 2,
+            "hidden_sizes": [8],
+            "optimizer_name": "adamw",
+            "weight_decay": 1e-5,
+            "scheduler_name": "reduce_lr_on_plateau",
+            "scheduler_factor": 0.5,
+            "scheduler_patience": 5,
+            "scheduler_min_lr": 1e-6,
+            "scheduler_monitor": "val_loss",
+            "val_fraction": 0.5,
+            "early_stopping_patience": 5,
+        },
+        "predict": {"knn_correction": "off", "batch_size": 1},
+    }
+    manifest_path = tmp_path / "dataset_manifest_optimizer.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+
+    out_dir = tmp_path / "out_optimizer"
+    _run_cli([str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"])
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    result = metrics["results"][0]
+    assert result["train_config_used"]["optimizer_name"] == "adamw"
+    assert result["train_config_used"]["weight_decay"] == 1e-5
+    assert result["train_config_used"]["scheduler_name"] == "reduce_lr_on_plateau"
+    assert result["train_config_used"]["scheduler_monitor"] == "val_loss"

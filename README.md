@@ -125,6 +125,12 @@ Important controls:
 - `batch_size`
 - `num_epochs`
 - `learning_rate`
+- `optimizer_name`
+- `weight_decay`
+- `scheduler_name`
+- `scheduler_factor`
+- `scheduler_patience`
+- `scheduler_min_lr`
 - `input_transform`
 - `coord_targets`
 - `val_fraction`
@@ -148,6 +154,9 @@ Important controls:
 Notable defaults:
 
 - `input_transform="binary"`
+- `optimizer_name="adam"`
+- `weight_decay=0.0`
+- `scheduler_name=None`
 - `reference_storage="external"`
 - `num_threads=10`
 - `device="auto"`

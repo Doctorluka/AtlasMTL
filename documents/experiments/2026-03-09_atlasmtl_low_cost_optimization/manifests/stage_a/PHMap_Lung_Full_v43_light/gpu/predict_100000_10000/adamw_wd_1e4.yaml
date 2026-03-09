@@ -1,0 +1,82 @@
+dataset_name: PHMap_Lung_Full_v43_light
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: formal_predict_scaling_gpu_build100000_predict10000_v1
+split_description: formal third-wave predict scaling manifest (gpu); fixed build=100000,
+  query=10000, panel=main
+reference_subset: reference_train_100000_prepared
+query_subset: heldout_predict_10000_prepared
+reference_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/build_scaling/build_100000/reference_train_100000.h5ad
+query_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/predict_scaling/fixed_build_100000/heldout_predict_10000.h5ad
+label_columns:
+- anno_lv4
+domain_key: sample
+input_matrix_type: infer
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: anno_lv4
+    trainer_backend: formal
+    trainer_config:
+      n_jobs: 8
+      feature_selection: true
+      balance_cell_type: true
+      batch_size: 5000
+      top_genes: 500
+      use_gpu: false
+  singler:
+    target_label_column: anno_lv4
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+  seurat_anchor_transfer:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 3000
+  reference_knn:
+    input_transform: binary
+  scanvi:
+    target_label_column: anno_lv4
+    batch_key: sample
+    counts_layer: counts
+    scvi_max_epochs: 25
+    scanvi_max_epochs: 25
+    query_max_epochs: 20
+    n_latent: 20
+    batch_size: 256
+    datasplitter_num_workers: 0
+    use_gpu: true
+train:
+  hidden_sizes:
+  - 1024
+  - 512
+  dropout_rate: 0.2
+  batch_size: 512
+  num_epochs: 50
+  learning_rate: 0.001
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 5
+  random_state: 2026
+  reference_storage: external
+  optimizer_name: adamw
+  weight_decay: 0.0001
+  scheduler_name: null
+predict:
+  knn_correction: 'off'
+  batch_size: 512
+  input_transform: binary
+experiment_round: 2026-03-09_atlasmtl_low_cost_optimization
+optimization_stage: stage_a
+config_name: adamw_wd_1e4
+source_formal_manifest: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__formal_predict_scaling_gpu_build100000_predict10000_v1.yaml
+generated_from_manifest_index: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/manifest_index.json

@@ -50,6 +50,7 @@ This round therefore focuses on framework refinement, not benchmark expansion.
 Use these files as the fixed background for this dossier:
 
 - `plan/2026-03-09_fourth_round_atlasmtl_optimization_plan.md`
+- `plan/2026-03-09_fourth_round_atlasmtl_optimization_execution_plan.md`
 - `plan/2026-03-06_formal_third_wave_scaling_plan.md`
 - `documents/protocols/formal_third_wave_scaling_protocol.md`
 - `documents/experiments/2026-03-06_formal_third_wave_scaling/results_summary/formal_experiment_report.md`
