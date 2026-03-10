@@ -1,0 +1,72 @@
+[
+  {
+    "config_name": "correction_frozen_base_reranker_like",
+    "hotspot_parents": [
+      "CD4+ T",
+      "SMC de-differentiated",
+      "Mph alveolar",
+      "EC vascular",
+      "Fibro adventitial",
+      "CD8+ T"
+    ],
+    "init_model_path": "/tmp/atlasmtl_benchmarks/2026-03-09/phmap_study_split_phase2_seed/train/lv4strong_plus_class_weight/seed_101/runs/atlasmtl/atlasmtl_model_manifest.json",
+    "seed": 101,
+    "train_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase6c/train/correction_frozen_base_reranker_like/seed_101/atlasmtl_phase6c_train.yaml"
+  },
+  {
+    "config_name": "correction_frozen_base_reranker_like",
+    "hotspot_parents": [
+      "CD4+ T",
+      "SMC de-differentiated",
+      "Mph alveolar",
+      "EC vascular",
+      "Fibro adventitial",
+      "CD8+ T"
+    ],
+    "init_model_path": "/tmp/atlasmtl_benchmarks/2026-03-09/phmap_study_split_phase2_seed/train/lv4strong_plus_class_weight/seed_17/runs/atlasmtl/atlasmtl_model_manifest.json",
+    "seed": 17,
+    "train_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase6c/train/correction_frozen_base_reranker_like/seed_17/atlasmtl_phase6c_train.yaml"
+  },
+  {
+    "config_name": "correction_frozen_base_reranker_like",
+    "hotspot_parents": [
+      "CD4+ T",
+      "SMC de-differentiated",
+      "Mph alveolar",
+      "EC vascular",
+      "Fibro adventitial",
+      "CD8+ T"
+    ],
+    "init_model_path": "/tmp/atlasmtl_benchmarks/2026-03-09/phmap_study_split_phase2_seed/train/lv4strong_plus_class_weight/seed_2026/runs/atlasmtl/atlasmtl_model_manifest.json",
+    "seed": 2026,
+    "train_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase6c/train/correction_frozen_base_reranker_like/seed_2026/atlasmtl_phase6c_train.yaml"
+  },
+  {
+    "config_name": "correction_frozen_base_reranker_like",
+    "hotspot_parents": [
+      "CD4+ T",
+      "SMC de-differentiated",
+      "Mph alveolar",
+      "EC vascular",
+      "Fibro adventitial",
+      "CD8+ T"
+    ],
+    "init_model_path": "/tmp/atlasmtl_benchmarks/2026-03-09/phmap_study_split_phase2_seed/train/lv4strong_plus_class_weight/seed_23/runs/atlasmtl/atlasmtl_model_manifest.json",
+    "seed": 23,
+    "train_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase6c/train/correction_frozen_base_reranker_like/seed_23/atlasmtl_phase6c_train.yaml"
+  },
+  {
+    "config_name": "correction_frozen_base_reranker_like",
+    "hotspot_parents": [
+      "CD4+ T",
+      "SMC de-differentiated",
+      "Mph alveolar",
+      "EC vascular",
+      "Fibro adventitial",
+      "CD8+ T"
+    ],
+    "init_model_path": "/tmp/atlasmtl_benchmarks/2026-03-09/phmap_study_split_phase2_seed/train/lv4strong_plus_class_weight/seed_47/runs/atlasmtl/atlasmtl_model_manifest.json",
+    "seed": 47,
+    "train_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase6c/train/correction_frozen_base_reranker_like/seed_47/atlasmtl_phase6c_train.yaml"
+  }
+]

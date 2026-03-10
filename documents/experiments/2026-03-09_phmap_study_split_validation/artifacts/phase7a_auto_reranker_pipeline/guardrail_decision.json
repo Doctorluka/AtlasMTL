@@ -1,0 +1,15 @@
+{
+  "base_metrics": {
+    "anno_lv4_macro_f1": 0.582737815904619,
+    "full_path_accuracy": 0.4375,
+    "parent_correct_child_wrong_rate": 0.1225
+  },
+  "fallback_to_base": false,
+  "passed": true,
+  "point": "predict_100000_10000 + hierarchy_on",
+  "refined_metrics": {
+    "anno_lv4_macro_f1": 0.5855994923926136,
+    "full_path_accuracy": 0.4628,
+    "parent_correct_child_wrong_rate": 0.097
+  }
+}

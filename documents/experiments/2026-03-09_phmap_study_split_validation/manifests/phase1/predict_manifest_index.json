@@ -1,0 +1,106 @@
+[
+  {
+    "config_name": "uniform_control",
+    "enforce_hierarchy": true,
+    "hierarchy_setting": "on",
+    "point": "build_100000_eval10k",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/uniform_control/build_100000_eval10k/hierarchy_on/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "config_name": "uniform_control",
+    "enforce_hierarchy": false,
+    "hierarchy_setting": "off",
+    "point": "build_100000_eval10k",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/uniform_control/build_100000_eval10k/hierarchy_off/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "config_name": "uniform_control",
+    "enforce_hierarchy": true,
+    "hierarchy_setting": "on",
+    "point": "predict_100000_10000",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/uniform_control/predict_100000_10000/hierarchy_on/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "config_name": "uniform_control",
+    "enforce_hierarchy": false,
+    "hierarchy_setting": "off",
+    "point": "predict_100000_10000",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/uniform_control/predict_100000_10000/hierarchy_off/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "config_name": "lv4strong_candidate",
+    "enforce_hierarchy": true,
+    "hierarchy_setting": "on",
+    "point": "build_100000_eval10k",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/lv4strong_candidate/build_100000_eval10k/hierarchy_on/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      0.2,
+      0.7,
+      1.5,
+      3.0
+    ]
+  },
+  {
+    "config_name": "lv4strong_candidate",
+    "enforce_hierarchy": false,
+    "hierarchy_setting": "off",
+    "point": "build_100000_eval10k",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/lv4strong_candidate/build_100000_eval10k/hierarchy_off/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      0.2,
+      0.7,
+      1.5,
+      3.0
+    ]
+  },
+  {
+    "config_name": "lv4strong_candidate",
+    "enforce_hierarchy": true,
+    "hierarchy_setting": "on",
+    "point": "predict_100000_10000",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/lv4strong_candidate/predict_100000_10000/hierarchy_on/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      0.2,
+      0.7,
+      1.5,
+      3.0
+    ]
+  },
+  {
+    "config_name": "lv4strong_candidate",
+    "enforce_hierarchy": false,
+    "hierarchy_setting": "off",
+    "point": "predict_100000_10000",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/manifests/phase1/predict/lv4strong_candidate/predict_100000_10000/hierarchy_off/atlasmtl_phase1_predict.yaml",
+    "task_weights": [
+      0.2,
+      0.7,
+      1.5,
+      3.0
+    ]
+  }
+]

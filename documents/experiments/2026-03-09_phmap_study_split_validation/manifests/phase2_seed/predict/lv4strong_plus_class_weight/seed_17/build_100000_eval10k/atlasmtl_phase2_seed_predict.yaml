@@ -1,0 +1,178 @@
+dataset_name: PHMap_Lung_Full_v43_light
+version: 1
+protocol_version: 1
+random_seed: 17
+split_name: study_build_scaling_gpu_build100000_eval10k_v1
+split_description: PH-Map study-grouped build scaling manifest (gpu); build=100000,
+  eval=10k
+reference_subset: reference_train_100000_prepared
+query_subset: heldout_build_eval_10k_prepared
+reference_h5ad: /tmp/atlasmtl_benchmarks/2026-03-09/multilevel_annotation_study_split/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/build_scaling/build_100000/reference_train_100000.h5ad
+query_h5ad: /tmp/atlasmtl_benchmarks/2026-03-09/multilevel_annotation_study_split/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/build_scaling/build_100000/heldout_build_eval_10k.h5ad
+label_columns:
+- anno_lv1
+- anno_lv2
+- anno_lv3
+- anno_lv4
+domain_key: study
+input_matrix_type: infer
+counts_layer: counts
+var_names_type: ensembl
+species: human
+canonical_target: ensembl
+mapping_table_kind: biomart_human_mouse_rat
+feature_space: hvg
+hvg_config:
+  method: seurat_v3
+  n_top_genes: 3000
+method_configs:
+  atlasmtl:
+    reference_layer: counts
+    query_layer: counts
+train:
+  hidden_sizes:
+  - 1024
+  - 512
+  dropout_rate: 0.2
+  batch_size: 512
+  num_epochs: 50
+  learning_rate: 0.0003
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 5
+  random_state: 17
+  reference_storage: external
+  optimizer_name: adamw
+  weight_decay: 5.0e-05
+  scheduler_name: null
+  task_weights:
+  - 0.2
+  - 0.7
+  - 1.5
+  - 3.0
+  class_weighting:
+    label_column: anno_lv4
+    mode: balanced
+predict:
+  knn_correction: 'off'
+  batch_size: 512
+  input_transform: binary
+  enforce_hierarchy: true
+  hierarchy_rules:
+    anno_lv2:
+      parent_col: anno_lv1
+      child_to_parent:
+        T: Lymphocyte
+        DC: Myeloid
+        Epi AT1: Epithelial
+        Epi Ciliated: Epithelial
+        Macrophage: Myeloid
+        Monocyte: Myeloid
+        B: Lymphocyte
+        NK: Lymphocyte
+        Neutrophil: Myeloid
+        Epi Goblet: Epithelial
+        Epi AT2: Epithelial
+        Epi Basal: Epithelial
+        Mast: Myeloid
+        Platelet: Platelet
+        EC lymphatic: Endothelial
+        EC vascular: Endothelial
+        Fibroblast: Stromal
+        Pericyte: Stromal
+        Smooth Muscle: Stromal
+    anno_lv3:
+      parent_col: anno_lv2
+      child_to_parent:
+        CD4+ T: T
+        DC: DC
+        Epi AT1: Epi AT1
+        Epi Ciliated: Epi Ciliated
+        Mph alveolar: Macrophage
+        Mono classical: Monocyte
+        Plasma: B
+        Mph prevascular: Macrophage
+        NK CD16 high: NK
+        CD8+ T: T
+        Mono non-classical: Monocyte
+        B: B
+        Mph proliferating: Macrophage
+        Neutrophil: Neutrophil
+        Epi Goblet: Epi Goblet
+        Epi AT2: Epi AT2
+        NK CD56 high: NK
+        Epi Basal: Epi Basal
+        Mast: Mast
+        Platelet: Platelet
+        EC lymphatic: EC lymphatic
+        EC vascular: EC vascular
+        Fibro adventitial: Fibroblast
+        Fibro alveolar: Fibroblast
+        Pericyte: Pericyte
+        SMC contractile: Smooth Muscle
+        SMC de-differentiated: Smooth Muscle
+        Fibro subpleural: Fibroblast
+        Fibro preibronchial: Fibroblast
+        Fibro myo: Fibroblast
+    anno_lv4:
+      parent_col: anno_lv3
+      child_to_parent:
+        CD4T_c3_stress_MALAT1: CD4+ T
+        DC_c3_cDC_CD1E: DC
+        Epi_c1_AT1_CLIC5: Epi AT1
+        Epi_c4_Ciliated_FOXJ1: Epi Ciliated
+        Mph_c3_alveolar_FN1: Mph alveolar
+        Mono_c1_classical_CD14: Mono classical
+        CD4T_c1_naive_IL7R: CD4+ T
+        B_c2_plasma_JCHAIN: Plasma
+        Mph_c7_perivascular_F13A1: Mph prevascular
+        NK_c1_CD16: NK CD16 high
+        CD8T_c2_trMemory_ITGA1: CD8+ T
+        Mph_c4_alveolar_SCGB3A1: Mph alveolar
+        Mono_c2_non-classical_FCGR3A: Mono non-classical
+        Mph_c2_alveolar_CCL2: Mph alveolar
+        Mph_c1_alveolar_APOE: Mph alveolar
+        CD4T_c2_trMemory_CXCR6: CD4+ T
+        Mph_c6_alveolar_LGALS3: Mph alveolar
+        B_c1_MS4A1: B
+        CD4T_c5_Treg_FOXP3: CD4+ T
+        CD8T_c1_effector_GZMK: CD8+ T
+        Mph_c5_proliferating_MKI67: Mph proliferating
+        CD4T_c4_effector_CST3: CD4+ T
+        Neutrophil_NAMPT: Neutrophil
+        Epi_c5_Goblet_MUC5AC: Epi Goblet
+        Epi_c2_AT2_SFTPC: Epi AT2
+        CD8T_c3_eMemory_GZMH: CD8+ T
+        NK_c2_CD56: NK CD56 high
+        Epi_c3_Basal_KRT5: Epi Basal
+        Mast_TPSAB1: Mast
+        DC_c2_cDC_LEC9A: DC
+        DC_c1_cDC_LAD1: DC
+        DC_c4_pDC_CLEC4C: DC
+        Platelet_PPBP: Platelet
+        EC_c1_lymphatic_CCL21: EC lymphatic
+        EC_c2_aerocyte_cap_SOSTDC1: EC vascular
+        EC_c9_COL1A2: EC vascular
+        EC_c4_general_cap_FCN3: EC vascular
+        EC_c6_venous_sys_TPD52L1: EC vascular
+        EC_c3_arterial_DKK2: EC vascular
+        Fibro_c1_adventitial_MFAP5: Fibro adventitial
+        EC_c7_FTL: EC vascular
+        Fibro_c2_adventitial_SRPX: Fibro adventitial
+        Fibro_c4_alveolar_SPINT2: Fibro alveolar
+        Fibro_c3_alveolar_FTH1: Fibro alveolar
+        EC_c5_venous_pul_CPE: EC vascular
+        Pericyte_LAMC3: Pericyte
+        SMC_c1_contractile_CNN1: SMC contractile
+        SMC_c4_dediff_SOCS3: SMC de-differentiated
+        EC_c8_CXCL12: EC vascular
+        Fibro_c5_subpleural_POSTN: Fibro subpleural
+        SMC_c5_dediff_COX4I2: SMC de-differentiated
+        SMC_c2_dediff_FLNA: SMC de-differentiated
+        SMC_c3_dediff_LUM: SMC de-differentiated
+        Fibro_c6_preibronchial_ASPN: Fibro preibronchial
+        Fibro_c7_myo_MYH11: Fibro myo
+experiment_round: 2026-03-09_phmap_study_split_validation
+optimization_stage: phase2_seed
+config_name: atlasmtl_study_split_phase2_seed_lv4strong_plus_class_weight_seed_17_build_100000_eval10k
+seed: 17

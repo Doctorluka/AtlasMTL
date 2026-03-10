@@ -1,0 +1,16 @@
+[
+  {
+    "artifact_size_bytes": 8317,
+    "dataset": "PHMap_Lung_Full_v43_light",
+    "delta_runtime_seconds": null,
+    "delta_storage_bytes": null,
+    "fit_summary_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/artifacts/phase7a_auto_reranker_pipeline/per_parent_reranker_summary.csv",
+    "guardrail_decision_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/artifacts/phase7a_auto_reranker_pipeline/guardrail_decision.json",
+    "hotspot_ranking_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/artifacts/phase7a_auto_reranker_pipeline/hotspot_ranking.json",
+    "refinement_plan_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/artifacts/phase7a_auto_reranker_pipeline/refinement_plan.json",
+    "reranker_apply_time_seconds": null,
+    "reranker_artifact_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/artifacts/phase7a_auto_reranker_pipeline/parent_conditioned_reranker_top6.pkl",
+    "reranker_fit_time_seconds": null,
+    "variant": "auto_parent_conditioned_reranker_top8_candidate"
+  }
+]

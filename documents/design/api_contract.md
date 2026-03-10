@@ -108,6 +108,7 @@ Important optional controls:
 - `openset_label_column`
 - `hierarchy_rules`
 - `enforce_hierarchy`
+- `refinement_config`
 - `batch_size`
 - `num_threads`
 - `device`
@@ -124,6 +125,20 @@ Defaults that should remain stable unless a versioned change is announced:
 - `knn_vote_mode="majority"`
 - `knn_reference_mode="full"`
 - `knn_index_mode="exact"`
+
+Refinement contract:
+
+- `refinement_config=None` preserves the base prediction path
+- supported refinement methods are currently:
+  - `{"method": "parent_conditioned_reranker", "artifact_path": ...}`
+  - `{"method": "auto_parent_conditioned_reranker", "plan_path": ...}`
+- the auto mode loads a serialized refinement plan that records:
+  - parent and child levels
+  - hotspot selection metadata
+  - reranker artifact location
+  - optional guardrail and fallback metadata
+- refinement is currently positioned as a dataset-specific optional extension
+  rather than a universal default prediction behavior
 
 ## `TrainedModel`
 

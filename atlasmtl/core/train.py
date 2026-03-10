@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import os
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from anndata import AnnData
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader, TensorDataset, WeightedRandomSampler
 
 from .data import compute_coord_stats, extract_matrix, scale_coords
 from .model import AtlasMTLModel
@@ -92,6 +93,232 @@ def _topology_loss(
     return torch.mean((d_p - d_t) ** 2)
 
 
+def _resolve_balanced_label_config(
+    config: Optional[Dict[str, Any]],
+    *,
+    label_columns: List[str],
+    config_name: str,
+) -> Optional[Tuple[int, str, str]]:
+    if config is None:
+        return None
+    if not isinstance(config, dict):
+        raise ValueError(f"{config_name} must be a dict when provided")
+    label_column = str(config.get("label_column") or label_columns[-1])
+    if label_column not in label_columns:
+        raise ValueError(f"{config_name}.label_column must be one of label_columns")
+    mode = str(config.get("mode", "balanced")).lower()
+    if mode != "balanced":
+        raise ValueError(f"{config_name}.mode must be 'balanced'")
+    return label_columns.index(label_column), label_column, mode
+
+
+def _balanced_class_weights(
+    y: np.ndarray,
+    *,
+    num_classes: int,
+) -> np.ndarray:
+    counts = np.bincount(y, minlength=num_classes).astype(np.float32)
+    weights = np.zeros(num_classes, dtype=np.float32)
+    present = counts > 0
+    if np.any(present):
+        weights[present] = float(len(y)) / (float(np.sum(present)) * counts[present])
+    return weights
+
+
+def _class_distribution_metadata(
+    *,
+    classes: np.ndarray,
+    counts: np.ndarray,
+    weights: Optional[np.ndarray] = None,
+) -> Dict[str, Any]:
+    out = {
+        "class_counts": {
+            str(cls): int(count)
+            for cls, count in zip(classes.tolist(), counts.tolist())
+        }
+    }
+    if weights is not None:
+        out["class_weights"] = {
+            str(cls): float(weight)
+            for cls, weight in zip(classes.tolist(), weights.tolist())
+        }
+    return out
+
+
+def _resolve_parent_conditioned_child_correction_config(
+    config: Optional[Dict[str, Any]],
+    *,
+    adata: AnnData,
+    label_columns: List[str],
+    label_encoders: Dict[str, LabelEncoder],
+) -> Optional[Dict[str, Any]]:
+    if config is None:
+        return None
+    if not isinstance(config, dict):
+        raise ValueError("parent_conditioned_child_correction must be a dict when provided")
+    parent_level = str(config.get("parent_level") or "")
+    target_level = str(config.get("target_level") or "")
+    hotspot_parents = [str(x) for x in list(config.get("hotspot_parents") or [])]
+    mode = str(config.get("mode", "joint"))
+    if parent_level not in label_columns:
+        raise ValueError("parent_conditioned_child_correction.parent_level must be one of label_columns")
+    if target_level not in label_columns:
+        raise ValueError("parent_conditioned_child_correction.target_level must be one of label_columns")
+    parent_head_index = label_columns.index(parent_level)
+    child_head_index = label_columns.index(target_level)
+    if child_head_index != parent_head_index + 1:
+        raise ValueError("parent_conditioned_child_correction currently requires adjacent parent and target levels")
+    if not hotspot_parents:
+        raise ValueError("parent_conditioned_child_correction.hotspot_parents must be non-empty")
+    if mode not in {"joint", "frozen_base"}:
+        raise ValueError("parent_conditioned_child_correction.mode must be 'joint' or 'frozen_base'")
+    base_lr_scale = float(config.get("base_lr_scale", 0.1))
+    if not (0.0 <= base_lr_scale <= 1.0):
+        raise ValueError("parent_conditioned_child_correction.base_lr_scale must be in [0, 1]")
+    loss_weight = float(config.get("loss_weight", 1.0))
+    if loss_weight < 0.0:
+        raise ValueError("parent_conditioned_child_correction.loss_weight must be >= 0")
+    hidden_dim = int(config.get("hidden_dim", 64))
+    if hidden_dim <= 0:
+        raise ValueError("parent_conditioned_child_correction.hidden_dim must be > 0")
+    residual_scale = float(config.get("residual_scale", 1.0))
+    if residual_scale < 0.0:
+        raise ValueError("parent_conditioned_child_correction.residual_scale must be >= 0")
+    feature_mode = str(config.get("feature_mode", "standard"))
+    if feature_mode not in {"standard", "reranker_like"}:
+        raise ValueError("parent_conditioned_child_correction.feature_mode must be 'standard' or 'reranker_like'")
+    rank_loss_weight = float(config.get("rank_loss_weight", 0.0))
+    if rank_loss_weight < 0.0:
+        raise ValueError("parent_conditioned_child_correction.rank_loss_weight must be >= 0")
+    rank_margin = float(config.get("rank_margin", 0.2))
+    if rank_margin < 0.0:
+        raise ValueError("parent_conditioned_child_correction.rank_margin must be >= 0")
+
+    parent_encoder = label_encoders[parent_level]
+    child_encoder = label_encoders[target_level]
+    observed = adata.obs.loc[:, [parent_level, target_level]].dropna().copy()
+    observed[parent_level] = observed[parent_level].astype(str)
+    observed[target_level] = observed[target_level].astype(str)
+    legal_child_names: Dict[str, List[str]] = {}
+    hotspot_parent_indices: List[int] = []
+    hotspot_child_indices: Dict[str, List[int]] = {}
+    for parent_label in hotspot_parents:
+        if parent_label not in parent_encoder.classes_:
+            raise ValueError(
+                f"parent_conditioned_child_correction hotspot parent not found in {parent_level}: {parent_label}"
+            )
+        child_names = sorted(observed.loc[observed[parent_level] == parent_label, target_level].unique().tolist())
+        if not child_names:
+            raise ValueError(
+                f"parent_conditioned_child_correction hotspot parent has no observed {target_level} children: {parent_label}"
+            )
+        parent_idx = int(parent_encoder.transform([parent_label])[0])
+        child_indices = [int(child_encoder.transform([child_name])[0]) for child_name in child_names]
+        hotspot_parent_indices.append(parent_idx)
+        hotspot_child_indices[str(parent_idx)] = child_indices
+        legal_child_names[parent_label] = child_names
+    return {
+        "enabled": True,
+        "parent_level": parent_level,
+        "target_level": target_level,
+        "parent_head_index": parent_head_index,
+        "child_head_index": child_head_index,
+        "hotspot_parents": hotspot_parents,
+        "hotspot_parent_indices": hotspot_parent_indices,
+        "hotspot_child_indices": hotspot_child_indices,
+        "legal_child_names": legal_child_names,
+        "mode": mode,
+        "base_lr_scale": base_lr_scale,
+        "loss_weight": loss_weight,
+        "hidden_dim": hidden_dim,
+        "residual_scale": residual_scale,
+        "feature_mode": feature_mode,
+        "rank_loss_weight": rank_loss_weight,
+        "rank_margin": rank_margin,
+    }
+
+
+def _compute_parent_conditioned_correction_loss(
+    corrected_logits: List[torch.Tensor],
+    targets: List[torch.Tensor],
+    correction_cfg: Dict[str, Any],
+    *,
+    device: torch.device,
+) -> Tuple[torch.Tensor, int]:
+    parent_head_index = int(correction_cfg["parent_head_index"])
+    child_head_index = int(correction_cfg["child_head_index"])
+    hotspot_child_indices = dict(correction_cfg["hotspot_child_indices"])
+    parent_targets = targets[parent_head_index]
+    child_targets = targets[child_head_index]
+    child_logits = corrected_logits[child_head_index]
+    total = torch.zeros((), device=device)
+    total_items = 0
+    for parent_idx_str, child_indices in hotspot_child_indices.items():
+        parent_idx = int(parent_idx_str)
+        mask = parent_targets == parent_idx
+        if not torch.any(mask):
+            continue
+        subset_indices = torch.tensor(child_indices, dtype=torch.long, device=device)
+        subset_logits = child_logits[mask].index_select(1, subset_indices)
+        target_subset = child_targets[mask]
+        remapped = torch.full_like(target_subset, fill_value=-100)
+        for local_idx, global_idx in enumerate(child_indices):
+            remapped[target_subset == int(global_idx)] = int(local_idx)
+        valid = remapped >= 0
+        if not torch.any(valid):
+            continue
+        total = total + F.cross_entropy(subset_logits[valid], remapped[valid], reduction="sum")
+        total_items += int(valid.sum().item())
+    if total_items == 0:
+        return torch.zeros((), device=device), 0
+    return total / float(total_items), total_items
+
+
+def _compute_parent_conditioned_ranking_loss(
+    corrected_logits: List[torch.Tensor],
+    targets: List[torch.Tensor],
+    correction_cfg: Dict[str, Any],
+    *,
+    device: torch.device,
+) -> Tuple[torch.Tensor, int]:
+    parent_head_index = int(correction_cfg["parent_head_index"])
+    child_head_index = int(correction_cfg["child_head_index"])
+    hotspot_child_indices = dict(correction_cfg["hotspot_child_indices"])
+    parent_targets = targets[parent_head_index]
+    child_targets = targets[child_head_index]
+    child_logits = corrected_logits[child_head_index]
+    margin = float(correction_cfg.get("rank_margin", 0.2))
+    total = torch.zeros((), device=device)
+    total_items = 0
+    for parent_idx_str, child_indices in hotspot_child_indices.items():
+        parent_idx = int(parent_idx_str)
+        mask = parent_targets == parent_idx
+        if not torch.any(mask) or len(child_indices) < 2:
+            continue
+        subset_indices = torch.tensor(child_indices, dtype=torch.long, device=device)
+        subset_logits = child_logits[mask].index_select(1, subset_indices)
+        target_subset = child_targets[mask]
+        remapped = torch.full_like(target_subset, fill_value=-100)
+        for local_idx, global_idx in enumerate(child_indices):
+            remapped[target_subset == int(global_idx)] = int(local_idx)
+        valid = remapped >= 0
+        if not torch.any(valid):
+            continue
+        valid_logits = subset_logits[valid]
+        valid_targets = remapped[valid]
+        row_idx = torch.arange(valid_logits.shape[0], device=device)
+        true_logits = valid_logits[row_idx, valid_targets]
+        competitor_logits = valid_logits.clone()
+        competitor_logits[row_idx, valid_targets] = float("-inf")
+        top_other = competitor_logits.max(dim=1).values
+        losses = torch.relu(torch.tensor(margin, device=device) - (true_logits - top_other))
+        total = total + losses.sum()
+        total_items += int(valid.sum().item())
+    if total_items == 0:
+        return torch.zeros((), device=device), 0
+    return total / float(total_items), total_items
+
+
 def _build_resource_summary(
     adata: AnnData,
     device: torch.device,
@@ -164,8 +391,12 @@ def build_model(
     calibration_method: Optional[str] = None,
     calibration_max_iter: int = 100,
     calibration_lr: float = 0.05,
+    class_weighting: Optional[Dict[str, Any]] = None,
+    class_balanced_sampling: Optional[Dict[str, Any]] = None,
+    parent_conditioned_child_correction: Optional[Dict[str, Any]] = None,
     reference_storage: str = "external",
     reference_path: Optional[str] = None,
+    init_model_path: Optional[str] = None,
     num_threads: Union[int, str, None] = 10,
     device: str = "auto",
     show_progress: Optional[bool] = None,
@@ -245,12 +476,26 @@ def build_model(
         Minimum validation-loss improvement required to reset early stopping.
     random_state
         Random seed used when creating the optional validation split.
+    class_weighting
+        Optional per-head class weighting configuration. Current supported form
+        is `{"label_column": "<target>", "mode": "balanced"}`.
+    class_balanced_sampling
+        Optional weighted sampling configuration. Current supported form is
+        `{"label_column": "<target>", "mode": "balanced"}`.
+    parent_conditioned_child_correction
+        Optional local train-time child correction configuration. Current
+        supported form is `{"parent_level": "<parent>", "target_level":
+        "<child>", "hotspot_parents": [...], "mode": "joint" |
+        "frozen_base"}`.
     reference_storage
         How KNN reference data is stored with the trained model. Supported
         values are `"external"` and `"full"`. `"external"` is recommended.
     reference_path
         Optional custom path for external reference storage. Ignored when
         `reference_storage="full"`.
+    init_model_path
+        Optional path to an existing trained model artifact or manifest used to
+        initialize matching weights before training.
     num_threads
         Number of CPU threads made available to PyTorch. Default is `10`.
         Pass `"max"` to use up to 80% of available CPUs.
@@ -322,6 +567,12 @@ def build_model(
         label_encoders[col] = le
         y_arrays.append(y)
         num_classes.append(len(le.classes_))
+    parent_conditioned_child_correction_cfg = _resolve_parent_conditioned_child_correction_config(
+        parent_conditioned_child_correction,
+        adata=adata,
+        label_columns=label_columns,
+        label_encoders=label_encoders,
+    )
 
     coord_stats: Dict[str, Dict[str, np.ndarray]] = {}
     coord_data: Dict[str, np.ndarray] = {}
@@ -339,10 +590,21 @@ def build_model(
         hidden_sizes=hidden_sizes,
         dropout_rate=dropout_rate,
         coord_dims=coord_dims,
+        parent_conditioned_child_correction=parent_conditioned_child_correction_cfg,
     )
     num_threads_used = configure_torch_threads(num_threads)
     resolved_device = resolve_device(device)
     model.to(resolved_device)
+    if init_model_path is not None:
+        init_bundle = TrainedModel.load(str(init_model_path), device=resolved_device)
+        current_state = model.state_dict()
+        init_state = init_bundle.model.state_dict()
+        compatible = {
+            key: value
+            for key, value in init_state.items()
+            if key in current_state and current_state[key].shape == value.shape
+        }
+        model.load_state_dict(compatible, strict=False)
 
     x_t = torch.tensor(X, dtype=torch.float32)
     y_t = [torch.tensor(y, dtype=torch.long) for y in y_arrays]
@@ -357,11 +619,55 @@ def build_model(
     task_weights = task_weights or [1.0 for _ in label_columns]
     if len(task_weights) != len(label_columns):
         raise ValueError("task_weights length must match label_columns")
+    class_weighting_spec = _resolve_balanced_label_config(
+        class_weighting,
+        label_columns=label_columns,
+        config_name="class_weighting",
+    )
+    class_sampling_spec = _resolve_balanced_label_config(
+        class_balanced_sampling,
+        label_columns=label_columns,
+        config_name="class_balanced_sampling",
+    )
 
-    ce = torch.nn.CrossEntropyLoss()
     huber = torch.nn.HuberLoss()
     optimizer_cls = torch.optim.Adam if optimizer_name == "adam" else torch.optim.AdamW
-    opt = optimizer_cls(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    if parent_conditioned_child_correction_cfg is not None:
+        correction_names = {
+            name
+            for name, _ in model.named_parameters()
+            if name.startswith("child_correction_modules.")
+        }
+        if parent_conditioned_child_correction_cfg["mode"] == "frozen_base":
+            for name, param in model.named_parameters():
+                param.requires_grad = name in correction_names
+            opt = optimizer_cls(
+                [param for param in model.parameters() if param.requires_grad],
+                lr=learning_rate,
+                weight_decay=weight_decay,
+            )
+        else:
+            base_params = []
+            correction_params = []
+            for name, param in model.named_parameters():
+                if not param.requires_grad:
+                    continue
+                if name in correction_names:
+                    correction_params.append(param)
+                else:
+                    base_params.append(param)
+            opt = optimizer_cls(
+                [
+                    {
+                        "params": base_params,
+                        "lr": learning_rate * float(parent_conditioned_child_correction_cfg["base_lr_scale"]),
+                    },
+                    {"params": correction_params, "lr": learning_rate},
+                ],
+                weight_decay=weight_decay,
+            )
+    else:
+        opt = optimizer_cls(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
     coord_names = list(coord_targets.keys())
     train_indices = np.arange(adata.n_obs)
@@ -374,6 +680,35 @@ def build_model(
             shuffle=True,
         )
 
+    ce_losses: List[torch.nn.CrossEntropyLoss] = []
+    class_weighting_summary = None
+    for head_index, column in enumerate(label_columns):
+        weight_tensor = None
+        if class_weighting_spec is not None and head_index == class_weighting_spec[0]:
+            class_weights = _balanced_class_weights(
+                y_arrays[head_index][train_indices],
+                num_classes=num_classes[head_index],
+            )
+            weight_tensor = torch.tensor(
+                class_weights,
+                dtype=torch.float32,
+                device=resolved_device,
+            )
+            class_counts = np.bincount(
+                y_arrays[head_index][train_indices],
+                minlength=num_classes[head_index],
+            )
+            class_weighting_summary = {
+                "label_column": column,
+                "mode": class_weighting_spec[2],
+                **_class_distribution_metadata(
+                    classes=label_encoders[column].classes_,
+                    counts=class_counts,
+                    weights=class_weights,
+                ),
+            }
+        ce_losses.append(torch.nn.CrossEntropyLoss(weight=weight_tensor))
+
     train_tensors = [
         x_t[train_indices],
         *[tensor[train_indices] for tensor in y_t],
@@ -382,7 +717,42 @@ def build_model(
     if d_t is not None:
         train_tensors.append(d_t[train_indices])
     train_dataset = TensorDataset(*train_tensors)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_sampler = None
+    class_balanced_sampling_summary = None
+    if class_sampling_spec is not None:
+        sample_head_index, sample_label_column, sample_mode = class_sampling_spec
+        sample_targets = y_arrays[sample_head_index][train_indices]
+        sample_class_weights = _balanced_class_weights(
+            sample_targets,
+            num_classes=num_classes[sample_head_index],
+        )
+        sample_weights = sample_class_weights[sample_targets]
+        train_sampler = WeightedRandomSampler(
+            weights=torch.tensor(sample_weights, dtype=torch.double),
+            num_samples=len(train_indices),
+            replacement=True,
+            generator=torch.Generator().manual_seed(int(random_state)),
+        )
+        sample_counts = np.bincount(
+            sample_targets,
+            minlength=num_classes[sample_head_index],
+        )
+        class_balanced_sampling_summary = {
+            "label_column": sample_label_column,
+            "mode": sample_mode,
+            "replacement": True,
+            **_class_distribution_metadata(
+                classes=label_encoders[sample_label_column].classes_,
+                counts=sample_counts,
+                weights=sample_class_weights,
+            ),
+        }
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=train_sampler is None,
+        sampler=train_sampler,
+    )
 
     val_loader = None
     if len(val_indices) > 0:
@@ -437,7 +807,30 @@ def build_model(
             if d_t is not None:
                 domains_batch = batch[1 + len(label_columns) + len(coord_names)].to(resolved_device)
             logits, coords, z = model(bx)
-            loss_cls = sum(task_weights[i] * ce(logits[i], by[i]) for i in range(len(by)))
+            loss_cls = sum(task_weights[i] * ce_losses[i](logits[i], by[i]) for i in range(len(by)))
+            loss_corr = torch.zeros((), device=resolved_device)
+            loss_rank = torch.zeros((), device=resolved_device)
+            if parent_conditioned_child_correction_cfg is not None:
+                corrected_logits, _ = model.apply_parent_conditioned_child_correction(
+                    z,
+                    logits,
+                    parent_indices_override=by[parent_conditioned_child_correction_cfg["parent_head_index"]],
+                )
+                loss_corr, _ = _compute_parent_conditioned_correction_loss(
+                    corrected_logits,
+                    by,
+                    parent_conditioned_child_correction_cfg,
+                    device=resolved_device,
+                )
+                loss_corr = loss_corr * float(parent_conditioned_child_correction_cfg["loss_weight"])
+                if float(parent_conditioned_child_correction_cfg.get("rank_loss_weight", 0.0)) > 0:
+                    loss_rank, _ = _compute_parent_conditioned_ranking_loss(
+                        corrected_logits,
+                        by,
+                        parent_conditioned_child_correction_cfg,
+                        device=resolved_device,
+                    )
+                    loss_rank = loss_rank * float(parent_conditioned_child_correction_cfg["rank_loss_weight"])
             loss_coord = sum(
                 coord_loss_weights.get(name, 0.0) * huber(coords[name], bc[name])
                 for name in coord_names
@@ -452,7 +845,11 @@ def build_model(
                     bc[topology_coord],
                     k=int(topology_k),
                 ) * float(topology_loss_weight)
-            loss = loss_cls + loss_coord + loss_domain + loss_topo
+            loss = loss_cls + loss_corr + loss_rank + loss_coord + loss_domain + loss_topo
+            if not loss.requires_grad:
+                epoch_loss_total += loss.item() * len(bx)
+                epoch_items += len(bx)
+                continue
             opt.zero_grad()
             loss.backward()
             opt.step()
@@ -478,7 +875,7 @@ def build_model(
                     for i in range(len(coord_names))
                 }
                 logits, coords, z = model(bx)
-                loss_cls = sum(task_weights[i] * ce(logits[i], by[i]) for i in range(len(by)))
+                loss_cls = sum(task_weights[i] * ce_losses[i](logits[i], by[i]) for i in range(len(by)))
                 loss_coord = sum(
                     coord_loss_weights.get(name, 0.0) * huber(coords[name], bc[name])
                     for name in coord_names
@@ -487,6 +884,29 @@ def build_model(
                 if d_t is not None and domain_loss_weight > 0:
                     domains_batch = batch[1 + len(label_columns) + len(coord_names)].to(resolved_device)
                     loss_domain = _domain_mean_penalty(z, domains_batch) * float(domain_loss_weight)
+                loss_corr = torch.zeros((), device=resolved_device)
+                loss_rank = torch.zeros((), device=resolved_device)
+                if parent_conditioned_child_correction_cfg is not None:
+                    corrected_logits, _ = model.apply_parent_conditioned_child_correction(
+                        z,
+                        logits,
+                        parent_indices_override=by[parent_conditioned_child_correction_cfg["parent_head_index"]],
+                    )
+                    loss_corr, _ = _compute_parent_conditioned_correction_loss(
+                        corrected_logits,
+                        by,
+                        parent_conditioned_child_correction_cfg,
+                        device=resolved_device,
+                    )
+                    loss_corr = loss_corr * float(parent_conditioned_child_correction_cfg["loss_weight"])
+                    if float(parent_conditioned_child_correction_cfg.get("rank_loss_weight", 0.0)) > 0:
+                        loss_rank, _ = _compute_parent_conditioned_ranking_loss(
+                            corrected_logits,
+                            by,
+                            parent_conditioned_child_correction_cfg,
+                            device=resolved_device,
+                        )
+                        loss_rank = loss_rank * float(parent_conditioned_child_correction_cfg["rank_loss_weight"])
                 loss_topo = torch.zeros((), device=resolved_device)
                 if topology_loss_weight > 0 and topology_coord in coord_names:
                     loss_topo = _topology_loss(
@@ -494,7 +914,7 @@ def build_model(
                         bc[topology_coord],
                         k=int(topology_k),
                     ) * float(topology_loss_weight)
-                batch_loss = (loss_cls + loss_coord + loss_domain + loss_topo).item()
+                batch_loss = (loss_cls + loss_corr + loss_rank + loss_coord + loss_domain + loss_topo).item()
                 total_val_loss += batch_loss * len(bx)
                 total_val_items += len(bx)
 
@@ -533,7 +953,13 @@ def build_model(
             for batch in val_loader:
                 bx = batch[0].to(resolved_device)
                 by = [batch[i + 1].to(resolved_device) for i in range(len(label_columns))]
-                logits_out, _, _ = model(bx)
+                logits_out, _, z_out = model(bx)
+                if parent_conditioned_child_correction_cfg is not None:
+                    logits_out, _ = model.apply_parent_conditioned_child_correction(
+                        z_out,
+                        logits_out,
+                        parent_indices_override=by[parent_conditioned_child_correction_cfg["parent_head_index"]],
+                    )
                 if val_logits_parts is None:
                     val_logits_parts = [[] for _ in range(len(logits_out))]
                 for i, logit in enumerate(logits_out):
@@ -622,7 +1048,11 @@ def build_model(
         "topology_k": int(topology_k),
         "topology_coord": topology_coord,
         "calibration": calibration_payload,
+        "class_weighting": class_weighting_summary,
+        "class_balanced_sampling": class_balanced_sampling_summary,
+        "parent_conditioned_child_correction": parent_conditioned_child_correction_cfg,
         "reference_storage": reference_storage,
+        "init_model_path": init_model_path,
         "coord_enabled": bool(coord_targets),
         "resolved_coord_targets": coord_targets,
         "knn_reference_obsm_key": knn_reference_obsm_key,

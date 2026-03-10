@@ -1,0 +1,74 @@
+[
+  {
+    "config_name": "uniform",
+    "point": "build_100000_eval10k",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/manifests/weight_confirmation/predict/uniform/build_100000_eval10k/atlasmtl_hlca_weight_confirmation_predict.yaml",
+    "task_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "config_name": "uniform",
+    "point": "predict_100000_10000",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/manifests/weight_confirmation/predict/uniform/predict_100000_10000/atlasmtl_hlca_weight_confirmation_predict.yaml",
+    "task_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  {
+    "config_name": "mild_lv5",
+    "point": "build_100000_eval10k",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/manifests/weight_confirmation/predict/mild_lv5/build_100000_eval10k/atlasmtl_hlca_weight_confirmation_predict.yaml",
+    "task_weights": [
+      0.7,
+      0.8,
+      1.0,
+      1.2,
+      2.0
+    ]
+  },
+  {
+    "config_name": "mild_lv5",
+    "point": "predict_100000_10000",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/manifests/weight_confirmation/predict/mild_lv5/predict_100000_10000/atlasmtl_hlca_weight_confirmation_predict.yaml",
+    "task_weights": [
+      0.7,
+      0.8,
+      1.0,
+      1.2,
+      2.0
+    ]
+  },
+  {
+    "config_name": "strong_lv5",
+    "point": "build_100000_eval10k",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/manifests/weight_confirmation/predict/strong_lv5/build_100000_eval10k/atlasmtl_hlca_weight_confirmation_predict.yaml",
+    "task_weights": [
+      0.4,
+      0.6,
+      0.9,
+      1.3,
+      3.0
+    ]
+  },
+  {
+    "config_name": "strong_lv5",
+    "point": "predict_100000_10000",
+    "predict_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/manifests/weight_confirmation/predict/strong_lv5/predict_100000_10000/atlasmtl_hlca_weight_confirmation_predict.yaml",
+    "task_weights": [
+      0.4,
+      0.6,
+      0.9,
+      1.3,
+      3.0
+    ]
+  }
+]

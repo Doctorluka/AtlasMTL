@@ -1,0 +1,10 @@
+{
+  "balanced_accuracy": 0.6824906881230501,
+  "best_config_name": "uniform",
+  "coverage": 0.9678,
+  "full_path_accuracy": 0.8239,
+  "macro_f1": 0.6887323609459964,
+  "selection_point": "predict_100000_10000",
+  "selection_rationale": "highest_macro_f1",
+  "unknown_rate": 0.0322
+}

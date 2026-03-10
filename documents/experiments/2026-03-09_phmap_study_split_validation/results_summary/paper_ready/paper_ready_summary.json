@@ -1,0 +1,18 @@
+{
+  "dataset": "PHMap_Lung_Full_v43_light",
+  "default_operational_path": "lv4strong + class_weighting + auto_parent_conditioned_reranker_top8",
+  "generated_files": [
+    "paper_main_figure_panel_a.csv",
+    "paper_main_figure_panel_b.csv",
+    "paper_main_figure_panel_d.csv",
+    "paper_operational_artifact_index.json",
+    "paper_operational_overhead.csv",
+    "paper_s1_ablation_ladder.csv",
+    "paper_s2_by_group.csv",
+    "paper_s2_stability.csv",
+    "paper_s3_hotspot_rule_comparison.csv",
+    "paper_s3_parent_overlap.csv",
+    "paper_s4_internalization_branch.csv"
+  ],
+  "paper_ready_dir": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/results_summary/paper_ready"
+}

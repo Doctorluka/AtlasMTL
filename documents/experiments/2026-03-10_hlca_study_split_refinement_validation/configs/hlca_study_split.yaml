@@ -1,0 +1,37 @@
+dataset_name: HLCA_Core
+source_h5ad: /home/data/fhz/project/phmap_package/data/real_test/HLCA/hlca_clean.h5ad
+split_key: study
+domain_key: study
+target_label: ann_level_5
+label_columns:
+  - ann_level_1
+  - ann_level_2
+  - ann_level_3
+  - ann_level_4
+  - ann_level_5
+seed: 2026
+n_candidates: 512
+build_pool_size: 150000
+build_size: 100000
+heldout_total_size: 60000
+build_eval_size: 10000
+predict_pool_size: 50000
+predict_sizes:
+  - 10000
+  - 5000
+warning_build_label_min: 25
+warning_predict_label_min: 10
+prepared_root: /tmp/atlasmtl_benchmarks/2026-03-10/hlca_study_split_refinement/HLCA_Core/prepared/formal_split_v1
+preprocess:
+  var_names_type: ensembl
+  species: human
+  canonical_target: ensembl
+  mapping_table_kind: biomart_human_mouse_rat
+  input_matrix_type: lognorm
+  counts_layer: counts
+  feature_space: hvg
+  hvg_config:
+    method: seurat_v3
+    n_top_genes: 3000
+  duplicate_policy: sum
+  unmapped_policy: drop

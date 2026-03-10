@@ -214,3 +214,41 @@ Operational recommendation:
 - keep `knn_correction="off"` as the primary recommended setting
 - reserve `knn_correction="low_conf_only"` for controlled method-specific
   follow-up analysis
+
+## 8) Current conclusion from the parent-conditioned reranker line
+
+The completed PH-Map and first-pass HLCA refinement rounds support a narrower,
+more operational conclusion.
+
+What appears to generalize:
+
+- the workflow should remain error-driven:
+  - identify the hardest hierarchy edge
+  - decompose the residual error modes
+  - only then decide whether weighting or refinement is justified
+- parent-conditioned reranking is a credible operational module for difficult
+  deep-hierarchy cases
+
+What does not appear to generalize as a fixed default:
+
+- PH-Map finest-level task weights
+- PH-Map hotspot parent lists
+- PH-Map hotspot-rule width (`top8`)
+
+Current evidence:
+
+- `PHMap_Lung_Full_v43_light`
+  - finest-level upweighting is beneficial
+  - the finalized operational path is:
+    `lv4strong + per-class weighting + auto parent-conditioned reranker_top8`
+- `HLCA_Core`
+  - the best base weighting remains `uniform`
+  - first-pass auto reranking improves finest-level macro-F1, but currently
+    fails the PH-Map-style guardrail because full-path accuracy declines and
+    `parent_correct_child_wrong` increases
+
+Operational recommendation:
+
+- treat weighting and reranking as dataset-adaptive optional modules
+- do not promote PH-Map-specific settings to a global default without
+  additional positive cross-dataset evidence

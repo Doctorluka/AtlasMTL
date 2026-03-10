@@ -1,0 +1,32 @@
+# PH-Map Study-Split Preparation Record
+
+- date: `2026-03-09`
+- stage: `preparation`
+- dataset: `PHMap_Lung_Full_v43_light`
+- source h5ad: `/home/data/fhz/project/phmap_package/data/real_test/phmap/phmap_clean.h5ad`
+- config: `documents/experiments/2026-03-09_multilevel_annotation_benchmark/configs/phmap_study_split.yaml`
+- split key: `study`
+- domain key: `study`
+- target label: `anno_lv4`
+- seed: `2026`
+- candidate count: `512`
+- selected build max: `150000`
+- selected heldout total: `60000`
+- build groups:
+  - `Gayathri_Viswanathan_2023`
+  - `Taylor_Adams_2020`
+  - `Zhou_2024`
+- predict groups:
+  - `Jonas_Schupp_2021`
+  - `Slaven_Crnkovic_2022`
+  - `Tijana_Tuhy_2025`
+- main outputs:
+  - `/tmp/atlasmtl_benchmarks/2026-03-09/multilevel_annotation_study_split/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/split_plan.json`
+  - `/tmp/atlasmtl_benchmarks/2026-03-09/multilevel_annotation_study_split/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/split_summary.json`
+  - `/tmp/atlasmtl_benchmarks/2026-03-09/multilevel_annotation_study_split/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/preprocessing_summary.json`
+  - `/tmp/atlasmtl_benchmarks/2026-03-09/multilevel_annotation_study_split/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/preparation_resource_summary.json`
+- warning:
+  - `build_pool_has_label_with_lt25_cells`
+- next action:
+  - generate a PH-Map-only Phase 1 manifest set under the study-grouped split
+  - rerun `uniform_control` and `lv4strong_candidate` on GPU

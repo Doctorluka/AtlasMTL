@@ -1,0 +1,9 @@
+dataset,track,config_name,point,hierarchy_setting,enforce_hierarchy,full_path_accuracy,full_path_coverage,full_path_covered_accuracy,mean_path_consistency_rate,min_path_consistency_rate
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,build_100000_eval10k,off,False,0.4591,0.8137,0.5642128548605138,0.9754972981768342,0.9463606235424082
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,build_100000_eval10k,on,True,0.4591,0.759,0.6048748353096179,1.0,1.0
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,predict_100000_10000,off,False,0.4639,0.8029,0.577780545522481,0.9755092105055093,0.9470083343699465
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,predict_100000_10000,on,True,0.4639,0.7502,0.6183684350839777,1.0,1.0
+PHMap_Lung_Full_v43_light,gpu,uniform_control,build_100000_eval10k,off,False,0.4548,0.7879,0.5772306130219571,0.9832846988420426,0.9649923896499238
+PHMap_Lung_Full_v43_light,gpu,uniform_control,build_100000_eval10k,on,True,0.4548,0.7517,0.6050286018358387,1.0,1.0
+PHMap_Lung_Full_v43_light,gpu,uniform_control,predict_100000_10000,off,False,0.457,0.7814,0.584847709239826,0.9834128053410897,0.9634271099744246
+PHMap_Lung_Full_v43_light,gpu,uniform_control,predict_100000_10000,on,True,0.457,0.7462,0.6124363441436612,1.0,1.0

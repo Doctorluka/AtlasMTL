@@ -39,6 +39,14 @@ Current rule for the paper-grade benchmark rollout:
   - round-level formal scaling preparation dossier for third-wave main-panel and supplementary execution
 - `2026-03-09_atlasmtl_low_cost_optimization`
   - fourth-round low-cost optimization dossier for atlasmtl default training refinement (`AdamW` / `weight_decay` / scheduler screening and confirmation)
+- `2026-03-09_formal_atlasmtl_refresh`
+  - fifth-round formal refresh dossier that reruns only AtlasMTL under the promoted default and compares against retained formal baseline rows
+- `2026-03-09_phmap_study_split_validation`
+  - PH-Map-only independent validation dossier that rebuilds the heldout split with `study` isolation and reruns the Phase 1 weighting comparison
+- `2026-03-10_hlca_study_split_refinement_validation`
+  - HLCA-specific validation dossier that rebuilds HLCA from raw `study` groups, confirms 5-level weighting, and tests first-pass AutoHotspot reranking
+- `2026-03-10_parent_conditioned_reranker_paper_package`
+  - paper-facing package that consolidates PH-Map and HLCA chapter tables and discussion notes for the parent-conditioned reranker line
 
 ## Pilot rollout
 
@@ -145,3 +153,29 @@ Important interpretation caveat:
   `joblib_serial_fallback`
 - non-degraded GPU Stage B confirmation is therefore the primary evidence for
   the default-promotion decision
+
+- `2026-03-09_formal_atlasmtl_refresh`
+  - completed
+  - AtlasMTL-only formal refresh finished on `20` planned points
+  - refresh did not clear the formal row-replacement gate
+  - retained formal third-wave AtlasMTL baseline rows remain the paper-grade
+    comparison rows
+  - code default still remains `AdamW + weight_decay=5e-5`
+  - practical interpretation: software default retained, manuscript-grade
+    comparison rows unchanged
+- `2026-03-09_phmap_study_split_validation`
+  - completed
+  - PH-Map current-best operational path is now:
+    `lv4strong + per-class weighting + auto parent-conditioned reranker_top8`
+  - `top8` passed the default-rule confirmation and replaced `top6`
+  - train-time internalization remains a research branch, not the default path
+- `2026-03-10_hlca_study_split_refinement_validation`
+  - in progress
+  - HLCA `study`-split and 5-level weighting confirmation are complete
+  - current best HLCA base weighting is `uniform`, not PH-Map-style finest-level upweighting
+  - first-pass auto reranker validation is mixed and has not yet promoted reranking to an HLCA operational default
+- `2026-03-10_parent_conditioned_reranker_paper_package`
+  - completed
+  - consolidates PH-Map and HLCA chapter tables into a single paper-facing package
+  - PH-Map is treated as the finalized positive case
+  - HLCA is currently carried as a mixed first-pass secondary validation case

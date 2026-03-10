@@ -1,0 +1,11 @@
+seed,variant_name,selected_parents,selected_parent_count,overlap_with_seed2026_count,overlap_with_seed2026_fraction
+101,reranker_top6,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|Fibro adventitial|CD8+ T,6,6,1.0
+101,reranker_top8,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|Fibro adventitial|CD8+ T|Fibro alveolar|SMC contractile,8,7,0.875
+17,reranker_top6,CD4+ T|SMC de-differentiated|EC vascular|Mph alveolar|Fibro adventitial|CD8+ T,6,6,1.0
+17,reranker_top8,CD4+ T|SMC de-differentiated|EC vascular|Mph alveolar|Fibro adventitial|CD8+ T|Fibro alveolar|Epi AT1,8,7,0.875
+2026,reranker_top6,CD4+ T|SMC de-differentiated|EC vascular|Mph alveolar|Fibro adventitial|CD8+ T,6,6,1.0
+2026,reranker_top8,CD4+ T|SMC de-differentiated|EC vascular|Mph alveolar|Fibro adventitial|CD8+ T|Fibro alveolar|Epi AT2,8,8,1.0
+23,reranker_top6,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|CD8+ T|Fibro adventitial,6,6,1.0
+23,reranker_top8,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|CD8+ T|Fibro adventitial|Fibro alveolar|SMC contractile,8,7,0.875
+47,reranker_top6,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|CD8+ T|Fibro adventitial,6,6,1.0
+47,reranker_top8,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|CD8+ T|Fibro adventitial|Fibro alveolar|Epi AT1,8,7,0.875

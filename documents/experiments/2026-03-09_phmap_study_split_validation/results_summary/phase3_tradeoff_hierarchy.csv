@@ -1,0 +1,9 @@
+dataset,track,config_name,point,hierarchy_setting,enforce_hierarchy,full_path_accuracy,full_path_coverage,full_path_covered_accuracy,mean_path_consistency_rate,min_path_consistency_rate
+PHMap_Lung_Full_v43_light,gpu,lv4strong_baseline,build_100000_eval10k,off,False,0.4558,0.8142,0.5598133136821419,0.9770085493490334,0.9480981595092025
+PHMap_Lung_Full_v43_light,gpu,lv4strong_baseline,build_100000_eval10k,on,True,0.4558,0.7619,0.5982412390077438,1.0,1.0
+PHMap_Lung_Full_v43_light,gpu,lv4strong_baseline,predict_100000_10000,off,False,0.4562,0.8077,0.5648136684412529,0.9776623081105092,0.950544015825915
+PHMap_Lung_Full_v43_light,gpu,lv4strong_baseline,predict_100000_10000,on,True,0.4562,0.7575,0.6022442244224423,1.0,1.0
+PHMap_Lung_Full_v43_light,gpu,lv4strong_plus_class_weight,build_100000_eval10k,off,False,0.4408,0.8937,0.49323039051135725,0.9728995736146686,0.9355379287230478
+PHMap_Lung_Full_v43_light,gpu,lv4strong_plus_class_weight,build_100000_eval10k,on,True,0.4408,0.8273,0.5328175994197993,1.0,1.0
+PHMap_Lung_Full_v43_light,gpu,lv4strong_plus_class_weight,predict_100000_10000,off,False,0.4443,0.8861,0.5014106759959372,0.9730647465394732,0.9372182146077548
+PHMap_Lung_Full_v43_light,gpu,lv4strong_plus_class_weight,predict_100000_10000,on,True,0.4443,0.822,0.5405109489051095,1.0,1.0

@@ -1,0 +1,7 @@
+parent_label,train_size,status,legal_child_count,active_child_count
+CD4+ T,7227,fit_ok,5,5
+SMC de-differentiated,3101,fit_ok,4,4
+Mph alveolar,36383,fit_ok,5,5
+EC vascular,8837,fit_ok,8,8
+Fibro adventitial,1072,fit_ok,2,2
+CD8+ T,4910,fit_ok,3,3

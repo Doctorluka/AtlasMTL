@@ -1,0 +1,5 @@
+variant_name,point,parent_col,child_col,parent_accuracy,child_accuracy,parent_correct_child_wrong_rate,parent_wrong_child_correct_rate,both_wrong_rate,child_unknown_rate,parent_unknown_rate,path_break_rate
+auto_parent_conditioned_reranker,build_100000_eval10k,ann_level_4,ann_level_5,0.8646,0.8341,0.036,0.0055,0.1299,0.0129,0.0196,0.0
+baseline,build_100000_eval10k,ann_level_4,ann_level_5,0.8646,0.8387,0.0318,0.0059,0.1295,0.031,0.0196,0.0
+auto_parent_conditioned_reranker,predict_100000_10000,ann_level_4,ann_level_5,0.8602,0.8301,0.0371,0.007,0.1328,0.0115,0.0189,0.0
+baseline,predict_100000_10000,ann_level_4,ann_level_5,0.8602,0.8336,0.0334,0.0068,0.133,0.0322,0.0189,0.0

@@ -49,6 +49,12 @@ def run_model_in_batches(
         for batch in batch_iterator:
             num_batches += 1
             batch_logits, batch_coords, batch_latent = model.model(batch.to(device))
+            has_correction = getattr(model.model, "has_parent_conditioned_child_correction", None)
+            if callable(has_correction) and has_correction():
+                batch_logits, _ = model.model.apply_parent_conditioned_child_correction(
+                    batch_latent,
+                    batch_logits,
+                )
             if logits_batches is None:
                 logits_batches = [[] for _ in range(len(batch_logits))]
             for idx, logit in enumerate(batch_logits):

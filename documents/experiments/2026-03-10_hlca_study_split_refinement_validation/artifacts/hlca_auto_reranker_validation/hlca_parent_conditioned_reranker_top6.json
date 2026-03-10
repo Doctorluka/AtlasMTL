@@ -1,0 +1,67 @@
+{
+  "artifact_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/artifacts/hlca_auto_reranker_validation/hlca_parent_conditioned_reranker_top6.pkl",
+  "child_level": "ann_level_5",
+  "hotspot_parents": [
+    "Alveolar macrophages",
+    "Interstitial macrophages",
+    "Goblet",
+    "Club",
+    "Multiciliated",
+    "AT2"
+  ],
+  "method": "parent_conditioned_reranker",
+  "parent_level": "ann_level_4",
+  "per_parent_summary": [
+    {
+      "active_child_count": 4,
+      "legal_child_count": 4,
+      "parent_label": "Alveolar macrophages",
+      "status": "fit_ok",
+      "train_size": 15175
+    },
+    {
+      "active_child_count": 2,
+      "legal_child_count": 2,
+      "parent_label": "Interstitial macrophages",
+      "status": "fit_ok",
+      "train_size": 3072
+    },
+    {
+      "active_child_count": 3,
+      "legal_child_count": 3,
+      "parent_label": "Goblet",
+      "status": "fit_ok",
+      "train_size": 11868
+    },
+    {
+      "active_child_count": 2,
+      "legal_child_count": 2,
+      "parent_label": "Club",
+      "status": "fit_ok",
+      "train_size": 8311
+    },
+    {
+      "active_child_count": 2,
+      "legal_child_count": 2,
+      "parent_label": "Multiciliated",
+      "status": "fit_ok",
+      "train_size": 8274
+    },
+    {
+      "active_child_count": 1,
+      "legal_child_count": 1,
+      "parent_label": "AT2",
+      "status": "constant_single_child",
+      "train_size": 5123
+    }
+  ],
+  "selection_metadata": {
+    "best_base_config_name": "uniform",
+    "hotspot_topk": 6,
+    "min_cells_per_parent": 200,
+    "selection_mode": "topk",
+    "selection_point": "predict_100000_10000 + hierarchy_on",
+    "selection_score": "parent_correct_child_wrong_rate * n_cells",
+    "selection_source": "HLCA best base config"
+  }
+}

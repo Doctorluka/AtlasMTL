@@ -18,6 +18,15 @@ Unknown-cell abstention.
 All reliability add-ons are opt-in and preserve the default workflow unless
 explicitly enabled.
 
+Current refinement note:
+
+- `atlasmtl` now supports optional prediction-time parent-conditioned reranking
+  through `predict(..., refinement_config=...)`
+- the strongest current evidence is on PH-Map, where the finalized operational
+  path is `lv4strong + per-class weighting + auto parent-conditioned reranker_top8`
+- this should be interpreted as a dataset-specific, error-driven refinement
+  module, not as a globally enabled default across all references
+
 ## Gene ID and feature-space policy
 
 atlasmtl currently aligns genes by exact `adata.var_names` matching. There is
@@ -198,6 +207,7 @@ Important controls:
 - `openset_label_column`
 - `hierarchy_rules`
 - `enforce_hierarchy`
+- `refinement_config`
 - `batch_size`
 - `num_threads`
 - `device`
@@ -215,6 +225,15 @@ Notable defaults:
 - `knn_vote_mode="majority"`
 - `knn_reference_mode="full"`
 - `knn_index_mode="exact"`
+
+Refinement configuration:
+
+- `predict()` also accepts:
+  - `{"method": "parent_conditioned_reranker", "artifact_path": ...}`
+  - `{"method": "auto_parent_conditioned_reranker", "plan_path": ...}`
+- the auto mode is designed for auditable, dataset-specific refinement plans
+  that bundle hotspot discovery outputs, reranker artifacts, and guardrail
+  metadata
 
 ## Export and writeback
 
@@ -318,6 +337,7 @@ These are implemented in the Python API but not yet exposed as CLI flags:
 - KNN vote/reference/index variants
 - open-set controls
 - hierarchy enforcement controls
+- refinement-plan driven parent-conditioned reranking
 - `show_summary`
 
 ## Benchmark runner

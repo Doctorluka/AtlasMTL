@@ -1,0 +1,195 @@
+{
+  "ranking": [
+    {
+      "contribution": 345.0,
+      "n_cells": 719,
+      "parent_correct_child_wrong_rate": 0.4798331015299026,
+      "parent_label": "CD4+ T"
+    },
+    {
+      "contribution": 241.99999999999994,
+      "n_cells": 811,
+      "parent_correct_child_wrong_rate": 0.2983970406905055,
+      "parent_label": "SMC de-differentiated"
+    },
+    {
+      "contribution": 139.99999999999994,
+      "n_cells": 597,
+      "parent_correct_child_wrong_rate": 0.2345058626465661,
+      "parent_label": "Mph alveolar"
+    },
+    {
+      "contribution": 137.99999999999997,
+      "n_cells": 541,
+      "parent_correct_child_wrong_rate": 0.255083179297597,
+      "parent_label": "EC vascular"
+    },
+    {
+      "contribution": 85.99999999999997,
+      "n_cells": 462,
+      "parent_correct_child_wrong_rate": 0.1861471861471861,
+      "parent_label": "Fibro adventitial"
+    },
+    {
+      "contribution": 61.999999999999964,
+      "n_cells": 421,
+      "parent_correct_child_wrong_rate": 0.1472684085510688,
+      "parent_label": "CD8+ T"
+    },
+    {
+      "contribution": 53.99999999999999,
+      "n_cells": 283,
+      "parent_correct_child_wrong_rate": 0.1908127208480565,
+      "parent_label": "Fibro alveolar"
+    },
+    {
+      "contribution": 22.999999999999986,
+      "n_cells": 268,
+      "parent_correct_child_wrong_rate": 0.085820895522388,
+      "parent_label": "Epi AT1"
+    },
+    {
+      "contribution": 19.999999999999975,
+      "n_cells": 287,
+      "parent_correct_child_wrong_rate": 0.0696864111498257,
+      "parent_label": "Epi AT2"
+    },
+    {
+      "contribution": 18.999999999999954,
+      "n_cells": 893,
+      "parent_correct_child_wrong_rate": 0.0212765957446808,
+      "parent_label": "SMC contractile"
+    },
+    {
+      "contribution": 15.999999999999973,
+      "n_cells": 348,
+      "parent_correct_child_wrong_rate": 0.0459770114942528,
+      "parent_label": "Mono classical"
+    },
+    {
+      "contribution": 14.999999999999993,
+      "n_cells": 133,
+      "parent_correct_child_wrong_rate": 0.112781954887218,
+      "parent_label": "NK CD16 high"
+    },
+    {
+      "contribution": 6.999999999999991,
+      "n_cells": 103,
+      "parent_correct_child_wrong_rate": 0.0679611650485436,
+      "parent_label": "Pericyte"
+    },
+    {
+      "contribution": 2.999999999999995,
+      "n_cells": 86,
+      "parent_correct_child_wrong_rate": 0.0348837209302325,
+      "parent_label": "DC"
+    },
+    {
+      "contribution": 2.999999999999981,
+      "n_cells": 486,
+      "parent_correct_child_wrong_rate": 0.0061728395061728,
+      "parent_label": "Mph prevascular"
+    },
+    {
+      "contribution": 1.0,
+      "n_cells": 73,
+      "parent_correct_child_wrong_rate": 0.0136986301369863,
+      "parent_label": "Mono non-classical"
+    },
+    {
+      "contribution": 0.9999999999999983,
+      "n_cells": 39,
+      "parent_correct_child_wrong_rate": 0.0256410256410256,
+      "parent_label": "Neutrophil"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 3021,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "EC cultured"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 69,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Mast"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 63,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "NK CD56 high"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 58,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "B"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 46,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Epi Ciliated"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 38,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "EC lymphatic"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 37,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Fibro subpleural"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 37,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Plasma"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 36,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Epi Goblet"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 28,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Epi Basal"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 9,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Fibro myo"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 5,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Fibro preibronchial"
+    },
+    {
+      "contribution": 0.0,
+      "n_cells": 3,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "Platelet"
+    }
+  ],
+  "selection_point": "predict_100000_10000 + hierarchy_on",
+  "selection_score": "parent_correct_child_wrong_rate * n_cells",
+  "selection_source": "Phase 3 baseline",
+  "top6": [
+    "CD4+ T",
+    "SMC de-differentiated",
+    "Mph alveolar",
+    "EC vascular",
+    "Fibro adventitial",
+    "CD8+ T"
+  ]
+}

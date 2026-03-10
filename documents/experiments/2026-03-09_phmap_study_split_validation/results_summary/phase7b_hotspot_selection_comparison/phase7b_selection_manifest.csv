@@ -1,0 +1,6 @@
+variant_name,selection_mode,selected_parent_count,selected_parents,selected_selection_score
+top4,topk,4,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular,865.0
+top6,topk,6,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|Fibro adventitial|CD8+ T,1013.0
+top8,topk,8,CD4+ T|SMC de-differentiated|Mph alveolar|EC vascular|Fibro adventitial|CD8+ T|Fibro alveolar|Epi AT1,1089.9999999999998
+cumulative_50pct,cumulative_contribution,2,CD4+ T|SMC de-differentiated,587.0
+cumulative_60pct,cumulative_contribution,3,CD4+ T|SMC de-differentiated|Mph alveolar,727.0

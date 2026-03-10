@@ -1,0 +1,8 @@
+{
+  "best_config_name": "lv4strong_plus_class_weight",
+  "coverage": 0.7714,
+  "full_path_accuracy": 0.4437,
+  "macro_f1": 0.5876302081046875,
+  "selection_metric": "macro_f1",
+  "selection_point": "predict_100000_10000"
+}

@@ -1,0 +1,36 @@
+# HLCA Study-Split Preparation Record
+
+- date: `2026-03-10`
+- stage: `preparation`
+- dataset: `HLCA_Core`
+- source h5ad: `/home/data/fhz/project/phmap_package/data/real_test/HLCA/hlca_clean.h5ad`
+- config: `/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/configs/hlca_study_split.yaml`
+- split key: `study`
+- domain key: `study`
+- target label: `ann_level_5`
+- seed: `2026`
+- candidate count: `512`
+- selected build pool size: `150000`
+- selected heldout total size: `60000`
+- build groups:
+  - `Jain_Misharin_2021`
+  - `Krasnow_2020`
+  - `Misharin_2021`
+  - `Nawijn_2021`
+- predict groups:
+  - `Banovich_Kropski_2020`
+  - `Barbry_Leroy_2020`
+  - `Lafyatis_Rojas_2019`
+  - `Meyer_2019`
+  - `Misharin_Budinger_2018`
+  - `Seibold_2020`
+  - `Teichmann_Meyer_2019`
+- main outputs:
+  - `/tmp/atlasmtl_benchmarks/2026-03-10/hlca_study_split_refinement/HLCA_Core/prepared/formal_split_v1/split_plan.json`
+  - `/tmp/atlasmtl_benchmarks/2026-03-10/hlca_study_split_refinement/HLCA_Core/prepared/formal_split_v1/split_summary.json`
+  - `/tmp/atlasmtl_benchmarks/2026-03-10/hlca_study_split_refinement/HLCA_Core/prepared/formal_split_v1/preprocessing_summary.json`
+  - `/tmp/atlasmtl_benchmarks/2026-03-10/hlca_study_split_refinement/HLCA_Core/prepared/formal_split_v1/preparation_resource_summary.json`
+- warnings:
+  - `build_pool_has_label_with_lt25_cells`
+  - `build_subset_has_label_with_lt25_cells`
+  - `predict_subset_has_label_with_lt10_cells`

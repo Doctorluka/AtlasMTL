@@ -1,0 +1,5 @@
+dataset,variant,metric,mean,std
+PHMap_Lung_Full_v43_light,reranker_top6,anno_lv4_macro_f1,0.5873554117171907,0.002368322891223
+PHMap_Lung_Full_v43_light,reranker_top6,full_path_accuracy,0.46664,0.0049262561849745
+PHMap_Lung_Full_v43_light,reranker_top8,anno_lv4_macro_f1,0.5885569775124514,0.002093203817423
+PHMap_Lung_Full_v43_light,reranker_top8,full_path_accuracy,0.47216,0.004532990183091

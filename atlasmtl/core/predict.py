@@ -1,13 +1,18 @@
 from __future__ import annotations
 
-from typing import Dict, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
 import torch
 from anndata import AnnData
 
-from ..mapping import build_prototypes, openset_score
+from ..mapping import (
+    ParentConditionedRefinementPlan,
+    ParentConditionedRerankerArtifact,
+    build_prototypes,
+    openset_score,
+)
 from ..mapping.hierarchy import enforce_parent_child_consistency
 from .data import extract_matrix, unscale_coords
 from .predict_utils import (
@@ -45,6 +50,7 @@ def predict(
     batch_size: int = 256,
     num_threads: Union[int, str, None] = 10,
     device: str = "auto",
+    refinement_config: Optional[Dict[str, Any]] = None,
     show_progress: Optional[bool] = None,
     show_summary: Optional[bool] = None,
 ) -> PredictionResult:
@@ -125,6 +131,12 @@ def predict(
         Default is `10`. Pass `"max"` to use up to 80% of available CPUs.
     device
         Execution device: `"auto"`, `"cpu"`, or `"cuda"`.
+    refinement_config
+        Optional inference-side refinement configuration. Supports
+        `{"method": "parent_conditioned_reranker", "artifact_path": ...}` to
+        apply a saved parent-conditioned child re-ranker, or
+        `{"method": "auto_parent_conditioned_reranker", "plan_path": ...}`
+        to load a serialized refinement plan and its artifact bundle.
     show_progress
         Whether to display an inference progress bar with ETA. Defaults to
         auto-detection based on whether stderr is attached to a terminal.
@@ -157,6 +169,34 @@ def predict(
         raise ValueError("openset_threshold is required when openset_method is not None")
     if enforce_hierarchy and not hierarchy_rules:
         raise ValueError("hierarchy_rules must be provided when enforce_hierarchy is True")
+    reranker_artifact = None
+    refinement_plan = None
+    if refinement_config is not None:
+        method = str(refinement_config.get("method") or "").strip()
+        if method == "parent_conditioned_reranker":
+            artifact_path = refinement_config.get("artifact_path")
+            artifact_obj = refinement_config.get("artifact")
+            if artifact_path is None and artifact_obj is None:
+                raise ValueError("refinement_config requires either artifact_path or artifact")
+            if artifact_obj is not None and not isinstance(artifact_obj, ParentConditionedRerankerArtifact):
+                raise ValueError("refinement_config.artifact must be a ParentConditionedRerankerArtifact")
+            reranker_artifact = (
+                artifact_obj if artifact_obj is not None else ParentConditionedRerankerArtifact.load(str(artifact_path))
+            )
+        elif method == "auto_parent_conditioned_reranker":
+            plan_path = refinement_config.get("plan_path")
+            if plan_path is None:
+                raise ValueError("refinement_config.plan_path is required for auto_parent_conditioned_reranker")
+            refinement_plan = ParentConditionedRefinementPlan.load(str(plan_path))
+            if refinement_plan.enabled:
+                artifact_path = refinement_config.get("artifact_path") or refinement_plan.artifact_path
+                if not artifact_path:
+                    raise ValueError("refinement plan does not specify artifact_path")
+                reranker_artifact = ParentConditionedRerankerArtifact.load(str(artifact_path))
+        else:
+            raise ValueError(
+                "refinement_config.method must be 'parent_conditioned_reranker' or 'auto_parent_conditioned_reranker'"
+            )
 
     resolved_input_transform = input_transform or model.input_transform
     preprocess_metadata = dict(adata.uns.get("atlasmtl_preprocess", {})) if "atlasmtl_preprocess" in adata.uns else None
@@ -259,6 +299,33 @@ def predict(
     metadata["knn_vote_mode"] = knn_vote_mode
     metadata["knn_reference_mode"] = knn_reference_mode
     metadata["knn_index_mode"] = knn_index_mode
+    if reranker_artifact is not None:
+        metadata["refinement"] = {
+            "method": str(refinement_config.get("method")) if refinement_config else "parent_conditioned_reranker",
+            "artifact_path": str(
+                refinement_config.get("artifact_path")
+                or (refinement_plan.artifact_path if refinement_plan is not None else None)
+            )
+            if refinement_config
+            else None,
+            "parent_level": reranker_artifact.parent_level,
+            "child_level": reranker_artifact.child_level,
+            "hotspot_parents": list(reranker_artifact.hotspot_parents),
+            "selection_metadata": dict(reranker_artifact.selection_metadata),
+        }
+        if refinement_plan is not None:
+            metadata["refinement"]["plan"] = refinement_plan.to_dict()
+    elif refinement_plan is not None:
+        metadata["refinement"] = {
+            "method": "auto_parent_conditioned_reranker",
+            "plan": refinement_plan.to_dict(),
+            "status": {
+                "applied": False,
+                "fallback_to_base": True,
+                "fallback_reason": "plan_disabled",
+                "num_refined_cells": 0,
+            },
+        }
     if knn_query_obsm_key is not None:
         metadata["knn_query_obsm_key"] = str(knn_query_obsm_key)
     if preferred_knn_space is not None:
@@ -275,6 +342,21 @@ def predict(
 
     for i, col in enumerate(model.label_columns):
         probs = torch.softmax(logits[i], dim=1).numpy()
+        refinement_status = None
+        if reranker_artifact is not None and col == reranker_artifact.child_level:
+            parent_col = reranker_artifact.parent_level
+            parent_pred_col = f"pred_{parent_col}"
+            if parent_pred_col not in pred_df.columns:
+                raise ValueError(
+                    f"refinement parent level {parent_col!r} must be predicted before child level {col!r}"
+                )
+            probs, refinement_status = reranker_artifact.apply(
+                child_logits=logits[i].numpy(),
+                parent_pred_labels=pred_df[parent_pred_col].astype(str).to_numpy(),
+                child_classes=[str(x) for x in model.label_encoders[col].classes_.tolist()],
+            )
+            if isinstance(metadata.get("refinement"), dict):
+                metadata["refinement"]["status"] = refinement_status
         ref_labels_for_col = model.reference_labels[col]
         ref_space_for_col = ref_space
         if knn_reference_mode == "prototypes" and ref_space is not None:

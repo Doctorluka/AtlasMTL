@@ -1,0 +1,24 @@
+{
+  "datasets": [
+    "PHMap_Lung_Full_v43_light",
+    "HLCA_Core"
+  ],
+  "hlca_status": "first_pass_mixed_validation_case",
+  "main_outputs": [
+    "paper_main_figure_panel_a.csv",
+    "paper_main_figure_panel_b.csv",
+    "paper_main_figure_panel_d.csv",
+    "paper_s1_ablation_ladder.csv",
+    "paper_s2_stability.csv",
+    "paper_s2_by_group.csv",
+    "paper_s3_hotspot_rule_comparison.csv",
+    "paper_s4_internalization_branch.csv",
+    "paper_operational_overhead.csv"
+  ],
+  "package_dir": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_parent_conditioned_reranker_paper_package/results_summary/paper_package",
+  "phmap_status": "finalized_positive_operational_case",
+  "supporting_markdown": [
+    "paper_experiment_design_summary.md",
+    "paper_current_results_summary.md"
+  ]
+}

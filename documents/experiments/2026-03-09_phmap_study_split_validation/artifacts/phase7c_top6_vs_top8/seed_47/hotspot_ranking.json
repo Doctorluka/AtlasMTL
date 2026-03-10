@@ -1,0 +1,236 @@
+{
+  "seed": 47,
+  "selection_source": "seed-local baseline",
+  "variants": {
+    "reranker_top6": {
+      "ranking": [
+        {
+          "cumulative_contribution": 0.3072,
+          "n_cells": 719.0,
+          "parent_correct_child_wrong_rate": 0.5340751043115438,
+          "parent_label": "CD4+ T",
+          "selection_score": 384.0
+        },
+        {
+          "cumulative_contribution": 0.5128,
+          "n_cells": 811.0,
+          "parent_correct_child_wrong_rate": 0.31689272503082616,
+          "parent_label": "SMC de-differentiated",
+          "selection_score": 257.0
+        },
+        {
+          "cumulative_contribution": 0.6384,
+          "n_cells": 597.0,
+          "parent_correct_child_wrong_rate": 0.2629815745393635,
+          "parent_label": "Mph alveolar",
+          "selection_score": 157.0
+        },
+        {
+          "cumulative_contribution": 0.7544,
+          "n_cells": 541.0,
+          "parent_correct_child_wrong_rate": 0.2680221811460259,
+          "parent_label": "EC vascular",
+          "selection_score": 145.0
+        },
+        {
+          "cumulative_contribution": 0.82,
+          "n_cells": 421.0,
+          "parent_correct_child_wrong_rate": 0.19477434679334918,
+          "parent_label": "CD8+ T",
+          "selection_score": 82.0
+        },
+        {
+          "cumulative_contribution": 0.884,
+          "n_cells": 462.0,
+          "parent_correct_child_wrong_rate": 0.17316017316017315,
+          "parent_label": "Fibro adventitial",
+          "selection_score": 80.0
+        },
+        {
+          "cumulative_contribution": 0.9472,
+          "n_cells": 283.0,
+          "parent_correct_child_wrong_rate": 0.2791519434628975,
+          "parent_label": "Fibro alveolar",
+          "selection_score": 79.0
+        },
+        {
+          "cumulative_contribution": 0.9624,
+          "n_cells": 268.0,
+          "parent_correct_child_wrong_rate": 0.0708955223880597,
+          "parent_label": "Epi AT1",
+          "selection_score": 19.0
+        },
+        {
+          "cumulative_contribution": 0.9768,
+          "n_cells": 893.0,
+          "parent_correct_child_wrong_rate": 0.020156774916013438,
+          "parent_label": "SMC contractile",
+          "selection_score": 18.0
+        },
+        {
+          "cumulative_contribution": 0.988,
+          "n_cells": 287.0,
+          "parent_correct_child_wrong_rate": 0.04878048780487805,
+          "parent_label": "Epi AT2",
+          "selection_score": 14.0
+        },
+        {
+          "cumulative_contribution": 0.9984,
+          "n_cells": 348.0,
+          "parent_correct_child_wrong_rate": 0.03735632183908046,
+          "parent_label": "Mono classical",
+          "selection_score": 13.000000000000002
+        },
+        {
+          "cumulative_contribution": 1.0,
+          "n_cells": 486.0,
+          "parent_correct_child_wrong_rate": 0.00411522633744856,
+          "parent_label": "Mph prevascular",
+          "selection_score": 2.0
+        },
+        {
+          "cumulative_contribution": 1.0,
+          "n_cells": 3021.0,
+          "parent_correct_child_wrong_rate": 0.0,
+          "parent_label": "EC cultured",
+          "selection_score": 0.0
+        }
+      ],
+      "selected_parents": [
+        "CD4+ T",
+        "SMC de-differentiated",
+        "Mph alveolar",
+        "EC vascular",
+        "CD8+ T",
+        "Fibro adventitial"
+      ],
+      "summary": {
+        "candidate_parent_count": 13,
+        "cumulative_target": 0.6,
+        "min_cells_per_parent": 200,
+        "selected_parent_count": 6,
+        "selected_selection_score": 1105.0,
+        "selection_mode": "topk",
+        "top_k": 6,
+        "total_selection_score": 1250.0
+      },
+      "top_k": 6
+    },
+    "reranker_top8": {
+      "ranking": [
+        {
+          "cumulative_contribution": 0.3072,
+          "n_cells": 719.0,
+          "parent_correct_child_wrong_rate": 0.5340751043115438,
+          "parent_label": "CD4+ T",
+          "selection_score": 384.0
+        },
+        {
+          "cumulative_contribution": 0.5128,
+          "n_cells": 811.0,
+          "parent_correct_child_wrong_rate": 0.31689272503082616,
+          "parent_label": "SMC de-differentiated",
+          "selection_score": 257.0
+        },
+        {
+          "cumulative_contribution": 0.6384,
+          "n_cells": 597.0,
+          "parent_correct_child_wrong_rate": 0.2629815745393635,
+          "parent_label": "Mph alveolar",
+          "selection_score": 157.0
+        },
+        {
+          "cumulative_contribution": 0.7544,
+          "n_cells": 541.0,
+          "parent_correct_child_wrong_rate": 0.2680221811460259,
+          "parent_label": "EC vascular",
+          "selection_score": 145.0
+        },
+        {
+          "cumulative_contribution": 0.82,
+          "n_cells": 421.0,
+          "parent_correct_child_wrong_rate": 0.19477434679334918,
+          "parent_label": "CD8+ T",
+          "selection_score": 82.0
+        },
+        {
+          "cumulative_contribution": 0.884,
+          "n_cells": 462.0,
+          "parent_correct_child_wrong_rate": 0.17316017316017315,
+          "parent_label": "Fibro adventitial",
+          "selection_score": 80.0
+        },
+        {
+          "cumulative_contribution": 0.9472,
+          "n_cells": 283.0,
+          "parent_correct_child_wrong_rate": 0.2791519434628975,
+          "parent_label": "Fibro alveolar",
+          "selection_score": 79.0
+        },
+        {
+          "cumulative_contribution": 0.9624,
+          "n_cells": 268.0,
+          "parent_correct_child_wrong_rate": 0.0708955223880597,
+          "parent_label": "Epi AT1",
+          "selection_score": 19.0
+        },
+        {
+          "cumulative_contribution": 0.9768,
+          "n_cells": 893.0,
+          "parent_correct_child_wrong_rate": 0.020156774916013438,
+          "parent_label": "SMC contractile",
+          "selection_score": 18.0
+        },
+        {
+          "cumulative_contribution": 0.988,
+          "n_cells": 287.0,
+          "parent_correct_child_wrong_rate": 0.04878048780487805,
+          "parent_label": "Epi AT2",
+          "selection_score": 14.0
+        },
+        {
+          "cumulative_contribution": 0.9984,
+          "n_cells": 348.0,
+          "parent_correct_child_wrong_rate": 0.03735632183908046,
+          "parent_label": "Mono classical",
+          "selection_score": 13.000000000000002
+        },
+        {
+          "cumulative_contribution": 1.0,
+          "n_cells": 486.0,
+          "parent_correct_child_wrong_rate": 0.00411522633744856,
+          "parent_label": "Mph prevascular",
+          "selection_score": 2.0
+        },
+        {
+          "cumulative_contribution": 1.0,
+          "n_cells": 3021.0,
+          "parent_correct_child_wrong_rate": 0.0,
+          "parent_label": "EC cultured",
+          "selection_score": 0.0
+        }
+      ],
+      "selected_parents": [
+        "CD4+ T",
+        "SMC de-differentiated",
+        "Mph alveolar",
+        "EC vascular",
+        "CD8+ T",
+        "Fibro adventitial",
+        "Fibro alveolar",
+        "Epi AT1"
+      ],
+      "summary": {
+        "candidate_parent_count": 13,
+        "cumulative_target": 0.6,
+        "min_cells_per_parent": 200,
+        "selected_parent_count": 8,
+        "selected_selection_score": 1203.0,
+        "selection_mode": "topk",
+        "top_k": 8,
+        "total_selection_score": 1250.0
+      },
+      "top_k": 8
+    }
+  }
+}

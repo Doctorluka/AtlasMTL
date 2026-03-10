@@ -1,0 +1,5 @@
+dataset,point,variant,display_name,metric,mean,std
+PHMap_Lung_Full_v43_light,predict_100000_10000,base_plus_class_weight,Base + class weighting,parent_correct_child_wrong_rate,0.12347999999999999,0.009860882313464655
+PHMap_Lung_Full_v43_light,predict_100000_10000,base_plus_class_weight,Base + class weighting,path_break_rate,0.0,0.0
+PHMap_Lung_Full_v43_light,predict_100000_10000,auto_reranker_top8,Base + class weighting + auto reranker top8,parent_correct_child_wrong_rate,0.08926,0.0030988707620680164
+PHMap_Lung_Full_v43_light,predict_100000_10000,auto_reranker_top8,Base + class weighting + auto reranker top8,path_break_rate,0.0,0.0

@@ -1,0 +1,66 @@
+{
+  "artifact_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_phmap_study_split_validation/artifacts/phase7a_auto_reranker_pipeline/parent_conditioned_reranker_top6.pkl",
+  "child_level": "anno_lv4",
+  "hotspot_parents": [
+    "CD4+ T",
+    "SMC de-differentiated",
+    "Mph alveolar",
+    "EC vascular",
+    "Fibro adventitial",
+    "CD8+ T"
+  ],
+  "method": "parent_conditioned_reranker",
+  "parent_level": "anno_lv3",
+  "per_parent_summary": [
+    {
+      "active_child_count": 5,
+      "legal_child_count": 5,
+      "parent_label": "CD4+ T",
+      "status": "fit_ok",
+      "train_size": 7227
+    },
+    {
+      "active_child_count": 4,
+      "legal_child_count": 4,
+      "parent_label": "SMC de-differentiated",
+      "status": "fit_ok",
+      "train_size": 3101
+    },
+    {
+      "active_child_count": 5,
+      "legal_child_count": 5,
+      "parent_label": "Mph alveolar",
+      "status": "fit_ok",
+      "train_size": 36383
+    },
+    {
+      "active_child_count": 8,
+      "legal_child_count": 8,
+      "parent_label": "EC vascular",
+      "status": "fit_ok",
+      "train_size": 8837
+    },
+    {
+      "active_child_count": 2,
+      "legal_child_count": 2,
+      "parent_label": "Fibro adventitial",
+      "status": "fit_ok",
+      "train_size": 1072
+    },
+    {
+      "active_child_count": 3,
+      "legal_child_count": 3,
+      "parent_label": "CD8+ T",
+      "status": "fit_ok",
+      "train_size": 4910
+    }
+  ],
+  "selection_metadata": {
+    "hotspot_topk": 6,
+    "min_cells_per_parent": 200,
+    "selection_mode": "topk",
+    "selection_point": "predict_100000_10000 + hierarchy_on",
+    "selection_score": "parent_correct_child_wrong_rate * n_cells",
+    "selection_source": "Phase 3 baseline"
+  }
+}

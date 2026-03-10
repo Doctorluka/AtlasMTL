@@ -1,0 +1,13 @@
+dataset,point,variant,display_name,metric,mean,std,dataset_role
+PHMap_Lung_Full_v43_light,predict_100000_10000,base_plus_class_weight,Base + class weighting,parent_correct_child_wrong_rate,0.1234799999999999,0.0098608823134646,primary_positive_case
+PHMap_Lung_Full_v43_light,predict_100000_10000,base_plus_class_weight,Base + class weighting,path_break_rate,0.0,0.0,primary_positive_case
+PHMap_Lung_Full_v43_light,predict_100000_10000,auto_reranker_top8,Base + class weighting + auto reranker top8,parent_correct_child_wrong_rate,0.08926,0.003098870762068,primary_positive_case
+PHMap_Lung_Full_v43_light,predict_100000_10000,auto_reranker_top8,Base + class weighting + auto reranker top8,path_break_rate,0.0,0.0,primary_positive_case
+HLCA_Core,build_100000_eval10k,auto_parent_conditioned_reranker,Best base config + auto reranker top6,parent_correct_child_wrong_rate,0.036,,secondary_validation_case
+HLCA_Core,build_100000_eval10k,auto_parent_conditioned_reranker,Best base config + auto reranker top6,path_break_rate,0.0,,secondary_validation_case
+HLCA_Core,build_100000_eval10k,baseline,Best base config (uniform),parent_correct_child_wrong_rate,0.0318,,secondary_validation_case
+HLCA_Core,build_100000_eval10k,baseline,Best base config (uniform),path_break_rate,0.0,,secondary_validation_case
+HLCA_Core,predict_100000_10000,auto_parent_conditioned_reranker,Best base config + auto reranker top6,parent_correct_child_wrong_rate,0.0371,,secondary_validation_case
+HLCA_Core,predict_100000_10000,auto_parent_conditioned_reranker,Best base config + auto reranker top6,path_break_rate,0.0,,secondary_validation_case
+HLCA_Core,predict_100000_10000,baseline,Best base config (uniform),parent_correct_child_wrong_rate,0.0334,,secondary_validation_case
+HLCA_Core,predict_100000_10000,baseline,Best base config (uniform),path_break_rate,0.0,,secondary_validation_case
