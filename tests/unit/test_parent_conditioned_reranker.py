@@ -9,6 +9,7 @@ from atlasmtl.mapping.reranker import (
     ParentConditionedReranker,
     ParentConditionedRerankerArtifact,
     discover_hotspot_parents,
+    get_refinement_guardrail_profile,
 )
 from atlasmtl.models import ReferenceData
 
@@ -196,6 +197,57 @@ def test_discover_hotspot_parents_supports_topk_and_cumulative():
     assert ranked_cum.iloc[0]["parent_label"] == "A"
     assert selected_cum == ["A", "B"]
     assert summary_cum["selected_parent_count"] == 2
+
+
+def test_discover_hotspot_parents_handles_sparse_cumulative_with_cap():
+    df = pd.DataFrame(
+        {
+            "parent_label": ["A", "B", "C"],
+            "parent_correct_child_wrong_rate": [0.5, 0.4, 0.3],
+            "n_cells": [10, 5, 1],
+        }
+    )
+    ranked_cum, selected_cum, summary = discover_hotspot_parents(
+        df,
+        selection_mode="cumulative_contribution",
+        cumulative_target=0.95,
+        min_cells_per_parent=6,
+        max_selected_parents=1,
+    )
+    assert ranked_cum["parent_label"].tolist() == ["A"]
+    assert selected_cum == ["A"]
+    assert summary["max_selected_parents"] == 1
+    assert summary["fallback_to_base"] is False
+
+
+def test_parent_conditioned_reranker_artifact_falls_back_on_hierarchy_hash_mismatch():
+    artifact = ParentConditionedRerankerArtifact(
+        parent_level="anno_lv3",
+        child_level="anno_lv4",
+        hotspot_parents=["P1"],
+        child_classes=["P1_c1", "P1_c2", "P2_c1"],
+        hierarchy_child_to_parent={"P1_c1": "P1", "P1_c2": "P1", "P2_c1": "P2"},
+        rerankers={},
+        selection_metadata={},
+        per_parent_summary=[],
+    )
+
+    probs, meta = artifact.apply(
+        child_logits=np.array([[3.0, 1.0, 0.5]], dtype=np.float32),
+        parent_pred_labels=np.array(["P1"], dtype=object),
+        child_classes=["P1_c1", "P1_c2", "P2_c1"],
+        hierarchy_child_to_parent={"P1_c1": "P1", "P1_c2": "P9", "P2_c1": "P2"},
+    )
+    np.testing.assert_allclose(probs.sum(axis=1), np.ones(1, dtype=np.float32))
+    assert meta["fallback_to_base"] is True
+    assert meta["fallback_reason"] == "hierarchy_child_to_parent_hash_mismatch"
+
+
+def test_get_refinement_guardrail_profile_returns_versioned_thresholds():
+    profile = get_refinement_guardrail_profile("phmap_v1")
+    assert profile["name"] == "phmap_v1"
+    assert profile["version"] == 1
+    assert "child_macro_f1_delta_min" in profile["thresholds"]
 
 
 def test_refinement_plan_roundtrip_and_auto_predict(tmp_path):

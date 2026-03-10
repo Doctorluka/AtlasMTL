@@ -1,0 +1,7 @@
+parent_label,train_size,status,legal_child_count,active_child_count
+Alveolar macrophages,15175,fit_ok,4,4
+Interstitial macrophages,3072,fit_ok,2,2
+Goblet,11868,fit_ok,3,3
+Club,8311,fit_ok,2,2
+Multiciliated,8274,fit_ok,2,2
+AT2,5123,constant_single_child,1,1

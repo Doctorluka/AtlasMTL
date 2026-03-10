@@ -13,12 +13,15 @@
     "paper_s2_by_group.csv",
     "paper_s3_hotspot_rule_comparison.csv",
     "paper_s4_internalization_branch.csv",
+    "paper_s5_weight_activation_policy.csv",
     "paper_operational_overhead.csv"
   ],
   "package_dir": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_parent_conditioned_reranker_paper_package/results_summary/paper_package",
   "phmap_status": "finalized_positive_operational_case",
   "supporting_markdown": [
     "paper_experiment_design_summary.md",
-    "paper_current_results_summary.md"
-  ]
+    "paper_current_results_summary.md",
+    "weight_selector_v1_design_note.md"
+  ],
+  "weight_policy_status": "activation_rule_v1_validated_on_phmap_and_hlca"
 }

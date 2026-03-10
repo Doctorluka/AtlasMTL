@@ -19,7 +19,10 @@ Current framing:
 - PH-Map is the finalized positive hard-case dataset
 - HLCA is the second deep-hierarchy validation dataset, currently with:
   - positive support for dataset-specific weighting selection
-  - mixed first-pass evidence for auto reranking
+  - mixed evidence for auto reranking even after a narrowed `top4` vs `top6` follow-up
+- PH-Map, HLCA, and a shallower mTCA sanity-check case together support a
+  first-pass error-driven policy for deciding whether a dataset should leave
+  `uniform` task weights
 
 Key outputs are generated under:
 
@@ -33,6 +36,8 @@ Current package outputs include:
 
 - unified main-figure tables
 - unified supplementary tables
+- a supplementary-style weight activation policy table
 - chapter design summary
 - current-results summary
+- selector v1 design note
 - Chinese discussion note for expert review

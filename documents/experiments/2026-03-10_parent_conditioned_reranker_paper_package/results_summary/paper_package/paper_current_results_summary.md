@@ -14,14 +14,24 @@
 - HLCA `study`-split preprocessing and weighting confirmation are complete.
 - HLCA does not inherit the PH-Map finest-level upweighting schedule; `uniform` is currently the best base configuration.
 - First-pass auto reranker validation on `ann_level_4 -> ann_level_5` yields mixed evidence.
+- A narrowed `top4` vs `top6` reranker-rule comparison does not change that conclusion.
 - On `predict_100000_10000 + hierarchy_on`:
   - baseline uniform: macro_f1 `0.688732`, full_path `0.8239`, parent_correct_child_wrong `0.0334`
+  - + auto reranker_top4: macro_f1 `0.692970`, full_path `0.8199`, parent_correct_child_wrong `0.0374`
   - + auto reranker_top6: macro_f1 `0.693015`, full_path `0.8200`, parent_correct_child_wrong `0.0371`
 - HLCA therefore improves finest-level macro-F1 but fails the PH-Map-style guardrail because full-path declines and the main error mode worsens.
+
+## Weight activation policy
+
+- A first-pass error-driven activation rule has now been validated on three contrasting multi-level cases.
+- `PH-Map` is correctly classified as `activate_nonuniform_weighting = true`.
+- `HLCA` is correctly classified as `activate_nonuniform_weighting = false`.
+- `mTCA` also stays on `uniform`, providing a shallower third-point sanity check rather than another hard-case trigger.
+- This supports the framework policy claim that non-uniform task weighting should be treated as a dataset-adaptive option rather than as a universal default schedule.
 
 ## Current paper interpretation
 
 - PH-Map is a strong positive case for the chapter claim.
-- HLCA currently supports the dataset-specific weighting claim, but only provides mixed first-pass evidence for reranker transfer.
+- HLCA currently supports the dataset-specific weighting claim, but remains a mixed-evidence stress test for reranker transfer rather than a second positive reranker case.
+- The weighting story is now stronger than before because the chapter can distinguish two separate claims: the schedule itself is dataset-specific, and the choice to leave uniform can be made by an error-driven activation policy.
 - At the moment, the chapter can robustly claim a positive operational module on PH-Map and a nontrivial second-dataset stress test on HLCA.
-- The remaining discussion question is whether HLCA needs another targeted reranker refinement round before it is presented as a second positive validation dataset.

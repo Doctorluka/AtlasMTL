@@ -10,7 +10,9 @@ from benchmark.methods.atlasmtl_inputs import (
     adata_with_matrix_from_layer,
     matrix_source_label,
     resolve_atlasmtl_layer_config,
+    resolve_task_weight_candidates,
     resolve_task_weights,
+    select_task_weight_candidate_from_summary,
     task_weight_scheme_name,
 )
 
@@ -66,6 +68,44 @@ def test_task_weight_scheme_name_identifies_phmap() -> None:
     assert task_weight_scheme_name(PHMAP_TASK_WEIGHTS) == "phmap"
     assert task_weight_scheme_name([1.0, 1.0, 1.0, 1.0]) == "uniform"
     assert task_weight_scheme_name([0.2, 0.8, 1.5, 2.0]) == "custom"
+
+
+def test_resolve_task_weight_candidates_prefers_manifest_override() -> None:
+    manifest = {
+        "train": {"task_weight_candidates": {"uniform": [1.0, 1.0], "mild_lv2": [0.8, 1.4]}},
+    }
+    resolved = resolve_task_weight_candidates(
+        manifest,
+        candidate_schedules={"uniform": [1.0, 1.0], "strong_lv2": [0.5, 2.0]},
+        label_columns=["lv1", "lv2"],
+    )
+    assert resolved == {"uniform": [1.0, 1.0], "mild_lv2": [0.8, 1.4]}
+
+
+def test_select_task_weight_candidate_from_summary_prefers_full_path_then_error_then_macro() -> None:
+    best = select_task_weight_candidate_from_summary(
+        [
+            {
+                "schedule_name": "uniform",
+                "finest_macro_f1": 0.70,
+                "full_path_accuracy": 0.62,
+                "parent_correct_child_wrong_rate": 0.10,
+            },
+            {
+                "schedule_name": "mild_lv4",
+                "finest_macro_f1": 0.69,
+                "full_path_accuracy": 0.63,
+                "parent_correct_child_wrong_rate": 0.11,
+            },
+            {
+                "schedule_name": "strong_lv4",
+                "finest_macro_f1": 0.73,
+                "full_path_accuracy": 0.63,
+                "parent_correct_child_wrong_rate": 0.12,
+            },
+        ]
+    )
+    assert best["schedule_name"] == "mild_lv4"
 
 
 def test_matrix_source_label() -> None:

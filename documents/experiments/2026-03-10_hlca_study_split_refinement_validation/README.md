@@ -37,7 +37,10 @@ Purpose:
    - `mild_lv5`
    - `strong_lv5`
 3. best-base reranker mechanism validation
-4. paper-ready panel and supplementary table export
+4. narrowed reranker-rule decision round
+   - `top4`
+   - `top6`
+5. paper-ready panel and supplementary table export
 
 ## Expected prepared root
 
@@ -60,6 +63,8 @@ Purpose:
 - `results_summary/hlca_auto_reranker_validation/hlca_main_comparison.csv`
 - `results_summary/hlca_auto_reranker_validation/hlca_error_decomposition.csv`
 - `results_summary/hlca_auto_reranker_validation/hlca_auto_reranker_validation.md`
+- `results_summary/hlca_reranker_rule_comparison/hlca_reranker_rule_comparison.csv`
+- `results_summary/hlca_reranker_rule_comparison/hlca_reranker_rule_summary.md`
 
 ## Current status
 
@@ -79,6 +84,9 @@ Completed:
      - `Club`
      - `Multiciliated`
      - `AT2`
+4. narrowed reranker-rule decision round
+   - compared `reranker_top4` vs `reranker_top6`
+   - both remain mixed-evidence variants
 
 Current interpretation:
 
@@ -88,9 +96,13 @@ Current interpretation:
 - but `full_path_accuracy` drops from `0.8239` to `0.8200`
 - and `parent_correct_child_wrong_rate` rises from `0.0334` to `0.0371`
 - the PH-Map-style guardrail therefore fails on HLCA in this first validation
+- the narrowed `top4` vs `top6` rule comparison does not reverse this result:
+  - `top4` improves `ann_level_5 macro_f1` to `0.692970` but lowers `full_path_accuracy` to `0.8199`
+  - `top6` improves `ann_level_5 macro_f1` to `0.693015` but lowers `full_path_accuracy` to `0.8200`
+  - both variants also raise `parent_correct_child_wrong_rate`
 
 Operational implication:
 
 - HLCA currently supports the weighting conclusion (`uniform` remains best)
 - but does not yet support promotion of auto parent-conditioned reranking to an HLCA operational default
-- additional HLCA-specific analysis is required before using it as a second positive generalization dataset in the paper
+- HLCA is currently better framed as a mixed-evidence stress-test dataset than as a second positive reranker generalization case

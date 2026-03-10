@@ -9,7 +9,7 @@ Unknown-cell abstention.
 - `AnnData` in, `AnnData` out
 - multi-level annotation with a shared representation
 - optional coordinate prediction into `X_pred_latent` and `X_pred_umap`
-- low-confidence-only KNN correction by default
+- KNN correction disabled by default (`knn_correction="off"`)
 - optional reliability add-ons:
   - post-hoc calibration
   - open-set scoring
@@ -216,7 +216,7 @@ Important controls:
 
 Notable defaults:
 
-- `knn_correction="low_conf_only"`
+- `knn_correction="off"`
 - `confidence_high=0.7`
 - `confidence_low=0.4`
 - `margin_threshold=0.2`
@@ -234,6 +234,46 @@ Refinement configuration:
 - the auto mode is designed for auditable, dataset-specific refinement plans
   that bundle hotspot discovery outputs, reranker artifacts, and guardrail
   metadata
+- benchmark workflow can now also opt into
+  `predict.refinement_policy="auto_parent_conditioned_reranker_v1"`
+  and let the runner execute:
+  baseline prediction -> refinement activation rule ->
+  hotspot discovery -> reranker fit/apply -> guardrail/fallback
+
+### Weight-policy helper
+
+AtlasMTL also exposes an error-driven task-weight policy helper through
+`atlasmtl.mapping.suggest_task_weight_schedule(...)`.
+
+It also exposes a matching refinement-policy helper:
+- `atlasmtl.mapping.suggest_parent_conditioned_refinement(...)`
+
+Current positioning:
+
+- it is a framework helper, not a training default
+- it decides whether a dataset should stay on `uniform` task weights or enter a
+  small non-uniform candidate test
+- it currently returns an activation decision plus a small candidate space,
+  rather than performing an automatic weight search
+
+Recommended workflow integration:
+
+1. run a `uniform` baseline on the target dataset/split
+2. summarize finest-level and hierarchy-structured error signals
+3. call `suggest_task_weight_schedule(...)`
+4. only if activation is `true`, compare a small predefined candidate set such
+   as `uniform / mild / strong`
+
+Important compatibility note:
+
+- this helper is currently **not** auto-invoked by `build_model()`,
+  or `predict()`
+- `benchmark/pipelines/run_benchmark.py` now supports an explicit opt-in
+  workflow for this helper through benchmark manifests
+- benchmark runs that opt into weighting/refinement policy now emit explicit
+  policy artifacts and a `policy_dag` summary in `metrics.json`
+- existing formal benchmark manifests and completed benchmark tables therefore
+  remain unchanged unless a workflow explicitly opts into this policy step
 
 ## Export and writeback
 

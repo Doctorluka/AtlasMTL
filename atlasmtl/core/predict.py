@@ -171,6 +171,7 @@ def predict(
         raise ValueError("hierarchy_rules must be provided when enforce_hierarchy is True")
     reranker_artifact = None
     refinement_plan = None
+    refinement_child_to_parent = None
     if refinement_config is not None:
         method = str(refinement_config.get("method") or "").strip()
         if method == "parent_conditioned_reranker":
@@ -183,6 +184,10 @@ def predict(
             reranker_artifact = (
                 artifact_obj if artifact_obj is not None else ParentConditionedRerankerArtifact.load(str(artifact_path))
             )
+            if hierarchy_rules and reranker_artifact.child_level in hierarchy_rules:
+                refinement_child_to_parent = dict(
+                    (hierarchy_rules.get(reranker_artifact.child_level) or {}).get("child_to_parent") or {}
+                )
         elif method == "auto_parent_conditioned_reranker":
             plan_path = refinement_config.get("plan_path")
             if plan_path is None:
@@ -193,6 +198,10 @@ def predict(
                 if not artifact_path:
                     raise ValueError("refinement plan does not specify artifact_path")
                 reranker_artifact = ParentConditionedRerankerArtifact.load(str(artifact_path))
+                if hierarchy_rules and refinement_plan.child_level in hierarchy_rules:
+                    refinement_child_to_parent = dict(
+                        (hierarchy_rules.get(refinement_plan.child_level) or {}).get("child_to_parent") or {}
+                    )
         else:
             raise ValueError(
                 "refinement_config.method must be 'parent_conditioned_reranker' or 'auto_parent_conditioned_reranker'"
@@ -354,6 +363,7 @@ def predict(
                 child_logits=logits[i].numpy(),
                 parent_pred_labels=pred_df[parent_pred_col].astype(str).to_numpy(),
                 child_classes=[str(x) for x in model.label_encoders[col].classes_.tolist()],
+                hierarchy_child_to_parent=refinement_child_to_parent,
             )
             if isinstance(metadata.get("refinement"), dict):
                 metadata["refinement"]["status"] = refinement_status

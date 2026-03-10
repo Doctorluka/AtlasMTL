@@ -47,6 +47,8 @@ Current rule for the paper-grade benchmark rollout:
   - HLCA-specific validation dossier that rebuilds HLCA from raw `study` groups, confirms 5-level weighting, and tests first-pass AutoHotspot reranking
 - `2026-03-10_parent_conditioned_reranker_paper_package`
   - paper-facing package that consolidates PH-Map and HLCA chapter tables and discussion notes for the parent-conditioned reranker line
+- `2026-03-10_weight_activation_rule_validation`
+  - validation dossier for the first error-driven policy that decides whether a dataset should leave `uniform` task weights
 
 ## Pilot rollout
 
@@ -173,7 +175,8 @@ Important interpretation caveat:
   - in progress
   - HLCA `study`-split and 5-level weighting confirmation are complete
   - current best HLCA base weighting is `uniform`, not PH-Map-style finest-level upweighting
-  - first-pass auto reranker validation is mixed and has not yet promoted reranking to an HLCA operational default
+  - first-pass auto reranker validation is mixed and has not promoted reranking to an HLCA operational default
+  - narrowed `top4` vs `top6` rule comparison remains mixed; HLCA is currently retained as a stress-test case rather than a second positive reranker dataset
 - `2026-03-10_parent_conditioned_reranker_paper_package`
   - completed
   - consolidates PH-Map and HLCA chapter tables into a single paper-facing package

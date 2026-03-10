@@ -83,6 +83,11 @@ remains supported for explicit experiments, but it is not part of the default
 configuration because the fourth-round confirmation did not justify promoting it
 for broad use.
 
+The benchmark workflow now also supports explicit opt-in policy stages for
+task-weight activation/selection and parent-conditioned reranking. These stages
+are additive, do not alter existing manifests unless enabled, and record policy
+metadata plus a `policy_dag` summary when used.
+
 ## Gene identifier and feature policy
 
 atlasmtl currently performs exact gene-name alignment using `adata.var_names`.

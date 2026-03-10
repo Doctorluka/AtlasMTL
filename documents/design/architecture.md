@@ -463,11 +463,16 @@ The current benchmark path is intentionally minimal:
 - the runner can either:
   - load a supplied atlasmtl artifact
   - or train one from the manifest config
+- opt-in policy stages are now supported in the runner:
+  - weight activation / selector before training
+  - refinement activation / hotspot reranking after base prediction
 - outputs are written as:
   - `metrics.json`
   - `summary.csv`
   - optional `summary_by_domain.csv`
   - `run_manifest.json`
+- `metrics.json` also records `policy_dag`, weight-policy metadata, and
+  refinement metadata when those stages are enabled
 
 Supported benchmark metric groups today:
 

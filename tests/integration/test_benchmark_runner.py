@@ -421,6 +421,230 @@ def test_benchmark_runner_atlasmtl_can_train_from_counts_layer_and_record_task_w
     assert list(summary["variant_name"].unique()) == [result["variant_name"]]
 
 
+def test_benchmark_runner_supports_task_weight_policy_and_selector(tmp_path: Path):
+    ref_obs = pd.DataFrame(
+        {
+            "anno_lv1": ["A", "A", "B", "B"],
+            "anno_lv2": ["A1", "A1", "B1", "B1"],
+            "anno_lv3": ["A1a", "A1a", "B1a", "B1a"],
+        },
+        index=["r1", "r2", "r3", "r4"],
+    )
+    ref = AnnData(X=np.array([[1, 0], [1, 1], [0, 1], [0, 2]], dtype=np.float32), obs=ref_obs)
+    ref.var_names = ["g1", "g2"]
+    query_obs = pd.DataFrame(
+        {
+            "anno_lv1": ["A", "B"],
+            "anno_lv2": ["A1", "B1"],
+            "anno_lv3": ["A1a", "B1a"],
+        },
+        index=["q1", "q2"],
+    )
+    query = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=query_obs)
+    query.var_names = ["g1", "g2"]
+
+    ref_path = tmp_path / "ref_weight_policy.h5ad"
+    query_path = tmp_path / "query_weight_policy.h5ad"
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    source_run = {
+        "results": [
+            {
+                "method": "atlasmtl",
+                "ablation_config": {
+                    "task_weights": [1.0, 1.0, 1.0],
+                    "refinement_policy": "none",
+                },
+                "metrics": {
+                    "anno_lv1": {"macro_f1": 0.95, "balanced_accuracy": 0.95, "coverage": 1.0},
+                    "anno_lv2": {"macro_f1": 0.80, "balanced_accuracy": 0.79, "coverage": 1.0},
+                    "anno_lv3": {"macro_f1": 0.55, "balanced_accuracy": 0.54, "coverage": 1.0},
+                },
+                "behavior_metrics": {"anno_lv3": {"unknown_rate": 0.0}},
+                "hierarchy_metrics": {
+                    "full_path_accuracy": 0.40,
+                    "edges": {
+                        "anno_lv3": {
+                            "parent_correct_child_wrong_rate": 0.12,
+                            "path_break_rate": 0.02,
+                        }
+                    },
+                },
+            }
+        ]
+    }
+    source_run_path = tmp_path / "source_metrics.json"
+    source_run_path.write_text(json.dumps(source_run), encoding="utf-8")
+
+    manifest = {
+        "dataset_name": "tiny_weight_policy",
+        "version": 1,
+        "protocol_version": 1,
+        "reference_h5ad": str(ref_path),
+        "query_h5ad": str(query_path),
+        "label_columns": ["anno_lv1", "anno_lv2", "anno_lv3"],
+        "train": {
+            "num_epochs": 1,
+            "batch_size": 2,
+            "hidden_sizes": [8],
+            "task_weight_policy": "activation_rule_v1",
+            "task_weight_selector": "candidate_selector_v1",
+            "task_weight_policy_source_run": str(source_run_path),
+            "task_weight_candidates": {
+                "uniform": [1.0, 1.0, 1.0],
+                "mild_lv3": [0.8, 1.0, 1.8],
+            },
+        },
+        "predict": {
+            "knn_correction": "off",
+            "batch_size": 1,
+            "enforce_hierarchy": True,
+            "hierarchy_rules": {
+                "anno_lv2": {"parent_col": "anno_lv1", "child_to_parent": {"A1": "A", "B1": "B"}},
+                "anno_lv3": {"parent_col": "anno_lv2", "child_to_parent": {"A1a": "A1", "B1a": "B1"}},
+            },
+        },
+    }
+    manifest_path = tmp_path / "dataset_manifest_weight_policy.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+
+    out_dir = tmp_path / "out_weight_policy"
+    _run_cli([str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"])
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    result = metrics["results"][0]
+    assert result["task_weight_policy_metadata"]["policy"] == "activation_rule_v1"
+    assert result["task_weight_policy_metadata"]["decision"]["activate_nonuniform_weighting"] is True
+    assert Path(result["task_weight_policy_metadata"]["decision_path"]).exists()
+    assert Path(result["task_weight_policy_metadata"]["features_path"]).exists()
+    assert Path(result["task_weight_policy_metadata"]["selector_artifacts"]["weight_selector_comparison_path"]).exists()
+    assert Path(result["task_weight_policy_metadata"]["selector_artifacts"]["weight_selector_candidates_ranked_path"]).exists()
+    assert result["policy_dag"]["weight_policy_stage"]["enabled"] is True
+    assert result["train_config_used"]["task_weight_scheme"] in {"uniform", "mild_lv3"}
+
+
+def test_benchmark_runner_supports_auto_parent_conditioned_reranker_policy(tmp_path: Path):
+    ref_obs = pd.DataFrame(
+        {"anno_lv1": ["A", "A", "B", "B"], "anno_lv2": ["A1", "A1", "B1", "B1"]},
+        index=["r1", "r2", "r3", "r4"],
+    )
+    ref = AnnData(X=np.array([[1, 0], [1, 0.5], [0, 1], [0, 1.5]], dtype=np.float32), obs=ref_obs)
+    ref.var_names = ["g1", "g2"]
+    query_obs = pd.DataFrame({"anno_lv1": ["A", "B"], "anno_lv2": ["A1", "B1"]}, index=["q1", "q2"])
+    query = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=query_obs)
+    query.var_names = ["g1", "g2"]
+
+    ref_path = tmp_path / "ref_reranker.h5ad"
+    query_path = tmp_path / "query_reranker.h5ad"
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    manifest = {
+        "dataset_name": "tiny_reranker",
+        "version": 1,
+        "protocol_version": 1,
+        "reference_h5ad": str(ref_path),
+        "query_h5ad": str(query_path),
+        "label_columns": ["anno_lv1", "anno_lv2"],
+        "train": {"num_epochs": 1, "batch_size": 2, "hidden_sizes": [8]},
+        "predict": {
+            "knn_correction": "off",
+            "batch_size": 1,
+            "enforce_hierarchy": True,
+            "hierarchy_rules": {
+                "anno_lv2": {
+                    "parent_col": "anno_lv1",
+                    "child_to_parent": {"A1": "A", "B1": "B"},
+                }
+            },
+            "refinement_policy": "auto_parent_conditioned_reranker_v1",
+            "refinement_parent_level": "anno_lv1",
+            "refinement_child_level": "anno_lv2",
+            "hotspot_selection_mode": "topk",
+            "hotspot_top_k": 1,
+            "hotspot_min_cells_per_parent": 1,
+            "refinement_guardrail_profile": "phmap_v1",
+        },
+    }
+    manifest_path = tmp_path / "dataset_manifest_reranker.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+
+    out_dir = tmp_path / "out_reranker"
+    _run_cli([str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"])
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    result = metrics["results"][0]
+    assert result["ablation_config"]["refinement_policy"] == "auto_parent_conditioned_reranker_v1"
+    assert result["refinement_metadata"]["policy"] == "auto_parent_conditioned_reranker_v1"
+    assert Path(result["refinement_metadata"]["artifact_paths"]["activation_features_path"]).exists()
+    assert Path(result["refinement_metadata"]["artifact_paths"]["activation_decision_path"]).exists()
+    assert Path(result["refinement_metadata"]["artifact_paths"]["plan_path"]).exists()
+    assert Path(result["refinement_metadata"]["artifact_paths"]["guardrail_path"]).exists()
+    guardrail = json.loads(Path(result["refinement_metadata"]["artifact_paths"]["guardrail_path"]).read_text(encoding="utf-8"))
+    assert guardrail["guardrail_profile_name"] == "phmap_v1"
+    assert "thresholds" in guardrail
+    assert "code_version" in guardrail
+    assert result["policy_dag"]["refinement_stage"]["enabled"] is True
+    summary = pd.read_csv(out_dir / "summary.csv")
+    assert "refinement_policy" in summary.columns
+
+
+def test_benchmark_runner_falls_back_when_no_hotspots_survive_filtering(tmp_path: Path):
+    ref_obs = pd.DataFrame(
+        {"anno_lv1": ["A", "A", "B", "B"], "anno_lv2": ["A1", "A1", "B1", "B1"]},
+        index=["r1", "r2", "r3", "r4"],
+    )
+    ref = AnnData(X=np.array([[1, 0], [1, 0.2], [0, 1], [0, 1.2]], dtype=np.float32), obs=ref_obs)
+    ref.var_names = ["g1", "g2"]
+    query_obs = pd.DataFrame({"anno_lv1": ["A", "B"], "anno_lv2": ["A1", "B1"]}, index=["q1", "q2"])
+    query = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=query_obs)
+    query.var_names = ["g1", "g2"]
+
+    ref_path = tmp_path / "ref_skip.h5ad"
+    query_path = tmp_path / "query_skip.h5ad"
+    ref.write_h5ad(ref_path)
+    query.write_h5ad(query_path)
+
+    manifest = {
+        "dataset_name": "tiny_reranker_skip",
+        "version": 1,
+        "protocol_version": 1,
+        "reference_h5ad": str(ref_path),
+        "query_h5ad": str(query_path),
+        "label_columns": ["anno_lv1", "anno_lv2"],
+        "train": {"num_epochs": 1, "batch_size": 2, "hidden_sizes": [8]},
+        "predict": {
+            "knn_correction": "off",
+            "batch_size": 1,
+            "enforce_hierarchy": True,
+            "hierarchy_rules": {
+                "anno_lv2": {"parent_col": "anno_lv1", "child_to_parent": {"A1": "A", "B1": "B"}}
+            },
+            "refinement_policy": "auto_parent_conditioned_reranker_v1",
+            "refinement_parent_level": "anno_lv1",
+            "refinement_child_level": "anno_lv2",
+            "hotspot_selection_mode": "topk",
+            "hotspot_top_k": 1,
+            "hotspot_min_cells_per_parent": 10,
+            "refinement_guardrail_profile": "phmap_v1",
+        },
+    }
+    manifest_path = tmp_path / "dataset_manifest_reranker_skip.yaml"
+    manifest_path.write_text(yaml.safe_dump(manifest), encoding="utf-8")
+
+    out_dir = tmp_path / "out_reranker_skip"
+    _run_cli([str(RUNNER), "--dataset-manifest", str(manifest_path), "--output-dir", str(out_dir), "--device", "cpu"])
+
+    metrics = json.loads((out_dir / "metrics.json").read_text(encoding="utf-8"))
+    result = metrics["results"][0]
+    assert Path(result["refinement_metadata"]["artifact_paths"]["activation_decision_path"]).exists()
+    assert (
+        result["refinement_metadata"].get("skipped_by_activation_rule") is True
+        or result["refinement_metadata"].get("fallback_reason") == "no_hotspot_parents_after_filtering"
+    )
+
+
 def test_benchmark_runner_rejects_unknown_manifest_keys(tmp_path: Path):
     ref_obs = pd.DataFrame({"anno_lv1": ["A", "B"]}, index=["r1", "r2"])
     ref = AnnData(X=np.array([[1, 0], [0, 1]], dtype=np.float32), obs=ref_obs)

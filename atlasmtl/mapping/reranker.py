@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import pickle
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -47,6 +48,20 @@ class ParentConditionedRerankerArtifact:
     rerankers: Dict[str, ParentConditionedReranker]
     selection_metadata: Dict[str, Any]
     per_parent_summary: List[Dict[str, Any]]
+    hierarchy_child_to_parent_hash: Optional[str] = None
+    label_space_hash: Optional[str] = None
+    selection_metadata_version: str = "selection_metadata_v1"
+
+    def __post_init__(self) -> None:
+        if self.hierarchy_child_to_parent_hash is None:
+            self.hierarchy_child_to_parent_hash = _stable_hash_payload(self.hierarchy_child_to_parent)
+        if self.label_space_hash is None:
+            self.label_space_hash = _stable_hash_payload(
+                {
+                    "child_classes": list(self.child_classes),
+                    "hierarchy_child_to_parent_hash": self.hierarchy_child_to_parent_hash,
+                }
+            )
 
     def save(self, path: str | Path) -> None:
         target = Path(path)
@@ -60,6 +75,12 @@ class ParentConditionedRerankerArtifact:
             "child_level": self.child_level,
             "hotspot_parents": list(self.hotspot_parents),
             "selection_metadata": self.selection_metadata,
+            "selection_metadata_version": self.selection_metadata_version,
+            "label_columns": [self.parent_level, self.child_level],
+            "child_classes": list(self.child_classes),
+            "hierarchy_child_to_parent": dict(self.hierarchy_child_to_parent),
+            "hierarchy_child_to_parent_hash": self.hierarchy_child_to_parent_hash,
+            "label_space_hash": self.label_space_hash,
             "per_parent_summary": self.per_parent_summary,
         }
         target.with_suffix(".json").write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
@@ -75,6 +96,7 @@ class ParentConditionedRerankerArtifact:
         child_logits: np.ndarray,
         parent_pred_labels: np.ndarray,
         child_classes: List[str],
+        hierarchy_child_to_parent: Optional[Dict[str, str]] = None,
     ) -> Tuple[np.ndarray, Dict[str, Any]]:
         if list(child_classes) != list(self.child_classes):
             return _softmax(child_logits), {
@@ -83,6 +105,15 @@ class ParentConditionedRerankerArtifact:
                 "fallback_reason": "child_class_mismatch",
                 "num_refined_cells": 0,
             }
+        if hierarchy_child_to_parent is not None:
+            input_hash = _stable_hash_payload({str(k): str(v) for k, v in hierarchy_child_to_parent.items()})
+            if input_hash != self.hierarchy_child_to_parent_hash:
+                return _softmax(child_logits), {
+                    "applied": False,
+                    "fallback_to_base": True,
+                    "fallback_reason": "hierarchy_child_to_parent_hash_mismatch",
+                    "num_refined_cells": 0,
+                }
         base_probs = _softmax(child_logits)
         refined_probs = base_probs.copy()
         refined_cells = 0
@@ -126,6 +157,9 @@ class ParentConditionedRefinementPlan:
     guardrail: Optional[Dict[str, Any]] = None
     ranking_path: Optional[str] = None
     per_parent_summary_path: Optional[str] = None
+    selection_metadata_version: str = "selection_metadata_v1"
+    hierarchy_child_to_parent_hash: Optional[str] = None
+    label_space_hash: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -146,6 +180,9 @@ class ParentConditionedRefinementPlan:
             "guardrail": dict(self.guardrail or {}),
             "ranking_path": self.ranking_path,
             "per_parent_summary_path": self.per_parent_summary_path,
+            "selection_metadata_version": str(self.selection_metadata_version),
+            "hierarchy_child_to_parent_hash": self.hierarchy_child_to_parent_hash,
+            "label_space_hash": self.label_space_hash,
         }
 
     def save(self, path: str | Path) -> None:
@@ -176,7 +213,41 @@ class ParentConditionedRefinementPlan:
             guardrail=dict(payload.get("guardrail") or {}),
             ranking_path=payload.get("ranking_path"),
             per_parent_summary_path=payload.get("per_parent_summary_path"),
+            selection_metadata_version=str(payload.get("selection_metadata_version", "selection_metadata_v1")),
+            hierarchy_child_to_parent_hash=payload.get("hierarchy_child_to_parent_hash"),
+            label_space_hash=payload.get("label_space_hash"),
         )
+
+
+def _stable_hash_payload(payload: Any) -> str:
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def get_refinement_guardrail_profile(name: str) -> Dict[str, Any]:
+    if name == "phmap_v1":
+        return {
+            "name": "phmap_v1",
+            "version": 1,
+            "thresholds": {
+                "child_macro_f1_delta_min": 0.0,
+                "full_path_accuracy_delta_min": 0.0,
+                "parent_correct_child_wrong_rate_delta_max": 0.0,
+            },
+            "rules": [
+                "child_macro_f1 >= base",
+                "full_path_accuracy >= base",
+                "parent_correct_child_wrong_rate <= base",
+            ],
+        }
+    if name == "none":
+        return {
+            "name": "none",
+            "version": 1,
+            "thresholds": {},
+            "rules": [],
+        }
+    raise ValueError("refinement_guardrail_profile must be 'phmap_v1' or 'none'")
 
 
 def _softmax(logits: np.ndarray) -> np.ndarray:
@@ -195,6 +266,7 @@ def discover_hotspot_parents(
     top_k: int = 6,
     cumulative_target: float = 0.6,
     min_cells_per_parent: int = 0,
+    max_selected_parents: Optional[int] = None,
 ) -> Tuple[pd.DataFrame, List[str], Dict[str, Any]]:
     if parent_label_col not in subtree_breakdown.columns:
         raise ValueError(f"missing parent_label_col: {parent_label_col}")
@@ -208,6 +280,8 @@ def discover_hotspot_parents(
         raise ValueError("top_k must be > 0")
     if not (0.0 < cumulative_target <= 1.0):
         raise ValueError("cumulative_target must be in (0, 1]")
+    if max_selected_parents is not None and int(max_selected_parents) <= 0:
+        raise ValueError("max_selected_parents must be > 0 when provided")
 
     df = subtree_breakdown.copy()
     df[parent_label_col] = df[parent_label_col].astype(str)
@@ -235,6 +309,8 @@ def discover_hotspot_parents(
             next_row = df.iloc[[len(selected_df)]].copy() if len(selected_df) < len(df) else pd.DataFrame()
             if not next_row.empty and float(selected_df["cumulative_contribution"].max() if not selected_df.empty else 0.0) < float(cumulative_target):
                 selected_df = pd.concat([selected_df, next_row], ignore_index=True)
+        if max_selected_parents is not None:
+            selected_df = selected_df.head(int(max_selected_parents)).copy()
 
     selected_parents = selected_df[parent_label_col].astype(str).tolist()
     summary = {
@@ -242,10 +318,14 @@ def discover_hotspot_parents(
         "top_k": int(top_k),
         "cumulative_target": float(cumulative_target),
         "min_cells_per_parent": int(min_cells_per_parent),
+        "max_selected_parents": None if max_selected_parents is None else int(max_selected_parents),
         "candidate_parent_count": int(len(df)),
         "selected_parent_count": int(len(selected_parents)),
         "total_selection_score": total,
         "selected_selection_score": float(selected_df["selection_score"].sum()) if not selected_df.empty else 0.0,
+        "enabled": bool(len(selected_parents) > 0),
+        "fallback_to_base": bool(len(selected_parents) == 0),
+        "fallback_reason": None if len(selected_parents) > 0 else "no_hotspot_parents_after_filtering",
     }
     return df, selected_parents, summary
 
@@ -267,6 +347,9 @@ def build_parent_conditioned_refinement_plan(
     guardrail: Optional[Dict[str, Any]] = None,
     ranking_path: Optional[str] = None,
     per_parent_summary_path: Optional[str] = None,
+    selection_metadata_version: str = "selection_metadata_v1",
+    hierarchy_child_to_parent_hash: Optional[str] = None,
+    label_space_hash: Optional[str] = None,
 ) -> ParentConditionedRefinementPlan:
     return ParentConditionedRefinementPlan(
         enabled=True,
@@ -286,6 +369,9 @@ def build_parent_conditioned_refinement_plan(
         guardrail=dict(guardrail or {}),
         ranking_path=ranking_path,
         per_parent_summary_path=per_parent_summary_path,
+        selection_metadata_version=selection_metadata_version,
+        hierarchy_child_to_parent_hash=hierarchy_child_to_parent_hash,
+        label_space_hash=label_space_hash,
     )
 
 
@@ -403,4 +489,5 @@ def fit_parent_conditioned_reranker(
         rerankers=rerankers,
         selection_metadata=dict(selection_metadata or {}),
         per_parent_summary=summaries,
+        selection_metadata_version="selection_metadata_v1",
     )

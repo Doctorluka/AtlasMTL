@@ -1,0 +1,50 @@
+parent_label,n_cells,parent_correct_child_wrong_rate,path_break_rate
+SMG serous,93,0.46236559139784944,0.0
+Interstitial macrophages,707,0.1272984441301273,0.0
+Goblet,310,0.11935483870967742,0.0
+Migratory DCs,10,0.1,0.0
+Alveolar macrophages,1187,0.08677337826453244,0.0
+Transitional Club-AT2,135,0.07407407407407407,0.0
+SMG mucous,14,0.07142857142857142,0.0
+Club,470,0.04042553191489362,0.0
+AT2 proliferating,27,0.037037037037037035,0.0
+Multiciliated,604,0.026490066225165563,0.0
+DC2,149,0.020134228187919462,0.0
+Lymphatic EC mature,85,0.011764705882352941,0.0
+EC general capillary,181,0.0055248618784530384,0.0
+Classical monocytes,370,0.005405405405405406,0.0
+CD8 T cells,401,0.0024937655860349127,0.0
+AT2,1406,0.0021337126600284497,0.0
+Basal resting,807,0.0012391573729863693,0.0
+Suprabasal,845,0.001183431952662722,0.0
+CD4 T cells,395,0.0,0.0
+NK cells,341,0.0,0.0
+Non-classical monocytes,187,0.0,0.0
+AT1,174,0.0,0.0
+EC arterial,138,0.0,0.0
+EC venous pulmonary,130,0.0,0.0
+Mast cells,128,0.0,0.0
+Adventitial fibroblasts,112,0.0,0.0
+EC venous systemic,94,0.0,0.0
+Hillock-like,80,0.0,0.0
+B cells,68,0.0,0.0
+Alveolar fibroblasts,64,0.0,0.0
+EC aerocyte capillary,50,0.0,0.0
+Plasma cells,38,0.0,0.0
+Smooth muscle,36,0.0,0.0
+SMG duct,31,0.0,0.0
+Deuterosomal,21,0.0,0.0
+Pericytes,16,0.0,0.0
+Peribronchial fibroblasts,15,0.0,0.0
+Smooth muscle FAM83D+,14,0.0,0.0
+Subpleural fibroblasts,12,0.0,0.0
+T cells proliferating,11,0.0,0.0
+SM activated stress response,8,0.0,0.0
+Mesothelium,7,0.0,0.0
+Lymphatic EC differentiating,6,0.0,0.0
+Myofibroblasts,6,0.0,0.0
+Ionocyte,5,0.0,0.0
+Neuroendocrine,4,0.0,0.0
+Plasmacytoid DCs,4,0.0,0.0
+DC1,3,0.0,0.0
+Tuft,1,0.0,0.0

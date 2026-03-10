@@ -1,0 +1,22 @@
+{
+  "baseline": {
+    "ann_level_5_macro_f1": 0.6887323609459964,
+    "full_path_accuracy": 0.8239,
+    "parent_correct_child_wrong_rate": 0.0334
+  },
+  "candidate": {
+    "ann_level_5_macro_f1": 0.6930154542745182,
+    "full_path_accuracy": 0.82,
+    "parent_correct_child_wrong_rate": 0.0371
+  },
+  "passed": false,
+  "selected_parents": [
+    "Alveolar macrophages",
+    "Interstitial macrophages",
+    "Goblet",
+    "Club",
+    "Multiciliated",
+    "AT2"
+  ],
+  "variant_name": "reranker_top6"
+}

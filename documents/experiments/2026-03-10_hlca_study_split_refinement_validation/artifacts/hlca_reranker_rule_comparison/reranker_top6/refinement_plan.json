@@ -1,0 +1,33 @@
+{
+  "artifact_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/artifacts/hlca_reranker_rule_comparison/reranker_top6/reranker_top6.pkl",
+  "child_level": "ann_level_5",
+  "cumulative_target": null,
+  "enabled": true,
+  "fallback_to_base": true,
+  "guardrail": {
+    "point": "predict_100000_10000 + hierarchy_on",
+    "rules": [
+      "ann_level_5_macro_f1 >= base",
+      "full_path_accuracy >= base",
+      "parent_correct_child_wrong_rate <= base"
+    ]
+  },
+  "method": "auto_parent_conditioned_reranker",
+  "min_cells_per_parent": 200,
+  "parent_level": "ann_level_4",
+  "per_parent_summary_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/artifacts/hlca_reranker_rule_comparison/reranker_top6/per_parent_reranker_summary.csv",
+  "ranking_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-10_hlca_study_split_refinement_validation/artifacts/hlca_reranker_rule_comparison/reranker_top6/hotspot_ranking.json",
+  "selected_parents": [
+    "Alveolar macrophages",
+    "Interstitial macrophages",
+    "Goblet",
+    "Club",
+    "Multiciliated",
+    "AT2"
+  ],
+  "selection_mode": "topk",
+  "selection_point": "predict_100000_10000 + hierarchy_on",
+  "selection_score": "parent_correct_child_wrong_rate * n_cells",
+  "selection_source": "HLCA best base config",
+  "top_k": 6
+}

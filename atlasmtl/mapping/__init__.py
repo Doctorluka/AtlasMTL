@@ -10,6 +10,13 @@ from .reranker import (
     build_parent_conditioned_refinement_plan,
     discover_hotspot_parents,
     fit_parent_conditioned_reranker,
+    get_refinement_guardrail_profile,
+)
+from .weight_policy import (
+    ParentConditionedRefinementActivationDecision,
+    TaskWeightActivationDecision,
+    suggest_parent_conditioned_refinement,
+    suggest_task_weight_schedule,
 )
 
 __all__ = [
@@ -26,4 +33,9 @@ __all__ = [
     "discover_hotspot_parents",
     "build_parent_conditioned_refinement_plan",
     "fit_parent_conditioned_reranker",
+    "get_refinement_guardrail_profile",
+    "ParentConditionedRefinementActivationDecision",
+    "TaskWeightActivationDecision",
+    "suggest_parent_conditioned_refinement",
+    "suggest_task_weight_schedule",
 ]

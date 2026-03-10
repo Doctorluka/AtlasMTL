@@ -1,0 +1,155 @@
+{
+  "HLCA_Core": {
+    "activate_nonuniform_weighting": false,
+    "activation_features": {
+      "coarse_to_fine_headroom_gap": null,
+      "difficulty_reasons": [
+        "finest_balanced_accuracy=0.6825",
+        "finest_macro_f1=0.6887"
+      ],
+      "finest_balanced_accuracy": 0.6824906881230501,
+      "finest_macro_f1": 0.6887323609459964,
+      "full_path_accuracy": 0.8239,
+      "full_path_vs_finest_gap": -0.13516763905400353,
+      "hierarchy_on_off_macro_f1_gap": null,
+      "hotspot_concentration_score": 0.8424908424908425,
+      "n_levels": 5,
+      "parent_correct_child_wrong_rate": 0.0334,
+      "structural_reasons": []
+    },
+    "activation_rule_version": "activation_rule_v1",
+    "candidate_schedules": {
+      "mild_lv5": [
+        0.7,
+        0.8,
+        1.0,
+        1.2,
+        2.0
+      ],
+      "strong_lv5": [
+        0.4,
+        0.6,
+        0.9,
+        1.3,
+        3.0
+      ],
+      "uniform": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "candidate_space": [
+      "uniform"
+    ],
+    "decision_note": "keep uniform weighting because no strong structural tradeoff trigger",
+    "recommended_schedule": [
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "recommended_schedule_name": "uniform"
+  },
+  "PHMap_Lung_Full_v43_light": {
+    "activate_nonuniform_weighting": true,
+    "activation_features": {
+      "coarse_to_fine_headroom_gap": 0.27038370077172014,
+      "difficulty_reasons": [
+        "coarse_to_fine_headroom_gap=0.2704",
+        "finest_balanced_accuracy=0.5355",
+        "finest_macro_f1=0.5414"
+      ],
+      "finest_balanced_accuracy": 0.5355236721832235,
+      "finest_macro_f1": 0.541423354151696,
+      "full_path_accuracy": 0.457,
+      "full_path_vs_finest_gap": 0.08442335415169594,
+      "hierarchy_on_off_macro_f1_gap": 0.0031559149198642,
+      "hotspot_concentration_score": 0.6332752613240418,
+      "n_levels": 4,
+      "parent_correct_child_wrong_rate": 0.1003,
+      "structural_reasons": [
+        "parent_correct_child_wrong_rate=0.1003",
+        "hotspot_concentration_score=0.6333 with parent_correct_child_wrong_rate=0.1003"
+      ]
+    },
+    "activation_rule_version": "activation_rule_v1",
+    "candidate_schedules": {
+      "mild_lv4": [
+        0.7,
+        0.8,
+        1.0,
+        1.8
+      ],
+      "strong_lv4": [
+        0.2,
+        0.7,
+        1.5,
+        3.0
+      ],
+      "uniform": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "candidate_space": [
+      "uniform",
+      "mild_lv4",
+      "strong_lv4"
+    ],
+    "decision_note": "activate non-uniform weighting because baseline shows fine-level difficulty (coarse_to_fine_headroom_gap=0.2704; finest_balanced_accuracy=0.5355; finest_macro_f1=0.5414) and structural tradeoff (parent_correct_child_wrong_rate=0.1003; hotspot_concentration_score=0.6333 with parent_correct_child_wrong_rate=0.1003)",
+    "recommended_schedule": null,
+    "recommended_schedule_name": "needs_candidate_test"
+  },
+  "mTCA": {
+    "activate_nonuniform_weighting": false,
+    "activation_features": {
+      "coarse_to_fine_headroom_gap": 0.14209700813906057,
+      "difficulty_reasons": [
+        "coarse_to_fine_headroom_gap=0.1421"
+      ],
+      "finest_balanced_accuracy": 0.8460900952566328,
+      "finest_macro_f1": 0.8481427672347674,
+      "full_path_accuracy": 0.9334,
+      "full_path_vs_finest_gap": -0.08525723276523256,
+      "hierarchy_on_off_macro_f1_gap": null,
+      "hotspot_concentration_score": 0.7658862876254181,
+      "n_levels": 3,
+      "parent_correct_child_wrong_rate": 0.0299,
+      "structural_reasons": []
+    },
+    "activation_rule_version": "activation_rule_v1",
+    "candidate_schedules": {
+      "mild_lv3": [
+        0.8,
+        1.0,
+        1.8
+      ],
+      "strong_lv3": [
+        0.5,
+        1.0,
+        3.0
+      ],
+      "uniform": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    "candidate_space": [
+      "uniform"
+    ],
+    "decision_note": "keep uniform weighting because no strong structural tradeoff trigger",
+    "recommended_schedule": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "recommended_schedule_name": "uniform"
+  }
+}

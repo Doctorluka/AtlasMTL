@@ -140,6 +140,95 @@ Refinement contract:
 - refinement is currently positioned as a dataset-specific optional extension
   rather than a universal default prediction behavior
 
+## Weight-policy helper
+
+Current exported helper:
+
+- `atlasmtl.mapping.suggest_task_weight_schedule(...)`
+- `atlasmtl.mapping.suggest_parent_conditioned_refinement(...)`
+
+Current contract:
+
+- input: a compact baseline summary with finest-level and hierarchy-structured
+  error signals
+- output:
+  - `activate_nonuniform_weighting`
+  - `recommended_schedule_name`
+  - `recommended_schedule`
+  - `candidate_space`
+  - `candidate_schedules`
+  - `decision_note`
+  - `activation_features`
+
+Current scope:
+
+- this helper is advisory and workflow-level
+- it is not called automatically from `build_model()` or `predict()`
+- the benchmark runner can now opt into it through manifest-level policy fields
+- the first intended integration point is a pre-training benchmark/orchestration
+  step:
+  - run `uniform`
+  - summarize baseline errors
+  - call the helper
+  - optionally launch a small candidate comparison if activation is `true`
+
+Compatibility guarantee for current benchmark results:
+
+- adding this helper does not change the semantics of existing manifests or the
+  results of previously completed formal benchmark rounds
+- any future activation-based weighting policy must be opt-in and recorded in
+  manifests or run metadata
+
+Current benchmark-side opt-in fields:
+
+- `train.task_weight_policy = "manual" | "activation_rule_v1"`
+- `train.task_weight_selector = "none" | "candidate_selector_v1"`
+- `train.task_weight_policy_source_run = <metrics.json from a prior atlasmtl uniform baseline without refinement>`
+- `train.task_weight_candidates = {name: [weights...]}` (optional override)
+- the runner emits:
+  - `weight_policy/weight_activation_features.csv`
+  - `weight_policy/weight_activation_decision.json`
+- when selector runs, it additionally emits:
+  - `weight_policy/selector/weight_selector_candidates_ranked.json`
+  - `weight_policy/selector/weight_selector_comparison.csv`
+  - `weight_policy/selector/weight_selector_decision.json`
+
+Current refinement-side opt-in fields:
+
+- `predict.refinement_policy = "none" | "auto_parent_conditioned_reranker_v1"`
+- `predict.refinement_parent_level`
+- `predict.refinement_child_level`
+- `predict.hotspot_selection_mode`
+- `predict.hotspot_top_k`
+- `predict.hotspot_cumulative_target`
+- `predict.hotspot_min_cells_per_parent`
+- `predict.hotspot_max_selected_parents`
+- `predict.refinement_guardrail_profile`
+
+Current refinement-side artifact contract:
+
+- `refinement_policy/refinement_activation_features.csv`
+- `refinement_policy/refinement_activation_decision.json`
+- when refinement activation returns `true`, the runner additionally emits:
+  - `refinement/hotspot_ranking.json`
+  - `refinement/refinement_plan.json`
+  - `refinement/parent_conditioned_reranker.pkl`
+  - `refinement/per_parent_reranker_summary.csv`
+  - `refinement/before_after_comparison.csv`
+  - `refinement/before_after_parent_child_breakdown.csv`
+  - `refinement/guardrail_decision.json`
+- when refinement activation returns `false`, the runner records the skip in
+  run metadata and does not materialize the refinement bundle
+
+Current execution-order contract:
+
+- weighting policy decisions must come from an external baseline source run
+- weighting policy cannot read current-run refined metrics
+- refinement activation/discovery/fitting happens only after the chosen base
+  model has produced a baseline prediction on the current query
+- benchmark `metrics.json` now records a `policy_dag` section summarizing these
+  dependencies
+
 ## `TrainedModel`
 
 Stable responsibilities:

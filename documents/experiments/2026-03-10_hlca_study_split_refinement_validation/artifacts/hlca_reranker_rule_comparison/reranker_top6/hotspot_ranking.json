@@ -1,0 +1,121 @@
+{
+  "min_cells_per_parent": 200,
+  "ranking": [
+    {
+      "cumulative_contribution": 0.3772893772893773,
+      "n_cells": 1187.0,
+      "parent_correct_child_wrong_rate": 0.08677337826453244,
+      "parent_label": "Alveolar macrophages",
+      "path_break_rate": 0.0,
+      "selection_score": 103.0
+    },
+    {
+      "cumulative_contribution": 0.706959706959707,
+      "n_cells": 707.0,
+      "parent_correct_child_wrong_rate": 0.1272984441301273,
+      "parent_label": "Interstitial macrophages",
+      "path_break_rate": 0.0,
+      "selection_score": 90.0
+    },
+    {
+      "cumulative_contribution": 0.8424908424908425,
+      "n_cells": 310.0,
+      "parent_correct_child_wrong_rate": 0.11935483870967742,
+      "parent_label": "Goblet",
+      "path_break_rate": 0.0,
+      "selection_score": 37.0
+    },
+    {
+      "cumulative_contribution": 0.9120879120879121,
+      "n_cells": 470.0,
+      "parent_correct_child_wrong_rate": 0.04042553191489362,
+      "parent_label": "Club",
+      "path_break_rate": 0.0,
+      "selection_score": 19.0
+    },
+    {
+      "cumulative_contribution": 0.9706959706959707,
+      "n_cells": 604.0,
+      "parent_correct_child_wrong_rate": 0.026490066225165563,
+      "parent_label": "Multiciliated",
+      "path_break_rate": 0.0,
+      "selection_score": 16.0
+    },
+    {
+      "cumulative_contribution": 0.9816849816849816,
+      "n_cells": 1406.0,
+      "parent_correct_child_wrong_rate": 0.0021337126600284497,
+      "parent_label": "AT2",
+      "path_break_rate": 0.0,
+      "selection_score": 3.0000000000000004
+    },
+    {
+      "cumulative_contribution": 0.989010989010989,
+      "n_cells": 370.0,
+      "parent_correct_child_wrong_rate": 0.005405405405405406,
+      "parent_label": "Classical monocytes",
+      "path_break_rate": 0.0,
+      "selection_score": 2.0
+    },
+    {
+      "cumulative_contribution": 0.9926739926739927,
+      "n_cells": 401.0,
+      "parent_correct_child_wrong_rate": 0.0024937655860349127,
+      "parent_label": "CD8 T cells",
+      "path_break_rate": 0.0,
+      "selection_score": 1.0
+    },
+    {
+      "cumulative_contribution": 0.9963369963369964,
+      "n_cells": 807.0,
+      "parent_correct_child_wrong_rate": 0.0012391573729863693,
+      "parent_label": "Basal resting",
+      "path_break_rate": 0.0,
+      "selection_score": 1.0
+    },
+    {
+      "cumulative_contribution": 1.0,
+      "n_cells": 845.0,
+      "parent_correct_child_wrong_rate": 0.001183431952662722,
+      "parent_label": "Suprabasal",
+      "path_break_rate": 0.0,
+      "selection_score": 1.0
+    },
+    {
+      "cumulative_contribution": 1.0,
+      "n_cells": 395.0,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "CD4 T cells",
+      "path_break_rate": 0.0,
+      "selection_score": 0.0
+    },
+    {
+      "cumulative_contribution": 1.0,
+      "n_cells": 341.0,
+      "parent_correct_child_wrong_rate": 0.0,
+      "parent_label": "NK cells",
+      "path_break_rate": 0.0,
+      "selection_score": 0.0
+    }
+  ],
+  "selected_parents": [
+    "Alveolar macrophages",
+    "Interstitial macrophages",
+    "Goblet",
+    "Club",
+    "Multiciliated",
+    "AT2"
+  ],
+  "selection_mode": "topk",
+  "summary": {
+    "candidate_parent_count": 12,
+    "cumulative_target": 0.6,
+    "min_cells_per_parent": 200,
+    "selected_parent_count": 6,
+    "selected_selection_score": 268.0,
+    "selection_mode": "topk",
+    "top_k": 6,
+    "total_selection_score": 273.0
+  },
+  "top_k": 6
+}

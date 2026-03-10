@@ -23,6 +23,8 @@ For difficult deep-hierarchy reference mapping, error-driven parent-conditioned 
 - Rebuild HLCA from raw `hlca_clean.h5ad` using a `study`-grouped split instead of reusing a legacy benchmark subset.
 - Because HLCA has five annotation levels, run a dataset-specific 5D weighting confirmation rather than inheriting PH-Map weights.
 - Use the winning HLCA base configuration to test whether the AutoHotspot reranker mechanism transfers to a second deep-hierarchy dataset.
+- Narrow the reranker-rule follow-up to `top4` vs `top6` rather than reopening a larger hotspot-width search.
+- Add a small policy validation step that asks whether a dataset should leave `uniform` task weights at all before entering a weighting candidate test.
 
 ## Figure plan
 
@@ -30,4 +32,4 @@ For difficult deep-hierarchy reference mapping, error-driven parent-conditioned 
 - Main Figure Panel B: error-mode comparison.
 - Main Figure Panel C: method and artifact schematic support.
 - Main Figure Panel D: stability/default-rule support.
-- Supplementary S1-S4: ablation ladder, stability/by-group, hotspot-rule comparison, train-time internalization branch.
+- Supplementary S1-S5: ablation ladder, stability/by-group, hotspot-rule comparison, train-time internalization branch, weight-activation policy support.

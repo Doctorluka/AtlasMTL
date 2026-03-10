@@ -1,0 +1,3 @@
+variant_name,guardrail_passed,selected_parent_count,selected_parents
+reranker_top4,False,4,Alveolar macrophages|Interstitial macrophages|Goblet|Club
+reranker_top6,False,6,Alveolar macrophages|Interstitial macrophages|Goblet|Club|Multiciliated|AT2

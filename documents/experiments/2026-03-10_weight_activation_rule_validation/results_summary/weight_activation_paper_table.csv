@@ -1,0 +1,4 @@
+dataset,split_type,activate_nonuniform_weighting,recommended_schedule_name,reason_short,finest_macro_f1,full_path_accuracy,parent_correct_child_wrong_rate,coarse_to_fine_headroom_gap
+PHMap_Lung_Full_v43_light,study_split,True,needs_candidate_test,activate non-uniform weighting because baseline shows fine-level difficulty (coarse_to_fine_headroom_gap=0.2704; finest_balanced_accuracy=0.5355; finest_macro_f1=0.5414) and structural tradeoff (parent_correct_child_wrong_rate=0.1003; hotspot_concentration_score=0.6333 with parent_correct_child_wrong_rate=0.1003),0.541423354151696,0.457,0.1003,0.27038370077172014
+HLCA_Core,study_split,False,uniform,keep uniform weighting because no strong structural tradeoff trigger,0.6887323609459964,0.8239,0.0334,
+mTCA,formal_multilevel_predict_scaling_gpu,False,uniform,keep uniform weighting because no strong structural tradeoff trigger,0.8481427672347674,0.9334,0.0299,0.14209700813906057

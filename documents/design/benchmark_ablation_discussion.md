@@ -252,3 +252,35 @@ Operational recommendation:
 - treat weighting and reranking as dataset-adaptive optional modules
 - do not promote PH-Map-specific settings to a global default without
   additional positive cross-dataset evidence
+
+Framework-policy follow-up:
+
+- a first-pass helper now exists for weighting activation:
+  - `atlasmtl.mapping.suggest_task_weight_schedule(...)`
+- a matching first-pass helper now exists for refinement activation:
+  - `atlasmtl.mapping.suggest_parent_conditioned_refinement(...)`
+- current intended usage is:
+  - run `uniform` baseline first
+  - inspect finest-level and hierarchy-structured error signals
+  - only then decide whether to compare small non-uniform task-weight
+    candidates
+- for refinement:
+  - run baseline prediction first
+  - inspect parent-conditioned child error structure
+  - only then decide whether to trigger hotspot reranking
+- this helper is additive and is only wired into benchmark execution through
+  explicit opt-in manifest fields
+- current benchmark workflow also records policy artifacts, guardrail profile
+  expansion, label-space checks, and a policy DAG for auditability
+- therefore the completed benchmark dossiers and previously reported formal
+  results are still valid and unchanged
+
+Current HLCA follow-up status:
+
+- a narrowed `top4` vs `top6` reranker rule comparison has now been completed
+- both rules remain mixed-evidence:
+  - finest-level `macro_f1` improves
+  - `full_path_accuracy` declines
+  - `parent_correct_child_wrong_rate` rises
+- HLCA should therefore still be treated as a mixed-evidence stress test rather
+  than a second positive operational reranker case
