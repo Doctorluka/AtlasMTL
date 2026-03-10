@@ -1,0 +1,26 @@
+[
+  {
+    "config_name": "uniform_control",
+    "reference_point": "build_100000_eval10k",
+    "source_manifest": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_multilevel_annotation_benchmark/manifests/multilevel/PHMap_Lung_Full_v43_light/gpu/build_100000_eval10k/atlasmtl_multilevel.yaml",
+    "task_weights": [
+      1.0,
+      1.0,
+      1.0,
+      1.0
+    ],
+    "train_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_multilevel_annotation_benchmark/manifests/phase1_phmap_weight_hierarchy/train/uniform_control/atlasmtl_phase1_train.yaml"
+  },
+  {
+    "config_name": "lv4strong_candidate",
+    "reference_point": "build_100000_eval10k",
+    "source_manifest": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_multilevel_annotation_benchmark/manifests/multilevel/PHMap_Lung_Full_v43_light/gpu/build_100000_eval10k/atlasmtl_multilevel.yaml",
+    "task_weights": [
+      0.2,
+      0.7,
+      1.5,
+      3.0
+    ],
+    "train_manifest_path": "/home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-09_multilevel_annotation_benchmark/manifests/phase1_phmap_weight_hierarchy/train/lv4strong_candidate/atlasmtl_phase1_train.yaml"
+  }
+]

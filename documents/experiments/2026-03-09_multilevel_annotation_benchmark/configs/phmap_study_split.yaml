@@ -1,0 +1,34 @@
+defaults:
+  seed: 2026
+  n_candidates: 512
+  warning_build_label_min: 25
+  warning_predict_label_min: 10
+  build_eval_size: 10000
+  predict_grid:
+    - 1000
+    - 3000
+    - 5000
+    - 8000
+    - 10000
+    - 15000
+    - 20000
+  predict_tail_optional:
+    - 50000
+
+datasets:
+  - dataset_name: PHMap_Lung_Full_v43_light
+    panel_type: main
+    prep_manifest: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-03_phmap_benchmark/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__scaleout_prep_v1.yaml
+    source_h5ad: /home/data/fhz/project/phmap_package/data/real_test/phmap/phmap_clean.h5ad
+    split_key: study
+    domain_key: study
+    target_label: anno_lv4
+    build_grid:
+      - 10000
+      - 20000
+      - 30000
+      - 50000
+      - 100000
+      - 150000
+      - 200000
+      - 300000

@@ -1,0 +1,251 @@
+dataset_name: HLCA_Core
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: formal_build_scaling_gpu_build100000_eval10k_v1
+split_description: formal third-wave build scaling manifest (gpu); build=100000, fixed
+  query=10k, panel=main
+reference_subset: reference_train_100000_prepared
+query_subset: heldout_build_eval_10k_prepared
+reference_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/HLCA_Core/prepared/formal_split_v1/build_scaling/build_100000/reference_train_100000.h5ad
+query_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/HLCA_Core/prepared/formal_split_v1/build_scaling/build_100000/heldout_build_eval_10k.h5ad
+label_columns:
+- ann_level_1
+- ann_level_2
+- ann_level_3
+- ann_level_4
+- ann_level_5
+domain_key: donor_id
+input_matrix_type: lognorm
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: ann_level_5
+    trainer_backend: formal
+    trainer_config:
+      n_jobs: 8
+      feature_selection: true
+      balance_cell_type: true
+      batch_size: 5000
+      top_genes: 500
+      use_gpu: false
+  singler:
+    target_label_column: ann_level_5
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+  seurat_anchor_transfer:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 3000
+  reference_knn:
+    input_transform: binary
+  scanvi:
+    target_label_column: ann_level_5
+    batch_key: donor_id
+    counts_layer: counts
+    scvi_max_epochs: 25
+    scanvi_max_epochs: 25
+    query_max_epochs: 20
+    n_latent: 20
+    batch_size: 256
+    datasplitter_num_workers: 0
+    use_gpu: true
+  atlasmtl:
+    reference_layer: counts
+    query_layer: counts
+train:
+  hidden_sizes:
+  - 1024
+  - 512
+  dropout_rate: 0.2
+  batch_size: 512
+  num_epochs: 50
+  learning_rate: 0.001
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 5
+  random_state: 2026
+  reference_storage: external
+  optimizer_name: adamw
+  weight_decay: 5.0e-05
+  scheduler_name: null
+predict:
+  knn_correction: 'off'
+  batch_size: 512
+  input_transform: binary
+  enforce_hierarchy: true
+  hierarchy_rules:
+    ann_level_2:
+      child_to_parent:
+        Airway epithelium: Epithelial
+        Alveolar epithelium: Epithelial
+        Blood vessels: Endothelial
+        Fibroblast lineage: Stroma
+        Hematopoietic stem cells: Immune
+        Lymphatic EC: Endothelial
+        Lymphoid: Immune
+        Mesothelium: Stroma
+        Myeloid: Immune
+        Smooth muscle: Stroma
+        Submucosal Gland: Epithelial
+      parent_col: ann_level_1
+    ann_level_3:
+      child_to_parent:
+        AT1: Alveolar epithelium
+        AT2: Alveolar epithelium
+        B cell lineage: Lymphoid
+        Basal: Airway epithelium
+        Dendritic cells: Myeloid
+        EC arterial: Blood vessels
+        EC capillary: Blood vessels
+        EC venous: Blood vessels
+        Fibroblasts: Fibroblast lineage
+        Hematopoietic stem cells: Hematopoietic stem cells
+        Innate lymphoid cell NK: Lymphoid
+        Lymphatic EC differentiating: Lymphatic EC
+        Lymphatic EC mature: Lymphatic EC
+        Lymphatic EC proliferating: Lymphatic EC
+        Macrophages: Myeloid
+        Mast cells: Myeloid
+        Mesothelium: Mesothelium
+        Monocytes: Myeloid
+        Multiciliated lineage: Airway epithelium
+        Myofibroblasts: Fibroblast lineage
+        Rare: Airway epithelium
+        SM activated stress response: Smooth muscle
+        Secretory: Airway epithelium
+        Smooth muscle: Smooth muscle
+        Smooth muscle FAM83D+: Smooth muscle
+        Submucosal Secretory: Submucosal Gland
+        T cell lineage: Lymphoid
+      parent_col: ann_level_2
+    ann_level_4:
+      child_to_parent:
+        AT1: AT1
+        AT2: AT2
+        AT2 proliferating: AT2
+        Adventitial fibroblasts: Fibroblasts
+        Alveolar fibroblasts: Fibroblasts
+        Alveolar macrophages: Macrophages
+        B cells: B cell lineage
+        Basal resting: Basal
+        CD4 T cells: T cell lineage
+        CD8 T cells: T cell lineage
+        Classical monocytes: Monocytes
+        Club: Secretory
+        DC1: Dendritic cells
+        DC2: Dendritic cells
+        Deuterosomal: Multiciliated lineage
+        EC aerocyte capillary: EC capillary
+        EC arterial: EC arterial
+        EC general capillary: EC capillary
+        EC venous pulmonary: EC venous
+        EC venous systemic: EC venous
+        Goblet: Secretory
+        Hematopoietic stem cells: Hematopoietic stem cells
+        Hillock-like: Basal
+        Interstitial macrophages: Macrophages
+        Ionocyte: Rare
+        Lymphatic EC differentiating: Lymphatic EC differentiating
+        Lymphatic EC mature: Lymphatic EC mature
+        Lymphatic EC proliferating: Lymphatic EC proliferating
+        Mast cells: Mast cells
+        Mesothelium: Mesothelium
+        Migratory DCs: Dendritic cells
+        Multiciliated: Multiciliated lineage
+        Myofibroblasts: Myofibroblasts
+        NK cells: Innate lymphoid cell NK
+        Neuroendocrine: Rare
+        Non-classical monocytes: Monocytes
+        Peribronchial fibroblasts: Fibroblasts
+        Pericytes: Fibroblasts
+        Plasma cells: B cell lineage
+        Plasmacytoid DCs: Dendritic cells
+        SM activated stress response: SM activated stress response
+        SMG duct: Submucosal Secretory
+        SMG mucous: Submucosal Secretory
+        SMG serous: Submucosal Secretory
+        Smooth muscle: Smooth muscle
+        Smooth muscle FAM83D+: Smooth muscle FAM83D+
+        Subpleural fibroblasts: Fibroblasts
+        Suprabasal: Basal
+        T cells proliferating: T cell lineage
+        Transitional Club-AT2: Secretory
+        Tuft: Rare
+      parent_col: ann_level_3
+    ann_level_5:
+      child_to_parent:
+        AT0: Transitional Club-AT2
+        AT1: AT1
+        AT2: AT2
+        AT2 proliferating: AT2 proliferating
+        Adventitial fibroblasts: Adventitial fibroblasts
+        Alveolar Mph CCL3+: Alveolar macrophages
+        Alveolar Mph MT-positive: Alveolar macrophages
+        Alveolar Mph proliferating: Alveolar macrophages
+        Alveolar fibroblasts: Alveolar fibroblasts
+        Alveolar macrophages: Alveolar macrophages
+        B cells: B cells
+        Basal resting: Basal resting
+        CD4 T cells: CD4 T cells
+        CD8 T cells: CD8 T cells
+        Classical monocytes: Classical monocytes
+        Club (nasal): Club
+        Club (non-nasal): Club
+        DC1: DC1
+        DC2: DC2
+        Deuterosomal: Deuterosomal
+        EC aerocyte capillary: EC aerocyte capillary
+        EC arterial: EC arterial
+        EC general capillary: EC general capillary
+        EC venous pulmonary: EC venous pulmonary
+        EC venous systemic: EC venous systemic
+        Goblet (bronchial): Goblet
+        Goblet (nasal): Goblet
+        Goblet (subsegmental): Goblet
+        Hematopoietic stem cells: Hematopoietic stem cells
+        Hillock-like: Hillock-like
+        Interstitial Mph perivascular: Interstitial macrophages
+        Ionocyte: Ionocyte
+        Lymphatic EC differentiating: Lymphatic EC differentiating
+        Lymphatic EC mature: Lymphatic EC mature
+        Lymphatic EC proliferating: Lymphatic EC proliferating
+        Mast cells: Mast cells
+        Mesothelium: Mesothelium
+        Migratory DCs: Migratory DCs
+        Monocyte-derived Mph: Interstitial macrophages
+        Multiciliated (nasal): Multiciliated
+        Multiciliated (non-nasal): Multiciliated
+        Myofibroblasts: Myofibroblasts
+        NK cells: NK cells
+        Neuroendocrine: Neuroendocrine
+        Non-classical monocytes: Non-classical monocytes
+        Peribronchial fibroblasts: Peribronchial fibroblasts
+        Pericytes: Pericytes
+        Plasma cells: Plasma cells
+        Plasmacytoid DCs: Plasmacytoid DCs
+        SM activated stress response: SM activated stress response
+        SMG duct: SMG duct
+        SMG mucous: SMG mucous
+        SMG serous (bronchial): SMG serous
+        SMG serous (nasal): SMG serous
+        Smooth muscle: Smooth muscle
+        Smooth muscle FAM83D+: Smooth muscle FAM83D+
+        Subpleural fibroblasts: Subpleural fibroblasts
+        Suprabasal: Suprabasal
+        T cells proliferating: T cells proliferating
+        Tuft: Tuft
+        pre-TB secretory: Transitional Club-AT2
+      parent_col: ann_level_4
+experiment_round: 2026-03-09_multilevel_annotation_benchmark
+source_formal_manifest: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/HLCA_Core__ann_level_5__formal_build_scaling_gpu_build100000_eval10k_v1.yaml
+generated_from_manifest_index: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/manifest_index.json

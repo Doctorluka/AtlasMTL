@@ -1,0 +1,148 @@
+dataset_name: mTCA
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: formal_predict_scaling_gpu_build100000_predict10000_v1
+split_description: formal third-wave predict scaling manifest (gpu); fixed build=100000,
+  query=10000, panel=main
+reference_subset: reference_train_100000_prepared
+query_subset: heldout_predict_10000_prepared
+reference_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/mTCA/prepared/formal_split_v1/build_scaling/build_100000/reference_train_100000.h5ad
+query_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/mTCA/prepared/formal_split_v1/predict_scaling/fixed_build_100000/heldout_predict_10000.h5ad
+label_columns:
+- Cell_type_level1
+- Cell_type_level2
+- Cell_type_level3
+domain_key: orig.ident
+input_matrix_type: counts
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: Cell_type_level3
+    trainer_backend: formal
+    trainer_config:
+      n_jobs: 8
+      feature_selection: true
+      balance_cell_type: true
+      batch_size: 5000
+      top_genes: 500
+      use_gpu: false
+  singler:
+    target_label_column: Cell_type_level3
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: Cell_type_level3
+    batch_key: orig.ident
+    reference_layer: counts
+    query_layer: counts
+  seurat_anchor_transfer:
+    target_label_column: Cell_type_level3
+    batch_key: orig.ident
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 3000
+  reference_knn:
+    input_transform: binary
+  scanvi:
+    target_label_column: Cell_type_level3
+    batch_key: orig.ident
+    counts_layer: counts
+    scvi_max_epochs: 25
+    scanvi_max_epochs: 25
+    query_max_epochs: 20
+    n_latent: 20
+    batch_size: 256
+    datasplitter_num_workers: 0
+    use_gpu: true
+  atlasmtl:
+    reference_layer: counts
+    query_layer: counts
+train:
+  hidden_sizes:
+  - 1024
+  - 512
+  dropout_rate: 0.2
+  batch_size: 512
+  num_epochs: 50
+  learning_rate: 0.0003
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 5
+  random_state: 2026
+  reference_storage: external
+  optimizer_name: adamw
+  weight_decay: 5.0e-05
+  scheduler_name: null
+  task_weights:
+  - 0.2
+  - 0.7
+  - 1.5
+  - 3.0
+predict:
+  knn_correction: 'off'
+  batch_size: 512
+  input_transform: binary
+  enforce_hierarchy: true
+  hierarchy_rules:
+    Cell_type_level2:
+      child_to_parent:
+        Embryonic cells: Embryonic cells
+        Endothelial cells: Somatic cells
+        Epithelial cells: Somatic cells
+        Immune cells: Somatic cells
+        Leydig cells: Somatic cells
+        Muscle cells: Somatic cells
+        Myoid cells: Somatic cells
+        Neurocytes: Somatic cells
+        PGCs: Germ cells
+        Prospermatogonia: Germ cells
+        Sertoli cells: Somatic cells
+        Spermatids: Germ cells
+        Spermatocytes: Germ cells
+        Spermatogonia: Germ cells
+        Stromal cells: Somatic cells
+        Unknown (Hoxa9+): Somatic cells
+      parent_col: Cell_type_level1
+    Cell_type_level3:
+      child_to_parent:
+        Diplotene: Spermatocytes
+        Elongated spermatids: Spermatids
+        Endothelial cells: Endothelial cells
+        Epiblast: Embryonic cells
+        Epithelial cells: Epithelial cells
+        Hindgut & Visceral Endoderm: Embryonic cells
+        Leptotene: Spermatocytes
+        Leydig cells: Leydig cells
+        Macrophages: Immune cells
+        Meiotic metaphase: Spermatocytes
+        Migrating PGCs: PGCs
+        Mitotic PGCs: PGCs
+        Mitotic arrest PGCs: PGCs
+        Muscle cells: Muscle cells
+        Myoid cells: Myoid cells
+        NK/T cells: Immune cells
+        Neurocytes: Neurocytes
+        Neutrophils: Immune cells
+        Pachytene: Spermatocytes
+        Quiescent prospermatogonia: Prospermatogonia
+        Round spermatids: Spermatids
+        Sertoli cells: Sertoli cells
+        Specification PGCs: PGCs
+        Stromal cells: Stromal cells
+        Transitional prospermatogonia: Prospermatogonia
+        Unknown (Hoxa9+): Unknown (Hoxa9+)
+        Zygotene: Spermatocytes
+        mixed Mesenchyme/Mesoderm/Primitive Streak: Embryonic cells
+        mixed Mitotic/arrest PGCs: PGCs
+        pre Leptotene: Spermatocytes
+        type A spermatogonia: Spermatogonia
+        type B spermatogonia: Spermatogonia
+        undiff A spermatogonia: Spermatogonia
+      parent_col: Cell_type_level2
+experiment_round: 2026-03-09_multilevel_annotation_benchmark
+source_formal_manifest: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/mTCA__Cell_type_level3__formal_predict_scaling_gpu_build100000_predict10000_v1.yaml
+generated_from_manifest_index: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/manifest_index.json
+config_name: atlasmtl_multilevel_v2_weighted_gpu

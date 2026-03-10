@@ -1,0 +1,9 @@
+dataset,track,config_name,point,hierarchy_setting,enforce_hierarchy,full_path_accuracy,full_path_coverage,full_path_covered_accuracy,mean_path_consistency_rate,min_path_consistency_rate,path_edge_count,edge_path_consistency_json
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,build_100000_eval10k,off,False,0.5777,0.893,0.6469204927211646,0.9855365092499814,0.9668644352401209,3,"{""anno_lv2"": 0.9977958120428815, ""anno_lv3"": 0.9919492804669418, ""anno_lv4"": 0.9668644352401209}"
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,build_100000_eval10k,on,True,0.5777,0.8582,0.6731531111628991,1.0,1.0,3,"{""anno_lv2"": 1.0, ""anno_lv3"": 1.0, ""anno_lv4"": 1.0}"
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,predict_100000_10000,off,False,0.5667,0.8882,0.6380319747804548,0.9850081667503191,0.9657811796488068,3,"{""anno_lv2"": 0.9979975971165399, ""anno_lv3"": 0.9912457234856108, ""anno_lv4"": 0.9657811796488068}"
+PHMap_Lung_Full_v43_light,gpu,lv4strong_candidate,predict_100000_10000,on,True,0.5667,0.8511,0.6658442016214311,1.0,1.0,3,"{""anno_lv2"": 1.0, ""anno_lv3"": 1.0, ""anno_lv4"": 1.0}"
+PHMap_Lung_Full_v43_light,gpu,uniform_control,build_100000_eval10k,off,False,0.5675,0.8961,0.6332998549269054,0.9881551973716581,0.9731086810979692,3,"{""anno_lv2"": 0.998797836104989, ""anno_lv3"": 0.9925590749120161, ""anno_lv4"": 0.9731086810979692}"
+PHMap_Lung_Full_v43_light,gpu,uniform_control,build_100000_eval10k,on,True,0.5675,0.8675,0.654178674351585,1.0,1.0,3,"{""anno_lv2"": 1.0, ""anno_lv3"": 1.0, ""anno_lv4"": 1.0}"
+PHMap_Lung_Full_v43_light,gpu,uniform_control,predict_100000_10000,off,False,0.5557,0.8905,0.6240314430095452,0.9874448277000006,0.9714831031772763,3,"{""anno_lv2"": 0.9979963935083149, ""anno_lv3"": 0.9928549864144108, ""anno_lv4"": 0.9714831031772763}"
+PHMap_Lung_Full_v43_light,gpu,uniform_control,predict_100000_10000,on,True,0.5557,0.8595,0.6465386852821408,1.0,1.0,3,"{""anno_lv2"": 1.0, ""anno_lv3"": 1.0, ""anno_lv4"": 1.0}"

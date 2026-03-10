@@ -1,0 +1,31 @@
+{
+  "cell_subtype": {
+    "child_to_parent": {
+      "CD14 monocyte": "monocyte",
+      "CD14/CD16 monocyte": "monocyte",
+      "CD16 NK": "NK cells",
+      "CD16 monocyte": "monocyte",
+      "GZMB CD8 T": "CD8+ T cells",
+      "GZMK CD8 T": "CD8+ T cells",
+      "GZMK NK": "NK cells",
+      "HSC": "HSC",
+      "MAIT": "CD8+ T cells",
+      "RBC": "RBC",
+      "Treg": "CD4+ T cells",
+      "cDC": "cDC",
+      "cytotoxic CD4 T": "CD4+ T cells",
+      "memory B": "B cells",
+      "memory CD4 T": "CD4+ T cells",
+      "naive B": "B cells",
+      "naive CD4 T": "CD4+ T cells",
+      "naive CD8 T": "CD8+ T cells",
+      "neutrophil": "neutrophil",
+      "pDC": "pDC",
+      "plasma cell": "plasma cell",
+      "platelet": "platelet",
+      "proliferation T/NK": "proliferation T/NK",
+      "proliferation myeloid cell": "proliferation myeloid cell"
+    },
+    "parent_col": "cell_type"
+  }
+}

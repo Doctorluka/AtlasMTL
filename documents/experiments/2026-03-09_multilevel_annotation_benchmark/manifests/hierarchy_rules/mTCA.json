@@ -1,0 +1,61 @@
+{
+  "Cell_type_level2": {
+    "child_to_parent": {
+      "Embryonic cells": "Embryonic cells",
+      "Endothelial cells": "Somatic cells",
+      "Epithelial cells": "Somatic cells",
+      "Immune cells": "Somatic cells",
+      "Leydig cells": "Somatic cells",
+      "Muscle cells": "Somatic cells",
+      "Myoid cells": "Somatic cells",
+      "Neurocytes": "Somatic cells",
+      "PGCs": "Germ cells",
+      "Prospermatogonia": "Germ cells",
+      "Sertoli cells": "Somatic cells",
+      "Spermatids": "Germ cells",
+      "Spermatocytes": "Germ cells",
+      "Spermatogonia": "Germ cells",
+      "Stromal cells": "Somatic cells",
+      "Unknown (Hoxa9+)": "Somatic cells"
+    },
+    "parent_col": "Cell_type_level1"
+  },
+  "Cell_type_level3": {
+    "child_to_parent": {
+      "Diplotene": "Spermatocytes",
+      "Elongated spermatids": "Spermatids",
+      "Endothelial cells": "Endothelial cells",
+      "Epiblast": "Embryonic cells",
+      "Epithelial cells": "Epithelial cells",
+      "Hindgut & Visceral Endoderm": "Embryonic cells",
+      "Leptotene": "Spermatocytes",
+      "Leydig cells": "Leydig cells",
+      "Macrophages": "Immune cells",
+      "Meiotic metaphase": "Spermatocytes",
+      "Migrating PGCs": "PGCs",
+      "Mitotic PGCs": "PGCs",
+      "Mitotic arrest PGCs": "PGCs",
+      "Muscle cells": "Muscle cells",
+      "Myoid cells": "Myoid cells",
+      "NK/T cells": "Immune cells",
+      "Neurocytes": "Neurocytes",
+      "Neutrophils": "Immune cells",
+      "Pachytene": "Spermatocytes",
+      "Quiescent prospermatogonia": "Prospermatogonia",
+      "Round spermatids": "Spermatids",
+      "Sertoli cells": "Sertoli cells",
+      "Specification PGCs": "PGCs",
+      "Stromal cells": "Stromal cells",
+      "Transitional prospermatogonia": "Prospermatogonia",
+      "Unknown (Hoxa9+)": "Unknown (Hoxa9+)",
+      "Zygotene": "Spermatocytes",
+      "mixed Mesenchyme/Mesoderm/Primitive Streak": "Embryonic cells",
+      "mixed Mitotic/arrest PGCs": "PGCs",
+      "pre Leptotene": "Spermatocytes",
+      "type A spermatogonia": "Spermatogonia",
+      "type B spermatogonia": "Spermatogonia",
+      "undiff A spermatogonia": "Spermatogonia"
+    },
+    "parent_col": "Cell_type_level2"
+  }
+}

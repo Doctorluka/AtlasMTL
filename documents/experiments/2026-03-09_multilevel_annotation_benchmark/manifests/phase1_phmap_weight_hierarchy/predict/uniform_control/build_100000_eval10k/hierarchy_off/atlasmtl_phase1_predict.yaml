@@ -1,0 +1,208 @@
+dataset_name: PHMap_Lung_Full_v43_light
+version: 1
+protocol_version: 1
+random_seed: 2026
+split_name: formal_build_scaling_gpu_build100000_eval10k_v1
+split_description: formal third-wave build scaling manifest (gpu); build=100000, fixed
+  query=10k, panel=main
+reference_subset: reference_train_100000_prepared
+query_subset: heldout_build_eval_10k_prepared
+reference_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/build_scaling/build_100000/reference_train_100000.h5ad
+query_h5ad: /tmp/atlasmtl_benchmarks/2026-03-06/formal_third_wave/PHMap_Lung_Full_v43_light/prepared/formal_split_v1/build_scaling/build_100000/heldout_build_eval_10k.h5ad
+label_columns:
+- anno_lv1
+- anno_lv2
+- anno_lv3
+- anno_lv4
+domain_key: sample
+input_matrix_type: infer
+counts_layer: counts
+method_configs:
+  celltypist:
+    target_label_column: anno_lv4
+    trainer_backend: formal
+    trainer_config:
+      n_jobs: 8
+      feature_selection: true
+      balance_cell_type: true
+      batch_size: 5000
+      top_genes: 500
+      use_gpu: false
+  singler:
+    target_label_column: anno_lv4
+    reference_layer: counts
+    query_layer: counts
+    normalize_log1p: true
+    use_pruned_labels: true
+  symphony:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+  seurat_anchor_transfer:
+    target_label_column: anno_lv4
+    batch_key: sample
+    reference_layer: counts
+    query_layer: counts
+    nfeatures: 3000
+  reference_knn:
+    input_transform: binary
+  scanvi:
+    target_label_column: anno_lv4
+    batch_key: sample
+    counts_layer: counts
+    scvi_max_epochs: 25
+    scanvi_max_epochs: 25
+    query_max_epochs: 20
+    n_latent: 20
+    batch_size: 256
+    datasplitter_num_workers: 0
+    use_gpu: true
+  atlasmtl:
+    reference_layer: counts
+    query_layer: counts
+train:
+  hidden_sizes:
+  - 1024
+  - 512
+  dropout_rate: 0.2
+  batch_size: 512
+  num_epochs: 50
+  learning_rate: 0.0003
+  input_transform: binary
+  val_fraction: 0.1
+  early_stopping_patience: 5
+  random_state: 2026
+  reference_storage: external
+  optimizer_name: adamw
+  weight_decay: 5.0e-05
+  scheduler_name: null
+  task_weights:
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+predict:
+  knn_correction: 'off'
+  batch_size: 512
+  input_transform: binary
+  enforce_hierarchy: false
+  hierarchy_rules:
+    anno_lv2:
+      child_to_parent:
+        B: Lymphocyte
+        DC: Myeloid
+        EC lymphatic: Endothelial
+        EC vascular: Endothelial
+        Epi AT1: Epithelial
+        Epi AT2: Epithelial
+        Epi Basal: Epithelial
+        Epi Ciliated: Epithelial
+        Epi Goblet: Epithelial
+        Fibroblast: Stromal
+        Macrophage: Myeloid
+        Mast: Myeloid
+        Monocyte: Myeloid
+        NK: Lymphocyte
+        Neutrophil: Myeloid
+        Pericyte: Stromal
+        Platelet: Platelet
+        Smooth Muscle: Stromal
+        T: Lymphocyte
+      parent_col: anno_lv1
+    anno_lv3:
+      child_to_parent:
+        B: B
+        CD4+ T: T
+        CD8+ T: T
+        DC: DC
+        EC lymphatic: EC lymphatic
+        EC vascular: EC vascular
+        Epi AT1: Epi AT1
+        Epi AT2: Epi AT2
+        Epi Basal: Epi Basal
+        Epi Ciliated: Epi Ciliated
+        Epi Goblet: Epi Goblet
+        Fibro adventitial: Fibroblast
+        Fibro alveolar: Fibroblast
+        Fibro myo: Fibroblast
+        Fibro preibronchial: Fibroblast
+        Fibro subpleural: Fibroblast
+        Mast: Mast
+        Mono classical: Monocyte
+        Mono non-classical: Monocyte
+        Mph alveolar: Macrophage
+        Mph prevascular: Macrophage
+        Mph proliferating: Macrophage
+        NK CD16 high: NK
+        NK CD56 high: NK
+        Neutrophil: Neutrophil
+        Pericyte: Pericyte
+        Plasma: B
+        Platelet: Platelet
+        SMC contractile: Smooth Muscle
+        SMC de-differentiated: Smooth Muscle
+      parent_col: anno_lv2
+    anno_lv4:
+      child_to_parent:
+        B_c1_MS4A1: B
+        B_c2_plasma_JCHAIN: Plasma
+        CD4T_c1_naive_IL7R: CD4+ T
+        CD4T_c2_trMemory_CXCR6: CD4+ T
+        CD4T_c3_stress_MALAT1: CD4+ T
+        CD4T_c4_effector_CST3: CD4+ T
+        CD4T_c5_Treg_FOXP3: CD4+ T
+        CD8T_c1_effector_GZMK: CD8+ T
+        CD8T_c2_trMemory_ITGA1: CD8+ T
+        CD8T_c3_eMemory_GZMH: CD8+ T
+        DC_c1_cDC_LAD1: DC
+        DC_c2_cDC_LEC9A: DC
+        DC_c3_cDC_CD1E: DC
+        DC_c4_pDC_CLEC4C: DC
+        EC_c1_lymphatic_CCL21: EC lymphatic
+        EC_c2_aerocyte_cap_SOSTDC1: EC vascular
+        EC_c3_arterial_DKK2: EC vascular
+        EC_c4_general_cap_FCN3: EC vascular
+        EC_c5_venous_pul_CPE: EC vascular
+        EC_c6_venous_sys_TPD52L1: EC vascular
+        EC_c7_FTL: EC vascular
+        EC_c8_CXCL12: EC vascular
+        EC_c9_COL1A2: EC vascular
+        Epi_c1_AT1_CLIC5: Epi AT1
+        Epi_c2_AT2_SFTPC: Epi AT2
+        Epi_c3_Basal_KRT5: Epi Basal
+        Epi_c4_Ciliated_FOXJ1: Epi Ciliated
+        Epi_c5_Goblet_MUC5AC: Epi Goblet
+        Fibro_c1_adventitial_MFAP5: Fibro adventitial
+        Fibro_c2_adventitial_SRPX: Fibro adventitial
+        Fibro_c3_alveolar_FTH1: Fibro alveolar
+        Fibro_c4_alveolar_SPINT2: Fibro alveolar
+        Fibro_c5_subpleural_POSTN: Fibro subpleural
+        Fibro_c6_preibronchial_ASPN: Fibro preibronchial
+        Fibro_c7_myo_MYH11: Fibro myo
+        Mast_TPSAB1: Mast
+        Mono_c1_classical_CD14: Mono classical
+        Mono_c2_non-classical_FCGR3A: Mono non-classical
+        Mph_c1_alveolar_APOE: Mph alveolar
+        Mph_c2_alveolar_CCL2: Mph alveolar
+        Mph_c3_alveolar_FN1: Mph alveolar
+        Mph_c4_alveolar_SCGB3A1: Mph alveolar
+        Mph_c5_proliferating_MKI67: Mph proliferating
+        Mph_c6_alveolar_LGALS3: Mph alveolar
+        Mph_c7_perivascular_F13A1: Mph prevascular
+        NK_c1_CD16: NK CD16 high
+        NK_c2_CD56: NK CD56 high
+        Neutrophil_NAMPT: Neutrophil
+        Pericyte_LAMC3: Pericyte
+        Platelet_PPBP: Platelet
+        SMC_c1_contractile_CNN1: SMC contractile
+        SMC_c2_dediff_FLNA: SMC de-differentiated
+        SMC_c3_dediff_LUM: SMC de-differentiated
+        SMC_c4_dediff_SOCS3: SMC de-differentiated
+        SMC_c5_dediff_COX4I2: SMC de-differentiated
+      parent_col: anno_lv3
+experiment_round: 2026-03-09_multilevel_annotation_benchmark
+source_formal_manifest: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/PHMap_Lung_Full_v43_light__anno_lv4__formal_build_scaling_gpu_build100000_eval10k_v1.yaml
+generated_from_manifest_index: /home/data/fhz/project/phmap_package/atlasmtl/documents/experiments/2026-03-06_formal_third_wave_scaling/manifests/reference_heldout/manifest_index.json
+optimization_stage: phase1_phmap_weight_hierarchy
+config_name: atlasmtl_phase1_uniform_control_build_100000_eval10k_hierarchy_off

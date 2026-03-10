@@ -8,6 +8,7 @@ This repository root is `/home/data/fhz/project/phmap_package/atlasmtl`. The Pyt
 - `pip install -e .[dev]` installs development dependencies (`pytest`, `black`, `flake8`).
 - `python -m compileall atlasmtl` runs a fast syntax check.
 - `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env/bin/python -m pytest tests/unit/test_core_api.py -q` runs the focused unit API checks.
+- `NUMBA_CACHE_DIR=/tmp/numba_cache /home/data/fhz/.local/share/mamba/envs/atlasmtl-env/bin/python -m pytest tests/unit/test_training_optimizer_config.py -q` validates optimizer/scheduler defaults and override behavior.
 - `NUMBA_CACHE_DIR=/tmp/numba_cache /home/data/fhz/.local/share/mamba/envs/atlasmtl-env/bin/python -m pytest tests/integration/test_predict_integration.py -q` runs the end-to-end train/predict integration checks.
 - `/home/data/fhz/.local/share/mamba/envs/atlasmtl-env/bin/python -m pytest tests/integration/test_cli_smoke.py -q` checks the train/predict CLI wrappers and manifest loading.
 - `flake8 atlasmtl tests` runs lint checks.
@@ -30,6 +31,7 @@ Environment note:
 
 Model artifact note:
 - Default recommendation is `reference_storage="external"` when building models.
+- Current default training path is `optimizer_name="adamw"`, `weight_decay=5e-5`, `scheduler_name=None`; treat `ReduceLROnPlateau` as an explicit experiment option, not a default.
 - Preferred artifact layout is `model.pth` + `model_metadata.pkl` + `model_reference.pkl` + `model_manifest.json`.
 - Use embedded reference storage only when a single self-contained file pair is more important than artifact size.
 
@@ -78,8 +80,23 @@ When updating benchmark scripts or reports, preserve explicit fields for:
 - thread policy (OMP/MKL/OPENBLAS/NUMEXPR)
 - degraded-runtime flags (e.g., joblib serial fallback)
 
+When updating experiment dossiers:
+
+- keep `documents/experiments/README.md` aligned with the latest completed rounds
+- if a dossier README changes status from planning to completed, update the
+  dossier-level README and the experiments index in the same documentation pass
+- for optimizer/default-promotion rounds, record whether CPU evidence was
+  degraded and whether GPU evidence is the primary decision basis
+
 ## Testing Guidelines
 Write unit tests for model utilities, serialization, and confidence/KNN logic in `tests/unit/`, integration tests for end-to-end AnnData IO and CLI behavior in `tests/integration/`, and metric/regression checks in `tests/regression/`. Include at least one smoke test for `build_model()` and `predict()` whenever API signatures, artifact layout, or `uns["atlasmtl"]` metadata change.
+
+If training defaults change, update:
+
+- the corresponding unit expectations in `tests/unit/test_training_optimizer_config.py`
+- public default descriptions in `README.md` and `documents/design/api_contract.md`
+- relevant design and experiment-index documentation when the change is backed
+  by a completed optimization dossier
 
 ## Commit & Pull Request Guidelines
 Use Conventional Commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`. The active branch is `main` tracking `origin/main`; run commits and pushes from this repository root. Keep PRs scoped, include a short problem statement, list validation commands run, and describe any changes to output fields in `obs/obsm/uns`, runtime summaries, or model artifact filenames. Avoid rewriting shared history unless explicitly required; if history rewrite is unavoidable, use `--force-with-lease` and document the reason in the PR.
